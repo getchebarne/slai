@@ -353,7 +353,7 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
             target: require_target(target),
         }),
         // The draw pile sets the damage in combat; the Card's own base is 0
-        EffectKind::DamageMindBlast { .. } => PyEffect::DamageMindBlast(PyEffectDamageMindBlast {
+        EffectKind::DamageMindBlast => PyEffect::DamageMindBlast(PyEffectDamageMindBlast {
             damage: 0,
             target: require_target(target),
         }),

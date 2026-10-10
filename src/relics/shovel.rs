@@ -5,6 +5,7 @@ use crate::types::RelicTier;
 // Dig at rest sites: a random Relic, staged as a reward the player may leave
 // See:
 //    - `action.rs`
+//    - `process_effect_rest_dig.rs`
 pub static SHOVEL: RelicTemplate = RelicTemplate {
     name: RelicName::Shovel,
     tier: RelicTier::Rare,

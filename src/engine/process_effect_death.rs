@@ -15,7 +15,6 @@ use crate::types::MonsterName;
 use crate::types::PotionName;
 use crate::types::RelicName;
 use crate::utils::flush_effects_from_buf_to_queue_front;
-use crate::utils::has_relic;
 use crate::utils::resolve_health_fraction;
 
 pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState, with_leader: bool) {
@@ -114,7 +113,6 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState, wit
                     | EffectKind::DamagePhysicalIfPoisoned { .. }
                     | EffectKind::DamageFinisher { .. }
                     | EffectKind::DamageFlechettes { .. }
-                    | EffectKind::DamageMindBlast { .. }
                     | EffectKind::PoisonTick { .. }
                     | EffectKind::HandOfGreedProc { .. }
                     | EffectKind::RitualDaggerProc { .. }
@@ -191,39 +189,45 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState, wit
         }
     }
 
-    // Gremlin Horn: a Monster's death grants 1 energy and draws 1
-    if has_relic(&state.id_relics, RelicName::GremlinHorn) {
-        state.effect_buf.push(Effect {
-            kind: EffectKind::EnergyDelta {
-                sign: DeltaSign::Gain,
-                amount: 1,
-            },
-            id_source: None,
-            target: Target::Direct(None),
-        });
-        state.effect_buf.push(Effect {
-            kind: EffectKind::CardDraw { count: 1 },
-            id_source: None,
-            target: Target::Direct(None),
-        });
-    }
+    // The on-death Relics fire in pickup order
+    let mut id_relics: Vec<usize> = state.id_relics.iter().flatten().copied().collect();
+    id_relics.sort_unstable_by_key(|&id| state.entities[id].relic_seq);
+    for id_relic in id_relics {
+        match state.entities[id_relic].relic_name {
+            // Gremlin Horn: a Monster's death grants 1 energy and draws 1
+            RelicName::GremlinHorn => {
+                state.effect_buf.push(Effect {
+                    kind: EffectKind::EnergyDelta {
+                        sign: DeltaSign::Gain,
+                        amount: 1,
+                    },
+                    id_source: None,
+                    target: Target::Direct(None),
+                });
+                state.effect_buf.push(Effect {
+                    kind: EffectKind::CardDraw { count: 1 },
+                    id_source: None,
+                    target: Target::Direct(None),
+                });
+            }
 
-    // The Specimen: the corpse's Poison moves to a random survivor
-    if has_relic(&state.id_relics, RelicName::TheSpecimen)
-        && has_modifier(&target.modifiers, ModifierKind::Poison)
-    {
-        state.effect_buf.push(Effect {
-            kind: EffectKind::ModifierDelta {
-                kind: ModifierKind::Poison,
-                stacks: modifier_stacks(&target.modifiers, ModifierKind::Poison),
-            },
-            id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Monsters,
-                filters: &[],
-                selection_kind: SelectionKind::Random { count: 1 },
-            },
-        });
+            // The Specimen: the Character moves the corpse's Poison to a random survivor
+            RelicName::TheSpecimen if has_modifier(&target.modifiers, ModifierKind::Poison) => {
+                state.effect_buf.push(Effect {
+                    kind: EffectKind::ModifierDelta {
+                        kind: ModifierKind::Poison,
+                        stacks: modifier_stacks(&target.modifiers, ModifierKind::Poison),
+                    },
+                    id_source: Some(id_character),
+                    target: Target::Resolve {
+                        candidate_pool: CandidatePool::Monsters,
+                        filters: &[],
+                        selection_kind: SelectionKind::Random { count: 1 },
+                    },
+                });
+            }
+            _ => {}
+        }
     }
 
     // Gremlin Leader: its gremlins flee last; minions escaping here don't skip rewards because of `RoomKind::CombatElite`

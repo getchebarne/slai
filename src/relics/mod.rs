@@ -209,7 +209,6 @@ pub const RELIC_COUNTERS_PER_TURN: &[RelicName] = &[
     RelicName::Shuriken,
     RelicName::OrnamentalFan,
     RelicName::LetterOpener,
-    RelicName::OrangePellets,
     RelicName::HoveringKite,
     RelicName::Necronomicon,
     RelicName::Pocketwatch,

@@ -6,6 +6,7 @@ use crate::types::EventName;
 
 use super::card::PyCard;
 use super::card::snapshot_card;
+use super::card::snapshot_card_combat;
 use super::effect::PyEffect;
 use super::effect::snapshot_effect;
 use super::event::PyEventName;
@@ -61,6 +62,9 @@ pub struct PyCombat {
     pub pile_nightmare: Vec<PyCard>, // Each arrives NIGHTMARE_COPIES times next turn
     pub panache_countdown: u8,       // Plays left until Panache's hit
     pub this_turn_discards: u16, // Cards discarded this turn (Sneaky Strike's refund, Eviscerate's discount)
+    pub this_turn_played_attack: bool, // Card kinds played since Orange Pellets last fired this turn
+    pub this_turn_played_skill: bool,
+    pub this_turn_played_power: bool,
 }
 
 #[pyclass(
@@ -165,31 +169,36 @@ pub struct PyChest {
 
 pub(crate) fn snapshot_combat(state: &GameState) -> PyCombat {
     let combat = &state.combat;
+
+    // A Card played now has Mind Blast hit for the draw pile as it stands; a waiting play keeps the size it was queued with
+    let draw_pile_size = combat.id_card_draw.len() as u16;
     PyCombat {
         pile_hand: combat
             .id_card_hand
             .iter()
-            .map(|&id| snapshot_card(state, id))
+            .map(|&id| snapshot_card_combat(state, id, draw_pile_size))
             .collect(),
         pile_draw: combat
             .id_card_draw
             .iter()
-            .map(|&id| snapshot_card(state, id))
+            .map(|&id| snapshot_card_combat(state, id, draw_pile_size))
             .collect(),
         pile_discard: combat
             .id_card_discard
             .iter()
-            .map(|&id| snapshot_card(state, id))
+            .map(|&id| snapshot_card_combat(state, id, draw_pile_size))
             .collect(),
         pile_exhaust: combat
             .id_card_exhaust
             .iter()
-            .map(|&id| snapshot_card(state, id))
+            .map(|&id| snapshot_card_combat(state, id, draw_pile_size))
             .collect(),
         pile_queue: state
             .card_play_queue
             .iter()
-            .map(|card_play| snapshot_card(state, card_play.id_card))
+            .map(|card_play| {
+                snapshot_card_combat(state, card_play.id_card, card_play.draw_pile_size)
+            })
             .collect(),
         energy: PyEnergy {
             energy_current: combat.energy.energy_current,
@@ -202,13 +211,15 @@ pub(crate) fn snapshot_combat(state: &GameState) -> PyCombat {
             .iter()
             .zip(&combat.id_card_stasis)
             .filter_map(|(&id_monster, &id_card)| {
-                id_monster.map(|_| id_card.map(|id_card| snapshot_card(state, id_card)))
+                id_monster.map(|_| {
+                    id_card.map(|id_card| snapshot_card_combat(state, id_card, draw_pile_size))
+                })
             })
             .collect(),
         pile_discover: combat
             .id_card_discover
             .iter()
-            .map(|&id| snapshot_card(state, id))
+            .map(|&id| snapshot_card_combat(state, id, draw_pile_size))
             .collect(),
         bombs: combat
             .bombs
@@ -218,10 +229,13 @@ pub(crate) fn snapshot_combat(state: &GameState) -> PyCombat {
         pile_nightmare: combat
             .id_card_nightmares
             .iter()
-            .map(|&(id, _)| snapshot_card(state, id))
+            .map(|&(id, _)| snapshot_card_combat(state, id, draw_pile_size))
             .collect(),
         panache_countdown: combat.panache_countdown,
         this_turn_discards: combat.this_turn_discards,
+        this_turn_played_attack: combat.this_turn_played_attack,
+        this_turn_played_skill: combat.this_turn_played_skill,
+        this_turn_played_power: combat.this_turn_played_power,
     }
 }
 

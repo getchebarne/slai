@@ -145,6 +145,7 @@ pub struct Entity {
     pub relic_counter: i16,
     pub relic_used_up: bool,
     pub relic_seq: u16,
+
     pub relic_effects_combat_start: &'static [Effect],
     pub relic_effects_turn_start: &'static [Effect],
     pub relic_effects_turn_end: &'static [Effect],

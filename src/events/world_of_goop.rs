@@ -18,16 +18,8 @@ const GOLD_LOSS_MAX: u16 = 50;
 const GOLD_LOSS_MIN_A15: u16 = 35;
 const GOLD_LOSS_MAX_A15: u16 = 75;
 
-// Gather
+// Gather; the loss lands last, so a lethal Gather still pays and closes
 const OPTION_GATHER: &[Effect] = &[
-    Effect {
-        kind: EffectKind::HealthDelta {
-            sign: DeltaSign::Loss,
-            amount: Amount::Absolute(11),
-        },
-        id_source: None,
-        target: TARGET_CHARACTER,
-    },
     Effect {
         kind: EffectKind::GoldDelta {
             sign: DeltaSign::Gain,
@@ -37,6 +29,14 @@ const OPTION_GATHER: &[Effect] = &[
         target: Target::Direct(None),
     },
     EFFECT_EVENT_CONSUME,
+    Effect {
+        kind: EffectKind::HealthDelta {
+            sign: DeltaSign::Loss,
+            amount: Amount::Absolute(11),
+        },
+        id_source: None,
+        target: TARGET_CHARACTER,
+    },
 ];
 
 // Leave: forfeit the gold rolled on entry

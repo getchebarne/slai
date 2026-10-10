@@ -102,7 +102,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
-        stacks_max: 999,
+        stacks_max: i16::MAX,
     },
     ModifierDef {
         kind: ModifierKind::AfterImage,
@@ -110,7 +110,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
-        stacks_max: 999,
+        stacks_max: i16::MAX,
     },
     ModifierDef {
         kind: ModifierKind::Angry,
@@ -142,7 +142,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
         is_buff: true,
         stacks_duration: true,
         stacks_min: 1,
-        stacks_max: 999,
+        stacks_max: i16::MAX,
     },
     ModifierDef {
         kind: ModifierKind::Burst,
@@ -150,7 +150,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
-        stacks_max: 999,
+        stacks_max: i16::MAX,
     },
     ModifierDef {
         kind: ModifierKind::Choke,
@@ -158,7 +158,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
         is_buff: false,
         stacks_duration: false,
         stacks_min: 1,
-        stacks_max: 999,
+        stacks_max: i16::MAX,
     },
     ModifierDef {
         kind: ModifierKind::CorpseExplosion,
@@ -190,7 +190,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
         is_buff: true,
         stacks_duration: true,
         stacks_min: 1,
-        stacks_max: 999,
+        stacks_max: i16::MAX,
     },
     ModifierDef {
         kind: ModifierKind::DrawCardNextTurn,
@@ -198,7 +198,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
-        stacks_max: 999,
+        stacks_max: i16::MAX,
     },
     ModifierDef {
         kind: ModifierKind::Enrage,
@@ -238,7 +238,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
-        stacks_max: 999,
+        stacks_max: i16::MAX,
     },
     ModifierDef {
         kind: ModifierKind::Intangible,
@@ -246,7 +246,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
         is_buff: true,
         stacks_duration: true,
         stacks_min: 1,
-        stacks_max: 999,
+        stacks_max: i16::MAX,
     },
     ModifierDef {
         kind: ModifierKind::Metallicize,
@@ -262,7 +262,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
-        stacks_max: 999,
+        stacks_max: i16::MAX,
     },
     ModifierDef {
         kind: ModifierKind::NextTurnBlock,
@@ -270,7 +270,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
         is_buff: true,
         stacks_duration: false,
         stacks_min: 0, // A 0-block Dodge and Roll still lists it until the next turn start
-        stacks_max: 999,
+        stacks_max: i16::MAX,
     },
     ModifierDef {
         kind: ModifierKind::NextTurnEnergy,
@@ -302,7 +302,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
         is_buff: true,
         stacks_duration: true,
         stacks_min: 1,
-        stacks_max: 999,
+        stacks_max: i16::MAX,
     },
     ModifierDef {
         kind: ModifierKind::PlatedArmor,
@@ -326,7 +326,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
-        stacks_max: 999,
+        stacks_max: i16::MAX,
     },
     ModifierDef {
         kind: ModifierKind::Ritual,
@@ -350,7 +350,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
-        stacks_max: 999,
+        stacks_max: i16::MAX,
     },
     ModifierDef {
         kind: ModifierKind::Splittable,
@@ -366,7 +366,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
-        stacks_max: 999,
+        stacks_max: i16::MAX,
     },
     ModifierDef {
         kind: ModifierKind::Strength,
@@ -382,7 +382,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
-        stacks_max: 999,
+        stacks_max: i16::MAX,
     },
     ModifierDef {
         kind: ModifierKind::Thorns,
@@ -390,7 +390,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
-        stacks_max: 999,
+        stacks_max: i16::MAX,
     },
     ModifierDef {
         kind: ModifierKind::ThousandCuts,
@@ -398,7 +398,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
-        stacks_max: 999,
+        stacks_max: i16::MAX,
     },
     ModifierDef {
         kind: ModifierKind::ToolsOfTheTrade,
@@ -406,7 +406,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
-        stacks_max: 999,
+        stacks_max: i16::MAX,
     },
     ModifierDef {
         kind: ModifierKind::Vigor,
@@ -414,7 +414,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
-        stacks_max: 999,
+        stacks_max: i16::MAX,
     },
     ModifierDef {
         kind: ModifierKind::Vulnerable,
@@ -438,7 +438,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
         is_buff: false,
         stacks_duration: false,
         stacks_min: 1,
-        stacks_max: 999,
+        stacks_max: i16::MAX,
     },
     ModifierDef {
         kind: ModifierKind::Buffer,
@@ -446,7 +446,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
-        stacks_max: 999,
+        stacks_max: i16::MAX,
     },
     ModifierDef {
         kind: ModifierKind::PenNib,
@@ -462,7 +462,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
-        stacks_max: 999,
+        stacks_max: i16::MAX,
     },
     ModifierDef {
         kind: ModifierKind::NoBlock,
@@ -470,7 +470,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
         is_buff: false,
         stacks_duration: true,
         stacks_min: 1,
-        stacks_max: 999,
+        stacks_max: i16::MAX,
     },
     ModifierDef {
         kind: ModifierKind::Panache,
@@ -478,7 +478,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
-        stacks_max: 999,
+        stacks_max: i16::MAX,
     },
     ModifierDef {
         kind: ModifierKind::SadisticNature,
@@ -486,7 +486,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
-        stacks_max: 999,
+        stacks_max: i16::MAX,
     },
     ModifierDef {
         kind: ModifierKind::Mayhem,
@@ -494,7 +494,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
-        stacks_max: 999,
+        stacks_max: i16::MAX,
     },
     ModifierDef {
         kind: ModifierKind::Regeneration,
@@ -526,7 +526,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
         is_buff: true,
         stacks_duration: false,
         stacks_min: 0, // A spent stack lingers at 0 while its Card resolves
-        stacks_max: 999,
+        stacks_max: i16::MAX,
     },
     ModifierDef {
         kind: ModifierKind::Flight,
@@ -534,7 +534,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
-        stacks_max: 999,
+        stacks_max: i16::MAX,
     },
     ModifierDef {
         kind: ModifierKind::Malleable,
@@ -542,7 +542,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
-        stacks_max: 999,
+        stacks_max: i16::MAX,
     },
     ModifierDef {
         kind: ModifierKind::Barricade,
@@ -558,7 +558,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
         is_buff: false,
         stacks_duration: false,
         stacks_min: 1,
-        stacks_max: 999,
+        stacks_max: i16::MAX,
     },
     ModifierDef {
         kind: ModifierKind::Confusion,

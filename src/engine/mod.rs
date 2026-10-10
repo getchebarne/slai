@@ -41,7 +41,6 @@ pub mod process_effect_combat_start;
 pub mod process_effect_damage_deal;
 pub mod process_effect_damage_finisher;
 pub mod process_effect_damage_flechettes;
-pub mod process_effect_damage_mind_blast;
 pub mod process_effect_damage_physical;
 pub mod process_effect_death;
 pub mod process_effect_debuffs_clear;
@@ -94,6 +93,7 @@ pub mod process_effect_relic_grant_random;
 pub mod process_effect_relic_grant_specific;
 pub mod process_effect_relic_lose;
 pub mod process_effect_relic_reward_remove_one;
+pub mod process_effect_rest_dig;
 pub mod process_effect_rest_site_consume;
 pub mod process_effect_rest_smith;
 pub mod process_effect_rest_toke;
@@ -167,7 +167,6 @@ use self::process_effect_combat_start::process_effect_combat_start;
 use self::process_effect_damage_deal::process_effect_damage_deal;
 use self::process_effect_damage_finisher::process_effect_damage_finisher;
 use self::process_effect_damage_flechettes::process_effect_damage_flechettes;
-use self::process_effect_damage_mind_blast::process_effect_damage_mind_blast;
 use self::process_effect_damage_physical::process_effect_damage_physical;
 use self::process_effect_death::process_effect_death;
 use self::process_effect_debuffs_clear::process_effect_debuffs_clear;
@@ -220,6 +219,7 @@ use self::process_effect_relic_grant_random::process_effect_relic_grant_random;
 use self::process_effect_relic_grant_specific::process_effect_relic_grant_specific;
 use self::process_effect_relic_lose::process_effect_relic_lose;
 use self::process_effect_relic_reward_remove_one::process_effect_relic_reward_remove_one;
+use self::process_effect_rest_dig::process_effect_rest_dig;
 use self::process_effect_rest_site_consume::process_effect_rest_site_consume;
 use self::process_effect_rest_smith::process_effect_rest_smith;
 use self::process_effect_rest_toke::process_effect_rest_toke;
@@ -518,8 +518,8 @@ fn dispatch_by_kind(
         EffectKind::CardMove { pile, cost_zero } => {
             process_effect_card_move(id_target, state, pile, cost_zero)
         }
-        EffectKind::DamageMindBlast { bonus } => {
-            process_effect_damage_mind_blast(id_source, id_target, state, bonus)
+        EffectKind::DamageMindBlast => {
+            unreachable!("Mind Blast's play turns its hit into DamagePhysical")
         }
         EffectKind::ShuffleDiscardPileIntoDrawPile => {
             process_effect_shuffle_discard_pile_into_draw_pile(state)
@@ -569,6 +569,7 @@ fn dispatch_by_kind(
         }
         EffectKind::RewardTake { kind } => process_effect_reward_take(id_target, state, kind),
         EffectKind::RoomExit => process_effect_room_exit(state),
+        EffectKind::RestDig => process_effect_rest_dig(state),
         EffectKind::RestSiteConsume => process_effect_rest_site_consume(state),
         EffectKind::RestSmith => process_effect_rest_smith(id_target, state),
         EffectKind::RestToke => process_effect_rest_toke(id_target, state),

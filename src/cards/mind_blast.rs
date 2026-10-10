@@ -22,7 +22,7 @@ pub static MIND_BLAST: CardTemplate = make_card_template(
     false,
     true,
     &[Effect {
-        kind: EffectKind::DamageMindBlast { bonus: 0 },
+        kind: EffectKind::DamageMindBlast,
         id_source: None,
         target: TARGET_MONSTER_PICKED,
     }],
