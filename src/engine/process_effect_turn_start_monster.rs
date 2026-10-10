@@ -3,6 +3,7 @@ use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
+use crate::modifier::active_modifier_kinds;
 use crate::modifier::has_modifier;
 use crate::modifier::modifier_stacks;
 use crate::monsters::byrd;
@@ -20,11 +21,15 @@ pub fn process_effect_turn_start_monster(id_target: Option<usize>, state: &mut G
         return;
     }
 
-    // The first Monster turn start ends the Character's turn: a Vulnerable skips its first round end only if applied after it; Doubt's Weak and Shame's Frail still skip
+    // The first Monster turn start ends the Character's turn: of what landed since the turn end, only Doubt's Weak and Shame's Frail still skip a round end
     if !state.combat.turn_ended {
         state.combat.turn_ended = true;
-        state.entities[state.id_character].modifiers.is_new[ModifierKind::Vulnerable as usize] =
-            false;
+        let modifiers = &mut state.entities[state.id_character].modifiers;
+        for kind in active_modifier_kinds(modifiers.active) {
+            if !matches!(kind, ModifierKind::Weak | ModifierKind::Frail) {
+                modifiers.is_new[kind as usize] = false;
+            }
+        }
     }
 
     // Clear effect buffer
