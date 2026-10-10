@@ -1,11 +1,14 @@
 use crate::consts::HEXAGHOST_DIVIDER_DIVISOR;
+use crate::consts::MODE_SHIFT_INCREASE_PER_CYCLE;
 use crate::effect::EffectKind;
 use crate::game::GameState;
+use crate::modifier::ModifierKind;
 use crate::monsters::book_of_stabbing;
 use crate::monsters::get_next_move;
 use crate::monsters::hexaghost;
 use crate::monsters::is_cycle_boundary;
 use crate::monsters::push_move_history;
+use crate::monsters::the_guardian;
 use crate::types::Combat;
 use crate::types::MonsterName;
 
@@ -59,21 +62,37 @@ pub fn process_effect_move_update(
             book_of_stabbing::multi_stab_instances(&entity.monster_move_uses, state.ascension)
         });
 
-    // The locked values replace the template's placeholders in the copy
-    for effect in entity.monster_move_effects[..move_chosen.effects_len as usize].iter_mut() {
-        if let EffectKind::DamagePhysical {
-            amount, instances, ..
-        } = &mut effect.kind
-        {
-            *amount = damage_locked.unwrap_or(*amount);
-            *instances = instances_locked.map_or(*instances, u16::from);
-        }
-    }
-
+    // The cycle count already includes the move being chosen
     let move_idx = move_next as u8;
-    push_move_history(entity, move_idx);
-
     if is_cycle_boundary(entity.monster_name, move_idx) {
         entity.monster_cycle_count += 1;
     }
+
+    // Twin Slam's Mode Shift locks in at selection: 10 more for each Defensive Mode before it
+    let mode_shift_bonus = if entity.monster_name == MonsterName::TheGuardian
+        && move_next == the_guardian::IDX_MOVE_TWIN_SLAM
+    {
+        MODE_SHIFT_INCREASE_PER_CYCLE * i16::from(entity.monster_cycle_count)
+    } else {
+        0
+    };
+
+    // The locked values go into the copy
+    for effect in entity.monster_move_effects[..move_chosen.effects_len as usize].iter_mut() {
+        match &mut effect.kind {
+            EffectKind::DamagePhysical {
+                amount, instances, ..
+            } => {
+                *amount = damage_locked.unwrap_or(*amount);
+                *instances = instances_locked.map_or(*instances, u16::from);
+            }
+            EffectKind::ModifierDelta {
+                kind: ModifierKind::ModeShift,
+                stacks,
+            } => *stacks += mode_shift_bonus,
+            _ => {}
+        }
+    }
+
+    push_move_history(entity, move_idx);
 }

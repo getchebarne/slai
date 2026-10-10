@@ -102,7 +102,7 @@ pub struct Entity {
     pub monster_kind: MonsterKind,
     pub monster_moves: &'static [Move],
     pub monster_move_current: Option<usize>,
-    pub monster_move_effects: [Effect; MAX_EFFECTS_PER_MOVE], // The current move's effects, with the values it locked when chosen (Divider's damage, Multi-Stab's hits)
+    pub monster_move_effects: [Effect; MAX_EFFECTS_PER_MOVE], // The current move's effects, with the values it locked when chosen (Divider's damage, Multi-Stab's hits, Twin Slam's Mode Shift)
     pub monster_move_effects_len: u8,
     pub monster_move_history: [u8; MAX_MOVE_HISTORY],
     pub monster_move_history_exec: [bool; MAX_MOVE_HISTORY], // Per history entry: the chosen move executed; a replaced one never does

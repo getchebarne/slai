@@ -1,4 +1,3 @@
-use crate::consts::MODE_SHIFT_INCREASE_PER_CYCLE;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
@@ -99,9 +98,9 @@ pub fn process_effect_modifier_delta(
         stacks
     };
 
-    // ModeShift has special scaling logic
+    // A Monster's Mode Shift applies as given, unstamped and never new
     if kind == ModifierKind::ModeShift && target.kind == EntityKind::Monster {
-        return process_mode_shift_gain(&mut target.modifiers, stacks, target.monster_cycle_count);
+        return process_mode_shift_gain(&mut target.modifiers, stacks);
     }
 
     // Artifact
@@ -184,11 +183,7 @@ pub fn process_effect_modifier_delta(
     }
 }
 
-fn process_mode_shift_gain(modifiers: &mut Modifiers, stacks: i16, monster_cycle_count: u8) {
-    modifier_apply(
-        modifiers,
-        ModifierKind::ModeShift,
-        stacks + MODE_SHIFT_INCREASE_PER_CYCLE * monster_cycle_count as i16,
-    );
+fn process_mode_shift_gain(modifiers: &mut Modifiers, stacks: i16) {
+    modifier_apply(modifiers, ModifierKind::ModeShift, stacks);
     modifiers.is_new[ModifierKind::ModeShift as usize] = false;
 }
