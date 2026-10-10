@@ -212,7 +212,7 @@ fn handle_effect_pending_resolve(state: &mut GameState, idx: usize) {
         candidate_pool,
         &state.combat,
         &state.event,
-        &state.id_card_deck,
+        &state.id_card_pile_deck,
     )[idx];
     state.effect_pending_selected.push(id_selected);
 
@@ -260,41 +260,41 @@ fn pool_collection<'a>(
     pool: CandidatePool,
     combat: &'a Combat,
     event: &'a Event,
-    id_card_deck: &'a [usize],
+    id_card_pile_deck: &'a [usize],
 ) -> &'a [usize] {
     match pool {
-        CandidatePool::Hand => {
+        CandidatePool::CardPileHand => {
             assert!(combat.active, "Hand pick outside combat");
-            &combat.id_card_hand
+            &combat.id_card_pile_hand
         }
-        CandidatePool::Discover => {
+        CandidatePool::CardPileDiscover => {
             assert!(combat.active, "Discover pick outside combat");
-            &combat.id_card_discover
+            &combat.id_card_pile_discover
         }
-        CandidatePool::PileDraw => {
+        CandidatePool::CardPileDraw => {
             assert!(combat.active, "Pile pick outside combat");
-            &combat.id_card_draw
+            &combat.id_card_pile_draw
         }
-        CandidatePool::PileDiscard => {
+        CandidatePool::CardPileDiscard => {
             assert!(combat.active, "Pile pick outside combat");
-            &combat.id_card_discard
+            &combat.id_card_pile_discard
         }
-        CandidatePool::PileExhaust => {
+        CandidatePool::CardPileExhaust => {
             assert!(combat.active, "Pile pick outside combat");
-            &combat.id_card_exhaust
+            &combat.id_card_pile_exhaust
         }
-        CandidatePool::Deck => id_card_deck,
-        CandidatePool::EventRollCard => {
+        CandidatePool::CardPileDeck => id_card_pile_deck,
+        CandidatePool::CardPileEventRoll => {
             assert!(event.active, "Event roll pick outside an event");
-            &event.id_roll_card
+            &event.id_card_pile_event_roll
         }
-        CandidatePool::EventRollRelic => {
+        CandidatePool::RelicEventRoll => {
             assert!(event.active, "Event roll pick outside an event");
-            &event.id_roll_relic
+            &event.id_relic_event_roll
         }
-        CandidatePool::EventRollPotion => {
+        CandidatePool::PotionEventRoll => {
             assert!(event.active, "Event roll pick outside an event");
-            &event.id_roll_potion
+            &event.id_potion_event_roll
         }
         other => unreachable!("pick over non-indexable pool: {:?}", other),
     }
@@ -319,7 +319,7 @@ fn handle_pick_skip(state: &mut GameState) {
 
 fn handle_card_play(state: &mut GameState, idx_card: usize, idx_monster: Option<usize>) {
     assert!(state.combat.active, "handle_card_play outside combat");
-    let id_card = state.combat.id_card_hand[idx_card];
+    let id_card = state.combat.id_card_pile_hand[idx_card];
 
     // The play carries its own target: the picked Monster, if the Card needs one
     let id_monster_target = if entity_requires_target(&state.entities[id_card]) {
@@ -342,7 +342,7 @@ fn handle_card_play(state: &mut GameState, idx_card: usize, idx_monster: Option<
         id_target: id_monster_target,
         play_source: PlaySource::Hand,
         energy: state.combat.energy.energy_current,
-        draw_pile_size: state.combat.id_card_draw.len() as u16,
+        draw_pile_size: state.combat.id_card_pile_draw.len() as u16,
     });
 }
 
@@ -471,7 +471,7 @@ fn handle_rest_toke(state: &mut GameState) {
         kind: EffectKind::RestToke,
         id_source: None,
         target: Target::Resolve {
-            candidate_pool: CandidatePool::Deck,
+            candidate_pool: CandidatePool::CardPileDeck,
             filters: &[CandidateFilter::NotBottled, CandidateFilter::NotBoundCurse],
             selection_kind: SelectionKind::InputUpTo { count: 1 },
         },
@@ -484,7 +484,7 @@ fn handle_rest_smith(state: &mut GameState) {
         kind: EffectKind::RestSmith,
         id_source: None,
         target: Target::Resolve {
-            candidate_pool: CandidatePool::Deck,
+            candidate_pool: CandidatePool::CardPileDeck,
             filters: &[CandidateFilter::Upgradeable],
             selection_kind: SelectionKind::InputUpTo { count: 1 },
         },
@@ -593,7 +593,8 @@ fn fill_legal_actions_effect_pending(
     pool: CandidatePool,
 ) {
     // Get `CandidatePool`'s instanced IDs
-    let id_collection = pool_collection(pool, &state.combat, &state.event, &state.id_card_deck);
+    let id_collection =
+        pool_collection(pool, &state.combat, &state.event, &state.id_card_pile_deck);
 
     // Apply the filters over the whole set, then map survivors back to pool indices;
     // staged picks are out of the running
@@ -610,8 +611,8 @@ fn fill_legal_actions_effect_pending(
 
 fn fill_legal_actions_combat(state: &mut GameState) {
     let Combat {
-        id_card_hand,
-        id_card_draw,
+        id_card_pile_hand,
+        id_card_pile_draw,
         id_monsters,
         energy,
         this_turn_cards_played,
@@ -626,20 +627,20 @@ fn fill_legal_actions_combat(state: &mut GameState) {
     );
 
     let cap_reached = play_cap_reached(
-        id_card_hand,
+        id_card_pile_hand,
         &state.entities,
         &state.id_relics,
         *this_turn_cards_played,
     );
-    for idx in 0..id_card_hand.len() {
+    for idx in 0..id_card_pile_hand.len() {
         if cap_reached {
             break;
         }
-        let card = &state.entities[id_card_hand[idx]];
+        let card = &state.entities[id_card_pile_hand[idx]];
         let restriction_ok = is_play_restriction_satisfied(
             card.card_play_restriction,
             card.card_kind,
-            &id_card_draw,
+            &id_card_pile_draw,
             &state.entities,
             &state.id_relics,
         );
@@ -786,7 +787,7 @@ fn fill_legal_actions_shop(state: &mut GameState) {
     if !*purged
         && gold >= *purge_cost
         && state
-            .id_card_deck
+            .id_card_pile_deck
             .iter()
             .any(|&id| card_is_purgeable(&state.entities[id]))
     {
@@ -815,7 +816,7 @@ fn fill_legal_actions_rest_site(state: &mut GameState) {
         // Fusion Hammer: Smith is unavailable
         if !has_relic(&state.id_relics, RelicName::FusionHammer)
             && state
-                .id_card_deck
+                .id_card_pile_deck
                 .iter()
                 .any(|&id| card_is_upgradable(&state.entities[id]))
         {
@@ -834,7 +835,7 @@ fn fill_legal_actions_rest_site(state: &mut GameState) {
         // Peace Pipe: Toke to purge a Card
         if has_relic(&state.id_relics, RelicName::PeacePipe)
             && state
-                .id_card_deck
+                .id_card_pile_deck
                 .iter()
                 .any(|&id| card_is_purgeable(&state.entities[id]))
         {

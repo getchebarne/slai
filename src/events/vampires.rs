@@ -25,7 +25,7 @@ const EFFECT_PURGE_STRIKES: Effect = Effect {
     kind: EffectKind::CardPurge,
     id_source: None,
     target: Target::Resolve {
-        candidate_pool: CandidatePool::Deck,
+        candidate_pool: CandidatePool::CardPileDeck,
         filters: &[CandidateFilter::Starter, CandidateFilter::KindAttack],
         selection_kind: SelectionKind::All,
     },
@@ -34,7 +34,7 @@ const EFFECT_PURGE_STRIKES: Effect = Effect {
 const EFFECT_GAIN_BITES: Effect = Effect {
     kind: EffectKind::CardAdd {
         card_name: CardName::Bite,
-        pile: CardPile::Deck,
+        card_pile: CardPile::Deck,
         count: 5,
         upgraded: false,
     },
@@ -68,7 +68,7 @@ const OPTION_VIAL: [Effect; 4] = [
         kind: EffectKind::RelicLose,
         id_source: None,
         target: Target::Resolve {
-            candidate_pool: CandidatePool::EventRollRelic,
+            candidate_pool: CandidatePool::RelicEventRoll,
             filters: &[],
             selection_kind: SelectionKind::Single,
         },
@@ -94,7 +94,7 @@ pub fn option_available(state: &GameState, idx: usize) -> bool {
 // The Vial option consumes the staked Relic; availability gates it on ownership
 pub fn spawn(state: &mut GameState) -> Vec<usize> {
     if let Some(id) = state.id_relics[RelicName::BloodVial as usize] {
-        state.event.id_roll_relic.push(id);
+        state.event.id_relic_event_roll.push(id);
     }
     bake_options(state, catalog(state.ascension))
 }

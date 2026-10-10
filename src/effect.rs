@@ -28,14 +28,14 @@ pub enum EffectKind {
     BonfireOffer,
     CardAdd {
         card_name: CardName,
-        pile: CardPile,
+        card_pile: CardPile,
         count: u16,
         upgraded: bool,
     },
     CardAddRandom {
         color: CardColor,
         kind: Option<CardKind>,
-        pile: CardPile,
+        card_pile: CardPile,
         count: u16,
         cost_zero: Option<CostScope>,
         upgraded: bool,
@@ -51,7 +51,7 @@ pub enum EffectKind {
     },
     CardDiscoverPick {
         cost_zero: Option<CostScope>,
-        pile: CardPile,
+        card_pile: CardPile,
         copies: u8,
     },
     CardDiscoverRoll {
@@ -70,12 +70,12 @@ pub enum EffectKind {
         amount: u8,
     },
     CardDuplicate {
-        pile: CardPile,
+        card_pile: CardPile,
     },
     CardExhaust,
     CardFreePlaySpend,
     CardMove {
-        pile: CardPile,
+        card_pile: CardPile,
         cost_zero: Option<CostScope>,
     },
     CardNightmarePick,
@@ -92,7 +92,7 @@ pub enum EffectKind {
     },
     LifestealHeal,
     CardPlayRelocate,
-    CardPlayFromDrawTop,
+    CardPlayFromCardPileDrawTop,
     CardPurge,
     CardRemove,
     CardRetain,
@@ -294,7 +294,7 @@ pub enum EffectKind {
         slot: ShopSlot,
     },
     ShopPurge,
-    ShuffleDiscardPileIntoDrawPile,
+    ShuffleCardPileDiscardIntoCardPileDraw,
     SingingBowlProc {
         idx_bundle: u8,
     },
@@ -429,32 +429,32 @@ pub enum Amount {
 // Source pool for a Resolve effect
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum CandidatePool {
-    Hand,
+    CardPileHand,
     Character,
     Monsters,
     MonsterPicked,
     Source,
-    Discover,
-    Deck,
-    PileDraw,
-    PileDiscard,
-    PileExhaust,
-    EventRollCard,
-    EventRollRelic,
-    EventRollPotion,
+    CardPileDiscover,
+    CardPileDeck,
+    CardPileDraw,
+    CardPileDiscard,
+    CardPileExhaust,
+    CardPileEventRoll,
+    RelicEventRoll,
+    PotionEventRoll,
 }
 
 // Only Card pools are ever multi-pick
 pub const fn pool_is_cards(pool: CandidatePool) -> bool {
     matches!(
         pool,
-        CandidatePool::Hand
-            | CandidatePool::Discover
-            | CandidatePool::Deck
-            | CandidatePool::PileDraw
-            | CandidatePool::PileDiscard
-            | CandidatePool::PileExhaust
-            | CandidatePool::EventRollCard
+        CandidatePool::CardPileHand
+            | CandidatePool::CardPileDiscover
+            | CandidatePool::CardPileDeck
+            | CandidatePool::CardPileDraw
+            | CandidatePool::CardPileDiscard
+            | CandidatePool::CardPileExhaust
+            | CandidatePool::CardPileEventRoll
     )
 }
 
@@ -546,7 +546,7 @@ pub const fn effect_accuracy_resync(candidate_pool: CandidatePool) -> Effect {
     }
 }
 
-pub const EFFECT_ACCURACY_RESYNC_HAND: Effect = effect_accuracy_resync(CandidatePool::Hand);
+pub const EFFECT_ACCURACY_RESYNC_HAND: Effect = effect_accuracy_resync(CandidatePool::CardPileHand);
 
 // Du-Vu Doll's recount, queued by its pickup and by every Card landing in or purged from the deck
 pub const EFFECT_DU_VU_DOLL_RECOUNT: Effect = Effect {
@@ -570,12 +570,12 @@ pub const fn effect_discover_pick(
     Effect {
         kind: EffectKind::CardDiscoverPick {
             cost_zero,
-            pile,
+            card_pile: pile,
             copies,
         },
         id_source: None,
         target: Target::Resolve {
-            candidate_pool: CandidatePool::Discover,
+            candidate_pool: CandidatePool::CardPileDiscover,
             filters: &[],
             selection_kind,
         },

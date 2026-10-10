@@ -34,8 +34,8 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
 
     if !landing {
         let Combat {
-            id_card_hand,
-            id_card_draw,
+            id_card_pile_hand,
+            id_card_pile_draw,
             energy,
             ..
         } = &state.combat;
@@ -92,8 +92,8 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
         }
 
         // Burn / Decay / Regret / Doubt / Shame play themselves out of hand, each once everything queued before it has resolved
-        let hand_size = id_card_hand.len() as u16;
-        for &id_card in id_card_hand.iter() {
+        let hand_size = id_card_pile_hand.len() as u16;
+        for &id_card in id_card_pile_hand.iter() {
             if matches!(
                 state.entities[id_card].card_name,
                 CardName::Burn
@@ -107,7 +107,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
                     id_target: None,
                     play_source: PlaySource::TurnEnd { hand_size },
                     energy: energy.energy_current,
-                    draw_pile_size: id_card_draw.len() as u16,
+                    draw_pile_size: id_card_pile_draw.len() as u16,
                 });
             }
         }
@@ -124,18 +124,18 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
     }
 
     let Combat {
-        id_card_hand,
-        id_card_draw,
-        id_card_discard,
+        id_card_pile_hand,
+        id_card_pile_draw,
+        id_card_pile_discard,
         bombs,
         ..
     } = &state.combat;
 
     // Per-turn Card cost overrides clear in the hand and the draw and discard piles, ahead of every hook below; exhausted and Stasis-held Cards keep theirs
-    for &id_card in id_card_hand
+    for &id_card in id_card_pile_hand
         .iter()
-        .chain(id_card_draw.iter())
-        .chain(id_card_discard.iter())
+        .chain(id_card_pile_draw.iter())
+        .chain(id_card_pile_discard.iter())
     {
         let card = &mut state.entities[id_card];
         if matches!(
@@ -177,7 +177,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
 
     // Retain: pick up to `stacks` Cards to keep through the end-of-turn discard
     if has_modifier(mods_char, ModifierKind::Retain)
-        && !id_card_hand.is_empty()
+        && !id_card_pile_hand.is_empty()
         // Runic Pyramid: keeps the whole hand
         && !has_relic(&state.id_relics, RelicName::RunicPyramid)
     {
@@ -188,7 +188,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
                 kind: EffectKind::CardRetain,
                 id_source: None,
                 target: Target::Resolve {
-                    candidate_pool: CandidatePool::Hand,
+                    candidate_pool: CandidatePool::CardPileHand,
                     filters: &[],
                     selection_kind: SelectionKind::InputUpTo {
                         count: stacks.max(0) as u16,
@@ -296,7 +296,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
         .extend(hooks.into_iter().map(|(_, effect)| effect));
 
     // Ethereal Cards exhaust first, in random order, each spending its free play; Cards drawn after this point stay in hand
-    let mut id_ethereal: Vec<usize> = id_card_hand
+    let mut id_ethereal: Vec<usize> = id_card_pile_hand
         .iter()
         .copied()
         .filter(|&id| state.entities[id].card_ethereal)
@@ -317,7 +317,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
 
     // The rest leave from the right, so the leftmost ends on top of the discard pile; Runic Pyramid keeps them
     if !has_relic(&state.id_relics, RelicName::RunicPyramid) {
-        for &id_card in id_card_hand.iter().rev() {
+        for &id_card in id_card_pile_hand.iter().rev() {
             if state.entities[id_card].card_ethereal {
                 continue;
             }

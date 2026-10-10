@@ -20,11 +20,12 @@ pub fn process_effect_card_discover_pick(
         "process_effect_card_discover_pick outside the Combat frame"
     );
     let Combat {
-        id_card_discover, ..
+        id_card_pile_discover,
+        ..
     } = &mut state.combat;
 
     // Clear discovered Cards
-    id_card_discover.clear();
+    id_card_pile_discover.clear();
 
     // A skipped pick adds nothing
     let Some(id_card) = id_target else {

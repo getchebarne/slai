@@ -12,9 +12,11 @@ pub fn process_effect_unload_discard(state: &mut GameState) {
         state.combat.active,
         "process_effect_unload_discard outside the Combat frame"
     );
-    let Combat { id_card_hand, .. } = &mut state.combat;
-    for idx in 0..id_card_hand.len() {
-        let id_card = id_card_hand[idx];
+    let Combat {
+        id_card_pile_hand, ..
+    } = &mut state.combat;
+    for idx in 0..id_card_pile_hand.len() {
+        let id_card = id_card_pile_hand[idx];
         if state.entities[id_card].card_kind != CardKind::Attack {
             state.effect_queue.push_front(Effect {
                 kind: EffectKind::CardDiscard {

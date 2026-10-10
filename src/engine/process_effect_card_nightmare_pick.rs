@@ -11,8 +11,8 @@ pub fn process_effect_card_nightmare_pick(id_target: Option<usize>, state: &mut 
         "process_effect_card_nightmare_pick outside the Combat frame"
     );
     let Combat {
-        id_card_hand,
-        id_card_nightmares,
+        id_card_pile_hand,
+        id_card_pile_nightmare,
         modifier_seq_next,
         ..
     } = &mut state.combat;
@@ -35,15 +35,15 @@ pub fn process_effect_card_nightmare_pick(id_target: Option<usize>, state: &mut 
     let id = push_entity(&mut state.entities, card);
 
     // Each Nightmare takes its own stamp, which places its copies among the turn-start hooks
-    id_card_nightmares.push((id, *modifier_seq_next));
+    id_card_pile_nightmare.push((id, *modifier_seq_next));
     *modifier_seq_next += 1;
 
     // The picked Card rejoins the hand at the end
-    if let Some(pos) = id_card_hand
+    if let Some(pos) = id_card_pile_hand
         .iter()
         .position(|&id_card| id_card == id_target)
     {
-        id_card_hand.remove(pos);
-        id_card_hand.push(id_target);
+        id_card_pile_hand.remove(pos);
+        id_card_pile_hand.push(id_target);
     }
 }

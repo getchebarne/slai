@@ -38,7 +38,7 @@ pub fn process_effect_card_adopt(id_target: Option<usize>, state: &mut GameState
     }
 
     // The Card joins the deck; its obtain hooks see every Relic held by now
-    state.id_card_deck.push(id_card);
+    state.id_card_pile_deck.push(id_card);
 
     // Du-Vu Doll: a Card landing in the deck recounts its Curses
     if has_relic(&state.id_relics, RelicName::DuVuDoll) {

@@ -33,7 +33,7 @@ pub static ENLIGHTENMENT: CardTemplate = make_card_template(
         },
         id_source: None,
         target: Target::Resolve {
-            candidate_pool: CandidatePool::Hand,
+            candidate_pool: CandidatePool::CardPileHand,
             filters: &[],
             selection_kind: SelectionKind::All,
         },
@@ -64,7 +64,7 @@ pub static ENLIGHTENMENT_PLUS: CardTemplate = make_card_template(
             },
             id_source: None,
             target: Target::Resolve {
-                candidate_pool: CandidatePool::Hand,
+                candidate_pool: CandidatePool::CardPileHand,
                 filters: &[],
                 selection_kind: SelectionKind::All,
             },
@@ -79,7 +79,7 @@ pub static ENLIGHTENMENT_PLUS: CardTemplate = make_card_template(
             },
             id_source: None,
             target: Target::Resolve {
-                candidate_pool: CandidatePool::Hand,
+                candidate_pool: CandidatePool::CardPileHand,
                 filters: &[],
                 selection_kind: SelectionKind::All,
             },

@@ -19,7 +19,7 @@ pub static ENCHIRIDION: RelicTemplate = RelicTemplate {
         kind: EffectKind::CardAddRandom {
             color: CardColor::Green,
             kind: Some(CardKind::Power),
-            pile: CardPile::Hand,
+            card_pile: CardPile::Hand,
             count: 1,
             cost_zero: Some(CostScope::Turn),
             upgraded: false,

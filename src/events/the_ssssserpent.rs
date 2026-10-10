@@ -25,7 +25,7 @@ const fn agree(gold: u16) -> [Effect; 3] {
         Effect {
             kind: EffectKind::CardAdd {
                 card_name: CardName::Doubt,
-                pile: CardPile::Deck,
+                card_pile: CardPile::Deck,
                 count: 1,
                 upgraded: false,
             },

@@ -1,6 +1,6 @@
 use rand::Rng;
 
-use crate::consts::MAX_SIZE_HAND;
+use crate::consts::MAX_SIZE_CARD_PILE_HAND;
 use crate::consts::PANACHE_PLAYS;
 use crate::effect::Amount;
 use crate::effect::CardPlay;
@@ -90,10 +90,10 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
 
     // Thinking Ahead puts back only if the hand held a Card as it was played, itself included;
     // Setup and Forethought check at the pick, and nothing refills the hand before it: same result
-    let hand_nonempty_at_start = !state.combat.id_card_hand.is_empty();
+    let hand_nonempty_at_start = !state.combat.id_card_pile_hand.is_empty();
 
     // A Card's reshuffle (Deep Breath) happens only if the discard pile held Cards as it was played
-    let discard_nonempty_at_start = !state.combat.id_card_discard.is_empty();
+    let discard_nonempty_at_start = !state.combat.id_card_pile_discard.is_empty();
 
     // A hand play leaves the hand up front; the Card stays pile-less until relocated
     if play_source == PlaySource::Hand {
@@ -101,9 +101,9 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
     }
 
     let Combat {
-        id_card_hand,
-        id_card_draw,
-        id_card_exhaust,
+        id_card_pile_hand,
+        id_card_pile_draw,
+        id_card_pile_exhaust,
         id_monsters,
         id_monster_picked,
         this_turn_attacks,
@@ -127,7 +127,7 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
         .any(|card_play| card_play.id_card == id_card);
 
     // The last replay of an exhausted Card has read its cost this turn, which now drops
-    if id_card_exhaust.contains(&id_card) && !other_play_waits {
+    if id_card_pile_exhaust.contains(&id_card) && !other_play_waits {
         state.entities[id_card].card_cost_override = None;
     }
 
@@ -144,14 +144,14 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
     let playable = is_play_restriction_satisfied(
         card.card_play_restriction,
         card.card_kind,
-        id_card_draw,
+        id_card_pile_draw,
         &state.entities,
         &state.id_relics,
     ) && !(entangled && card.card_kind == CardKind::Attack)
         && !target_gone
         && !*turn_ended
         && !play_cap_reached(
-            id_card_hand,
+            id_card_pile_hand,
             &state.entities,
             &state.id_relics,
             *this_turn_cards_played,
@@ -204,7 +204,7 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
         // Mummified Hand: pick a random still-costed hand Card to make free this turn
         if has_relic(&state.id_relics, RelicName::MummifiedHand) {
             id_mummified = pick_random_costed_hand_card(
-                &*id_card_hand,
+                &*id_card_pile_hand,
                 &state.entities,
                 &mut state.rng,
                 id_card,
@@ -244,8 +244,8 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
     }
 
     // Pain: each copy in hand bleeds 1 HP on any other Card play
-    for idx in 0..id_card_hand.len() {
-        if state.entities[id_card_hand[idx]].card_name == CardName::Pain {
+    for idx in 0..id_card_pile_hand.len() {
+        if state.entities[id_card_pile_hand[idx]].card_name == CardName::Pain {
             state.effect_buf.push(Effect {
                 kind: EffectKind::HealthDelta {
                     sign: DeltaSign::Loss,
@@ -372,8 +372,10 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
         if matches!(effect.kind, EffectKind::CardSetupPick { .. }) && !hand_nonempty_at_start {
             continue;
         }
-        if matches!(effect.kind, EffectKind::ShuffleDiscardPileIntoDrawPile)
-            && !discard_nonempty_at_start
+        if matches!(
+            effect.kind,
+            EffectKind::ShuffleCardPileDiscardIntoCardPileDraw
+        ) && !discard_nonempty_at_start
         {
             continue;
         }
@@ -491,7 +493,7 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
         state.effect_buf.push(Effect {
             kind: EffectKind::CardAdd {
                 card_name: CardName::Dazed,
-                pile: CardPile::Draw,
+                card_pile: CardPile::Draw,
                 count: stacks.max(0) as u16,
                 upgraded: false,
             },
@@ -635,15 +637,15 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
 
 // One random hand Card that still costs energy this turn
 fn pick_random_costed_hand_card(
-    id_card_hand: &[usize],
+    id_card_pile_hand: &[usize],
     entities: &[Entity],
     rng: &mut impl Rng,
     id_card_played: usize,
     energy_current: u16,
 ) -> Option<usize> {
-    let mut cards_valid = [0usize; MAX_SIZE_HAND];
+    let mut cards_valid = [0usize; MAX_SIZE_CARD_PILE_HAND];
     let mut num = 0;
-    for &id_card in id_card_hand.iter() {
+    for &id_card in id_card_pile_hand.iter() {
         // Exclude just-played Card
         if id_card == id_card_played {
             continue;

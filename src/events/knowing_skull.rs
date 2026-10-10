@@ -56,7 +56,7 @@ const OPTION_GOLD: [Effect; 3] = wish(EffectKind::GoldDelta {
 const OPTION_CARD: [Effect; 3] = wish(EffectKind::CardAddRandom {
     color: CardColor::Colorless,
     kind: None,
-    pile: CardPile::Deck,
+    card_pile: CardPile::Deck,
     count: 1,
     cost_zero: None,
     upgraded: false,

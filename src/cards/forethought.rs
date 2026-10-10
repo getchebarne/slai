@@ -1,6 +1,6 @@
 use crate::cards::CardTemplate;
 use crate::cards::make_card_template;
-use crate::consts::MAX_SIZE_HAND;
+use crate::consts::MAX_SIZE_CARD_PILE_HAND;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
@@ -31,7 +31,7 @@ pub static FORETHOUGHT: CardTemplate = make_card_template(
         },
         id_source: None,
         target: Target::Resolve {
-            candidate_pool: CandidatePool::Hand,
+            candidate_pool: CandidatePool::CardPileHand,
             filters: &[],
             selection_kind: SelectionKind::Input { count: 1 },
         },
@@ -46,10 +46,10 @@ pub static FORETHOUGHT_PLUS: CardTemplate = CardTemplate {
     effects_play: {
         let mut effects = FORETHOUGHT.effects_play;
         effects[0].target = Target::Resolve {
-            candidate_pool: CandidatePool::Hand,
+            candidate_pool: CandidatePool::CardPileHand,
             filters: &[],
             selection_kind: SelectionKind::InputUpTo {
-                count: MAX_SIZE_HAND as u16,
+                count: MAX_SIZE_CARD_PILE_HAND as u16,
             },
         }; // Any number of Cards
         effects

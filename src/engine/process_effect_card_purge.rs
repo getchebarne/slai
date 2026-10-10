@@ -23,8 +23,8 @@ pub fn process_effect_card_purge(id_target: Option<usize>, state: &mut GameState
             target: Target::Direct(Some(state.id_character)),
         });
     }
-    if let Some(pos) = state.id_card_deck.iter().position(|&id| id == id_card) {
-        state.id_card_deck.remove(pos);
+    if let Some(pos) = state.id_card_pile_deck.iter().position(|&id| id == id_card) {
+        state.id_card_pile_deck.remove(pos);
 
         // Du-Vu Doll: a Card purged from the deck recounts its Curses
         if has_relic(&state.id_relics, RelicName::DuVuDoll) {

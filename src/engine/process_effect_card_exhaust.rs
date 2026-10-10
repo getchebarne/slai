@@ -19,15 +19,15 @@ pub fn process_effect_card_exhaust(id_target: Option<usize>, state: &mut GameSta
         "process_effect_card_exhaust outside the Combat frame"
     );
     let Combat {
-        id_card_hand,
-        id_card_exhaust,
+        id_card_pile_hand,
+        id_card_pile_exhaust,
         ..
     } = &mut state.combat;
     let id_card = id_target.expect("CardExhaust requires id_target");
-    if let Some(pos) = id_card_hand.iter().position(|&id| id == id_card) {
-        id_card_hand.remove(pos);
+    if let Some(pos) = id_card_pile_hand.iter().position(|&id| id == id_card) {
+        id_card_pile_hand.remove(pos);
     }
-    id_card_exhaust.push(id_card);
+    id_card_pile_exhaust.push(id_card);
 
     // An exhausted Card's cost this turn drops back to its combat cost, after any waiting replay reads it
     if !state
@@ -46,7 +46,7 @@ pub fn process_effect_card_exhaust(id_target: Option<usize>, state: &mut GameSta
         state.effect_queue.push_back(Effect {
             kind: EffectKind::CardAdd {
                 card_name,
-                pile: CardPile::Hand,
+                card_pile: CardPile::Hand,
                 count: 1,
                 upgraded: false,
             },
@@ -60,7 +60,7 @@ pub fn process_effect_card_exhaust(id_target: Option<usize>, state: &mut GameSta
         state.effect_queue.push_back(Effect {
             kind: EffectKind::CardAdd {
                 card_name: CardName::Necronomicurse,
-                pile: CardPile::Hand,
+                card_pile: CardPile::Hand,
                 count: 1,
                 upgraded: false,
             },

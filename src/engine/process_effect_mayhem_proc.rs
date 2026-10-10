@@ -7,7 +7,7 @@ use crate::game::GameState;
 pub fn process_effect_mayhem_proc(id_target: Option<usize>, state: &mut GameState) {
     let id_monster = id_target.expect("MayhemProc requires id_target");
     state.effect_queue.push_back(Effect {
-        kind: EffectKind::CardPlayFromDrawTop,
+        kind: EffectKind::CardPlayFromCardPileDrawTop,
         id_source: None,
         target: Target::Direct(Some(id_monster)),
     });

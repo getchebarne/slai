@@ -29,7 +29,7 @@ pub static TINY_HOUSE: RelicTemplate = RelicTemplate {
             kind: EffectKind::CardUpgrade,
             id_source: None,
             target: Target::Resolve {
-                candidate_pool: CandidatePool::Deck,
+                candidate_pool: CandidatePool::CardPileDeck,
                 filters: &[CandidateFilter::Upgradeable],
                 selection_kind: SelectionKind::Random { count: 1 },
             },

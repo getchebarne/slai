@@ -22,7 +22,7 @@ pub fn process_effect_combat_start(state: &mut GameState, elite: bool) {
     // MonsterSpawn opens the combat reset; only what CombatStart computes is written here
     assert!(state.combat.active, "CombatStart outside combat");
     let Combat {
-        id_card_draw,
+        id_card_pile_draw,
         id_monsters,
         id_card_origins,
         energy,
@@ -71,23 +71,23 @@ pub fn process_effect_combat_start(state: &mut GameState, elite: bool) {
     }
 
     // Innate and bottled Cards sit on top of the draw pile, ahead of the shuffled rest
-    let idx_other = id_card_draw.len();
+    let idx_other = id_card_pile_draw.len();
     let mut ids_innate: Vec<usize> = Vec::new();
-    for idx in 0..state.id_card_deck.len() {
-        let id_card_src = state.id_card_deck[idx];
+    for idx in 0..state.id_card_pile_deck.len() {
+        let id_card_src = state.id_card_pile_deck[idx];
         let card = state.entities[id_card_src];
         let id_card = push_entity(&mut state.entities, card);
         id_card_origins.push((id_card, id_card_src));
         if card.card_innate || card.card_bottled {
             ids_innate.push(id_card);
         } else {
-            id_card_draw.push(id_card);
+            id_card_pile_draw.push(id_card);
         }
     }
 
-    shuffle(&mut id_card_draw[idx_other..], &mut state.rng);
+    shuffle(&mut id_card_pile_draw[idx_other..], &mut state.rng);
     shuffle(&mut ids_innate, &mut state.rng);
-    id_card_draw.extend_from_slice(&ids_innate);
+    id_card_pile_draw.extend_from_slice(&ids_innate);
 
     // The whole opening roster stands now: its first moves roll ahead of everything
     state.effect_queue.push_front(Effect {

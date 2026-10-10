@@ -17,7 +17,7 @@ const OPTION_SIMPLICITY: &[Effect] = &[
         kind: EffectKind::CardUpgrade,
         id_source: None,
         target: Target::Resolve {
-            candidate_pool: CandidatePool::Deck,
+            candidate_pool: CandidatePool::CardPileDeck,
             filters: &[CandidateFilter::Starter, CandidateFilter::Upgradeable],
             selection_kind: SelectionKind::All,
         },

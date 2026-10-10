@@ -35,11 +35,11 @@ pub enum EntityKind {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PlayRestriction {
-    Always,            // Standard Cards. Playable iff the energy cost is met
-    Never,             // Permanently unplayable (curses, statuses, Reflex, Tactician, etc.)
-    DrawPileEmpty,     // Playable iff the draw pile is empty (Grand Finale only)
-    DrawPileHasAttack, // Playable iff the draw pile holds an Attack (Secret Weapon only)
-    DrawPileHasSkill,  // Playable iff the draw pile holds a Skill (Secret Technique only)
+    Always,                // Standard Cards. Playable iff the energy cost is met
+    Never,                 // Permanently unplayable (curses, statuses, Reflex, Tactician, etc.)
+    CardPileDrawEmpty,     // Playable iff the draw pile is empty (Grand Finale only)
+    CardPileDrawHasAttack, // Playable iff the draw pile holds an Attack (Secret Weapon only)
+    CardPileDrawHasSkill,  // Playable iff the draw pile holds a Skill (Secret Technique only)
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

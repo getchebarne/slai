@@ -18,8 +18,8 @@ pub fn process_effect_match_flip_unseen(state: &mut GameState) {
     );
 
     // The board is shuffled, so the next unseen Card is as good as any
-    let id_card = state.event.id_match_unseen.remove(0);
-    state.event.id_roll_card.push(id_card);
+    let id_card = state.event.id_card_match_unseen.remove(0);
+    state.event.id_card_pile_event_roll.push(id_card);
     state.effect_queue.push_front(Effect {
         kind: EffectKind::MatchFlipSeen,
         id_source: None,

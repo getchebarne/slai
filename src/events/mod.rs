@@ -79,7 +79,7 @@ pub const EFFECT_DECK_PURGE_PICK_1: Effect = Effect {
     kind: EffectKind::CardPurge,
     id_source: None,
     target: Target::Resolve {
-        candidate_pool: CandidatePool::Deck,
+        candidate_pool: CandidatePool::CardPileDeck,
         filters: &[CandidateFilter::NotBottled, CandidateFilter::NotBoundCurse],
         selection_kind: SelectionKind::Input { count: 1 },
     },
@@ -89,7 +89,7 @@ pub const EFFECT_DECK_UPGRADE_PICK_1: Effect = Effect {
     kind: EffectKind::CardUpgrade,
     id_source: None,
     target: Target::Resolve {
-        candidate_pool: CandidatePool::Deck,
+        candidate_pool: CandidatePool::CardPileDeck,
         filters: &[CandidateFilter::Upgradeable],
         selection_kind: SelectionKind::Input { count: 1 },
     },
@@ -99,7 +99,7 @@ pub const EFFECT_DECK_TRANSFORM_PICK_1: Effect = Effect {
     kind: EffectKind::CardTransform { upgraded: false },
     id_source: None,
     target: Target::Resolve {
-        candidate_pool: CandidatePool::Deck,
+        candidate_pool: CandidatePool::CardPileDeck,
         filters: &[CandidateFilter::NotBottled, CandidateFilter::NotBoundCurse],
         selection_kind: SelectionKind::Input { count: 1 },
     },
@@ -353,21 +353,21 @@ pub fn event_option_available(state: &GameState, idx: usize) -> bool {
 
 pub fn deck_has_upgradable(state: &GameState) -> bool {
     state
-        .id_card_deck
+        .id_card_pile_deck
         .iter()
         .any(|&id| card_is_upgradable(&state.entities[id]))
 }
 
 pub fn deck_has_purgeable(state: &GameState) -> bool {
     state
-        .id_card_deck
+        .id_card_pile_deck
         .iter()
         .any(|&id| card_is_purgeable(&state.entities[id]))
 }
 
 pub fn deck_has_damage_card(state: &GameState, min_base: u16) -> bool {
     state
-        .id_card_deck
+        .id_card_pile_deck
         .iter()
         .any(|&id| card_has_damage_at_least(&state.entities[id], min_base))
 }

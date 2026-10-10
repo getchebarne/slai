@@ -21,7 +21,7 @@ static MOVE_BOLT_2: Move = make_move(
     &[Effect {
         kind: EffectKind::CardAdd {
             card_name: CardName::Dazed,
-            pile: CardPile::Discard,
+            card_pile: CardPile::Discard,
             count: 2,
             upgraded: false,
         },
@@ -35,7 +35,7 @@ static MOVE_BOLT_3: Move = make_move(
     &[Effect {
         kind: EffectKind::CardAdd {
             card_name: CardName::Dazed,
-            pile: CardPile::Discard,
+            card_pile: CardPile::Discard,
             count: 3,
             upgraded: false,
         },

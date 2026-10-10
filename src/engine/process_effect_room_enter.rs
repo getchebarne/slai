@@ -124,7 +124,7 @@ pub fn process_effect_room_enter(state: &mut GameState, location: Location, land
 
             // Eternal Feather: 3 HP per 5 deck Cards on arrival
             if has_relic(&state.id_relics, RelicName::EternalFeather) {
-                let heal = (state.id_card_deck.len() / 5) * 3;
+                let heal = (state.id_card_pile_deck.len() / 5) * 3;
                 state.effect_queue.push_back(Effect {
                     kind: EffectKind::HealthDelta {
                         sign: DeltaSign::Gain,
@@ -321,7 +321,7 @@ fn draw_event_special(state: &mut GameState) -> Option<EventName> {
     let gold = state.entities[state.id_character].character_gold;
 
     // Calculate if there's any removable curses in the deck. This gates "The Divine Fountain"
-    let mut removable_curses = state.id_card_deck.clone();
+    let mut removable_curses = state.id_card_pile_deck.clone();
     filter_candidates(
         FOUNTAIN_CURSE_FILTERS,
         &mut removable_curses,

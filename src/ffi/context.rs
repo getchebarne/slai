@@ -49,18 +49,18 @@ pub struct PyEnergy {
 )]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyCombat {
-    pub pile_hand: Vec<PyCard>,
-    pub pile_draw: Vec<PyCard>,
-    pub pile_discard: Vec<PyCard>,
-    pub pile_exhaust: Vec<PyCard>,
-    pub pile_queue: Vec<PyCard>,
+    pub card_pile_hand: Vec<PyCard>,
+    pub card_pile_draw: Vec<PyCard>,
+    pub card_pile_discard: Vec<PyCard>,
+    pub card_pile_exhaust: Vec<PyCard>,
+    pub card_play_queue: Vec<PyCard>,
     pub energy: PyEnergy,
     pub monsters: Vec<PyMonster>,
-    pub pile_stasis: Vec<Option<PyCard>>, // Parallel to `monsters`: the Card each one holds in Stasis
-    pub pile_discover: Vec<PyCard>,
+    pub card_pile_stasis: Vec<Option<PyCard>>, // Parallel to `monsters`: the Card each one holds in Stasis
+    pub card_pile_discover: Vec<PyCard>,
     pub bombs: Vec<(u8, u16)>,
-    pub pile_nightmare: Vec<PyCard>, // Each arrives NIGHTMARE_COPIES times next turn
-    pub panache_countdown: u8,       // Plays left until Panache's hit
+    pub card_pile_nightmare: Vec<PyCard>, // Each arrives NIGHTMARE_COPIES times next turn
+    pub panache_countdown: u8,            // Plays left until Panache's hit
     pub this_turn_discards: u16, // Cards discarded this turn (Sneaky Strike's refund, Eviscerate's discount)
     pub orange_pellets_played_attack: bool, // Card kinds played since Orange Pellets last fired this turn
     pub orange_pellets_played_skill: bool,
@@ -124,17 +124,17 @@ pub struct PyEvent {
     pub stage: u8,
     pub options: Vec<Vec<PyEffect>>,
     pub health_max_at_open: u16,
-    pub roll_cards: Vec<PyCard>,
-    pub roll_relics: Vec<PyRelic>,
-    pub roll_potions: Vec<PyPotion>,
+    pub card_pile_event_roll: Vec<PyCard>,
+    pub relic_event_roll: Vec<PyRelic>,
+    pub potion_event_roll: Vec<PyPotion>,
     pub adventurer_elite: Option<PyMonsterEncounter>, // Only while the event is Dead Adventurer
     pub found_gold: bool,
     pub found_nothing: bool,
     pub found_relic: bool,
 
     // Match and Keep!: the face-up first flip, the count of Cards never flipped, the attempts left
-    pub match_flipped: Option<PyCard>,
-    pub match_unseen_count: u8,
+    pub card_match_flipped: Option<PyCard>,
+    pub card_match_unseen_count: u8,
     pub match_attempts: u8,
 }
 
@@ -171,29 +171,29 @@ pub(crate) fn snapshot_combat(state: &GameState) -> PyCombat {
     let combat = &state.combat;
 
     // A Card played now has Mind Blast hit for the draw pile as it stands; a waiting play keeps the size it was queued with
-    let draw_pile_size = combat.id_card_draw.len() as u16;
+    let draw_pile_size = combat.id_card_pile_draw.len() as u16;
     PyCombat {
-        pile_hand: combat
-            .id_card_hand
+        card_pile_hand: combat
+            .id_card_pile_hand
             .iter()
             .map(|&id| snapshot_card_combat(state, id, draw_pile_size))
             .collect(),
-        pile_draw: combat
-            .id_card_draw
+        card_pile_draw: combat
+            .id_card_pile_draw
             .iter()
             .map(|&id| snapshot_card_combat(state, id, draw_pile_size))
             .collect(),
-        pile_discard: combat
-            .id_card_discard
+        card_pile_discard: combat
+            .id_card_pile_discard
             .iter()
             .map(|&id| snapshot_card_combat(state, id, draw_pile_size))
             .collect(),
-        pile_exhaust: combat
-            .id_card_exhaust
+        card_pile_exhaust: combat
+            .id_card_pile_exhaust
             .iter()
             .map(|&id| snapshot_card_combat(state, id, draw_pile_size))
             .collect(),
-        pile_queue: state
+        card_play_queue: state
             .card_play_queue
             .iter()
             .map(|card_play| {
@@ -206,18 +206,18 @@ pub(crate) fn snapshot_combat(state: &GameState) -> PyCombat {
         },
         monsters: snapshot_monsters(state),
         // Walks the filled roster slots as `monsters` does, so the two line up
-        pile_stasis: combat
+        card_pile_stasis: combat
             .id_monsters
             .iter()
-            .zip(&combat.id_card_stasis)
+            .zip(&combat.id_card_pile_stasis)
             .filter_map(|(&id_monster, &id_card)| {
                 id_monster.map(|_| {
                     id_card.map(|id_card| snapshot_card_combat(state, id_card, draw_pile_size))
                 })
             })
             .collect(),
-        pile_discover: combat
-            .id_card_discover
+        card_pile_discover: combat
+            .id_card_pile_discover
             .iter()
             .map(|&id| snapshot_card_combat(state, id, draw_pile_size))
             .collect(),
@@ -226,8 +226,8 @@ pub(crate) fn snapshot_combat(state: &GameState) -> PyCombat {
             .iter()
             .map(|&(turns, damage, _)| (turns, damage))
             .collect(),
-        pile_nightmare: combat
-            .id_card_nightmares
+        card_pile_nightmare: combat
+            .id_card_pile_nightmare
             .iter()
             .map(|&(id, _)| snapshot_card_combat(state, id, draw_pile_size))
             .collect(),
@@ -325,23 +325,25 @@ pub(crate) fn snapshot_event(state: &GameState) -> PyEvent {
         consumed: event.consumed,
         adventurer_elite: (event.name == EventName::DeadAdventurer)
             .then_some(event.adventurer_elite.into()),
-        roll_cards: event
-            .id_roll_card
+        card_pile_event_roll: event
+            .id_card_pile_event_roll
             .iter()
             .map(|&id| snapshot_card(state, id))
             .collect(),
-        roll_relics: event
-            .id_roll_relic
+        relic_event_roll: event
+            .id_relic_event_roll
             .iter()
             .map(|&id| snapshot_relic(id, &state.entities[id]))
             .collect(),
-        roll_potions: event
-            .id_roll_potion
+        potion_event_roll: event
+            .id_potion_event_roll
             .iter()
             .map(|&id| snapshot_potion(id, &state.entities[id]))
             .collect(),
-        match_flipped: event.id_match_flipped.map(|id| snapshot_card(state, id)),
-        match_unseen_count: event.id_match_unseen.len() as u8,
+        card_match_flipped: event
+            .id_card_match_flipped
+            .map(|id| snapshot_card(state, id)),
+        card_match_unseen_count: event.id_card_match_unseen.len() as u8,
         match_attempts: event.match_attempts,
     }
 }

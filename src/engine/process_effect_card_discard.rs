@@ -29,9 +29,9 @@ pub fn process_effect_card_discard(
         "process_effect_card_discard outside the Combat frame"
     );
     let Combat {
-        id_card_hand,
-        id_card_draw,
-        id_card_discard,
+        id_card_pile_hand,
+        id_card_pile_draw,
+        id_card_pile_discard,
         this_turn_discards,
         ..
     } = &mut state.combat;
@@ -45,26 +45,26 @@ pub fn process_effect_card_discard(
             }
 
             // Move from hand to discard
-            if let Some(pos) = id_card_hand.iter().position(|&id| id == id_target) {
-                id_card_hand.remove(pos);
+            if let Some(pos) = id_card_pile_hand.iter().position(|&id| id == id_target) {
+                id_card_pile_hand.remove(pos);
             }
-            id_card_discard.push(id_target);
+            id_card_pile_discard.push(id_target);
 
             // The turn end's discards count too, though they set nothing off
             *this_turn_discards = this_turn_discards.saturating_add(1);
         }
         DiscardSource::Explicit => {
-            if let Some(pos) = id_card_hand.iter().position(|&id| id == id_target) {
-                id_card_hand.remove(pos);
+            if let Some(pos) = id_card_pile_hand.iter().position(|&id| id == id_target) {
+                id_card_pile_hand.remove(pos);
             }
-            id_card_discard.push(id_target);
+            id_card_pile_discard.push(id_target);
             *this_turn_discards = this_turn_discards.saturating_add(1);
 
             // Eviscerate in hand, draw or discard costs 1 less this turn, down to 0
-            for &id_card in id_card_hand
+            for &id_card in id_card_pile_hand
                 .iter()
-                .chain(id_card_draw.iter())
-                .chain(id_card_discard.iter())
+                .chain(id_card_pile_draw.iter())
+                .chain(id_card_pile_discard.iter())
             {
                 let card = &mut state.entities[id_card];
                 let cost = get_card_cost_this_turn(card);

@@ -26,7 +26,7 @@ use crate::consts::FACTOR_WEAK_PAPER_KRANE;
 use crate::consts::GOLD_BOSS_MAX;
 use crate::consts::GOLD_BOSS_MIN;
 use crate::consts::MAX_CARD_REWARD_ROLL;
-use crate::consts::MAX_SIZE_HAND;
+use crate::consts::MAX_SIZE_CARD_PILE_HAND;
 use crate::consts::NEOW_UNCOMMON_CHANCE;
 use crate::consts::SHOP_CARD_CUT_RARE;
 use crate::consts::SHOP_CARD_CUT_UNCOMMON;
@@ -177,13 +177,13 @@ pub const fn card_name_healing(name: CardName) -> bool {
 
 // Normality in hand caps the turn at 3 plays; Velvet Choker's counter at 6
 pub fn play_cap_reached(
-    id_card_hand: &[usize],
+    id_card_pile_hand: &[usize],
     entities: &[Entity],
     id_relics: &[Option<usize>; RelicName::COUNT],
     this_turn_cards_played: u8,
 ) -> bool {
     let normality = this_turn_cards_played >= 3
-        && id_card_hand
+        && id_card_pile_hand
             .iter()
             .any(|&id| entities[id].card_name == CardName::Normality);
     let choker = id_relics[RelicName::VelvetChoker as usize]
@@ -212,9 +212,9 @@ pub fn get_card_effective_cost(card: &Entity, energy_current: u16) -> u16 {
 
 pub fn cards_grow_on_damage(state: &mut GameState) {
     for pile in [
-        &state.combat.id_card_hand,
-        &state.combat.id_card_draw,
-        &state.combat.id_card_discard,
+        &state.combat.id_card_pile_hand,
+        &state.combat.id_card_pile_draw,
+        &state.combat.id_card_pile_discard,
     ] {
         for &id_card in pile.iter() {
             let card = &mut state.entities[id_card];
@@ -242,7 +242,7 @@ pub fn cards_grow_on_damage(state: &mut GameState) {
 pub fn is_play_restriction_satisfied(
     restriction: PlayRestriction,
     card_kind: CardKind,
-    id_card_draw: &[usize],
+    id_card_pile_draw: &[usize],
     entities: &[Entity],
     id_relics: &[Option<usize>; RelicName::COUNT],
 ) -> bool {
@@ -253,11 +253,11 @@ pub fn is_play_restriction_satisfied(
             CardKind::Status => has_relic(id_relics, RelicName::MedicalKit),
             _ => false,
         },
-        PlayRestriction::DrawPileEmpty => id_card_draw.is_empty(),
-        PlayRestriction::DrawPileHasAttack => id_card_draw
+        PlayRestriction::CardPileDrawEmpty => id_card_pile_draw.is_empty(),
+        PlayRestriction::CardPileDrawHasAttack => id_card_pile_draw
             .iter()
             .any(|&id| entities[id].card_kind == CardKind::Attack),
-        PlayRestriction::DrawPileHasSkill => id_card_draw
+        PlayRestriction::CardPileDrawHasSkill => id_card_pile_draw
             .iter()
             .any(|&id| entities[id].card_kind == CardKind::Skill),
     }
@@ -358,35 +358,35 @@ pub fn place_card(state: &mut GameState, id_card: usize, pile: CardPile) -> bool
         "Combat pile placement outside combat"
     );
     let Combat {
-        id_card_hand,
-        id_card_draw,
-        id_card_discard,
+        id_card_pile_hand,
+        id_card_pile_draw,
+        id_card_pile_discard,
         ..
     } = &mut state.combat;
 
     match pile {
         // Hand overflows to discard
         CardPile::Hand => {
-            if id_card_hand.len() < MAX_SIZE_HAND {
-                id_card_hand.push(id_card);
+            if id_card_pile_hand.len() < MAX_SIZE_CARD_PILE_HAND {
+                id_card_pile_hand.push(id_card);
             } else {
-                id_card_discard.push(id_card);
+                id_card_pile_discard.push(id_card);
                 return false;
             }
         }
 
         // Draw inserts at a random position
         CardPile::Draw => {
-            let idx = if id_card_draw.is_empty() {
+            let idx = if id_card_pile_draw.is_empty() {
                 0
             } else {
-                state.rng.random_range(0..id_card_draw.len())
+                state.rng.random_range(0..id_card_pile_draw.len())
             };
-            id_card_draw.insert(idx, id_card);
+            id_card_pile_draw.insert(idx, id_card);
         }
 
         // Discard just goes to discard
-        CardPile::Discard => id_card_discard.push(id_card),
+        CardPile::Discard => id_card_pile_discard.push(id_card),
 
         // Deck entry goes through CardAdopt instead
         CardPile::Deck => unreachable!(),
@@ -397,12 +397,12 @@ pub fn place_card(state: &mut GameState, id_card: usize, pile: CardPile) -> bool
 // Remove the id from whichever combat pile holds it; played Cards are pile-less (no-op)
 pub fn detach_card(combat: &mut Combat, id_card: usize) {
     let Combat {
-        id_card_hand,
-        id_card_draw,
-        id_card_discard,
+        id_card_pile_hand,
+        id_card_pile_draw,
+        id_card_pile_discard,
         ..
     } = combat;
-    for pile in [id_card_hand, id_card_draw, id_card_discard] {
+    for pile in [id_card_pile_hand, id_card_pile_draw, id_card_pile_discard] {
         if let Some(pos) = pile.iter().position(|&id| id == id_card) {
             pile.remove(pos);
             return;
@@ -423,15 +423,15 @@ pub fn unceasing_top_fires(state: &GameState) -> bool {
         return false;
     }
     let Combat {
-        id_card_hand,
-        id_card_draw,
-        id_card_discard,
+        id_card_pile_hand,
+        id_card_pile_draw,
+        id_card_pile_discard,
         ..
     } = &state.combat;
     has_relic(&state.id_relics, RelicName::UnceasingTop)
         && state.effect_pending.is_none()
-        && id_card_hand.is_empty()
-        && !(id_card_draw.is_empty() && id_card_discard.is_empty())
+        && id_card_pile_hand.is_empty()
+        && !(id_card_pile_draw.is_empty() && id_card_pile_discard.is_empty())
         && !has_modifier(
             &state.entities[state.id_character].modifiers,
             ModifierKind::NoDraw,
@@ -534,7 +534,7 @@ pub fn relic_can_spawn(
 ) -> bool {
     let deck_has = |pred: fn(&Entity) -> bool| {
         state
-            .id_card_deck
+            .id_card_pile_deck
             .iter()
             .any(|&id| pred(&state.entities[id]))
     };

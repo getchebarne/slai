@@ -55,7 +55,7 @@ pub fn process_effect_card_transform(
     state.effect_queue.push_front(Effect {
         kind: EffectKind::CardAdd {
             card_name,
-            pile: CardPile::Deck,
+            card_pile: CardPile::Deck,
             count: 1,
             upgraded: upgraded && upgradable,
         },

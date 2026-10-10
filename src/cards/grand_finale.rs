@@ -32,7 +32,7 @@ pub static GRAND_FINALE: CardTemplate = make_card_template(
     }],
     &[],
     &[],
-    PlayRestriction::DrawPileEmpty,
+    PlayRestriction::CardPileDrawEmpty,
 );
 // Upgraded
 pub static GRAND_FINALE_PLUS: CardTemplate = CardTemplate {

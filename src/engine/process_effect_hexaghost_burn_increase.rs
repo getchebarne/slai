@@ -16,15 +16,15 @@ pub fn process_effect_hexaghost_burn_increase(state: &mut GameState, count: u8) 
         "process_effect_hexaghost_burn_increase outside the Combat frame"
     );
     let Combat {
-        id_card_draw,
-        id_card_discard,
+        id_card_pile_draw,
+        id_card_pile_discard,
         ..
     } = &mut state.combat;
 
     // A Relic-made exhaust lasts through the upgrade
     let burn_upgraded = get_card(CardName::Burn, true);
-    for idx in 0..id_card_draw.len() {
-        let id_card = id_card_draw[idx];
+    for idx in 0..id_card_pile_draw.len() {
+        let id_card = id_card_pile_draw[idx];
         if state.entities[id_card].card_name == CardName::Burn
             && !state.entities[id_card].card_upgraded
         {
@@ -34,8 +34,8 @@ pub fn process_effect_hexaghost_burn_increase(state: &mut GameState, count: u8) 
             };
         }
     }
-    for idx in 0..id_card_discard.len() {
-        let id_card = id_card_discard[idx];
+    for idx in 0..id_card_pile_discard.len() {
+        let id_card = id_card_pile_discard[idx];
         if state.entities[id_card].card_name == CardName::Burn
             && !state.entities[id_card].card_upgraded
         {
@@ -50,7 +50,7 @@ pub fn process_effect_hexaghost_burn_increase(state: &mut GameState, count: u8) 
         state.effect_queue.push_front(Effect {
             kind: EffectKind::CardAdd {
                 card_name: CardName::Burn,
-                pile: CardPile::Discard,
+                card_pile: CardPile::Discard,
                 count: count as u16,
                 upgraded: true,
             },

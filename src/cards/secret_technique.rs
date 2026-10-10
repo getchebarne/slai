@@ -27,19 +27,19 @@ pub static SECRET_TECHNIQUE: CardTemplate = make_card_template(
     false,
     &[Effect {
         kind: EffectKind::CardMove {
-            pile: CardPile::Hand,
+            card_pile: CardPile::Hand,
             cost_zero: None,
         },
         id_source: None,
         target: Target::Resolve {
-            candidate_pool: CandidatePool::PileDraw,
+            candidate_pool: CandidatePool::CardPileDraw,
             filters: &[CandidateFilter::KindSkill],
             selection_kind: SelectionKind::Input { count: 1 },
         },
     }],
     &[],
     &[],
-    PlayRestriction::DrawPileHasSkill,
+    PlayRestriction::CardPileDrawHasSkill,
 );
 // Upgraded
 pub static SECRET_TECHNIQUE_PLUS: CardTemplate = CardTemplate {

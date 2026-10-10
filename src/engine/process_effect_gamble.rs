@@ -1,4 +1,4 @@
-use crate::consts::MAX_SIZE_HAND;
+use crate::consts::MAX_SIZE_CARD_PILE_HAND;
 use crate::effect::CandidatePool;
 use crate::effect::DiscardSource;
 use crate::effect::Effect;
@@ -15,11 +15,11 @@ pub fn process_effect_gamble(state: &mut GameState, choose_discards: bool) {
         "process_effect_gamble outside the Combat frame"
     );
     let Combat {
-        id_card_hand,
+        id_card_pile_hand,
         this_turn_discards,
         ..
     } = &state.combat;
-    if id_card_hand.is_empty() {
+    if id_card_pile_hand.is_empty() {
         return;
     }
 
@@ -38,10 +38,10 @@ pub fn process_effect_gamble(state: &mut GameState, choose_discards: bool) {
             },
             id_source: None,
             target: Target::Resolve {
-                candidate_pool: CandidatePool::Hand,
+                candidate_pool: CandidatePool::CardPileHand,
                 filters: &[],
                 selection_kind: SelectionKind::InputUpTo {
-                    count: MAX_SIZE_HAND as u16,
+                    count: MAX_SIZE_CARD_PILE_HAND as u16,
                 },
             },
         });
@@ -49,7 +49,7 @@ pub fn process_effect_gamble(state: &mut GameState, choose_discards: bool) {
     }
 
     // The whole hand leaves from the right, so the leftmost Card ends on top of the discard pile
-    for &id_card in id_card_hand.iter() {
+    for &id_card in id_card_pile_hand.iter() {
         state.effect_queue.push_front(Effect {
             kind: EffectKind::CardDiscard {
                 source: DiscardSource::Explicit, // Triggers on-discard sinergies

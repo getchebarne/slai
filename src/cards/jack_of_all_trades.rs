@@ -26,7 +26,7 @@ pub static JACK_OF_ALL_TRADES: CardTemplate = make_card_template(
         kind: EffectKind::CardAddRandom {
             color: CardColor::Colorless,
             kind: None,
-            pile: CardPile::Hand,
+            card_pile: CardPile::Hand,
             count: 1,
             cost_zero: None,
             upgraded: false,
@@ -47,7 +47,7 @@ pub static JACK_OF_ALL_TRADES_PLUS: CardTemplate = CardTemplate {
         effects[0].kind = EffectKind::CardAddRandom {
             color: CardColor::Colorless,
             kind: None,
-            pile: CardPile::Hand,
+            card_pile: CardPile::Hand,
             count: 2, // +1 Card
             cost_zero: None,
             upgraded: false,

@@ -22,11 +22,11 @@ pub static DOLLYS_MIRROR: RelicTemplate = RelicTemplate {
     effects_combat_end: &[],
     effects_pickup: &[Effect {
         kind: EffectKind::CardDuplicate {
-            pile: CardPile::Deck,
+            card_pile: CardPile::Deck,
         },
         id_source: None,
         target: Target::Resolve {
-            candidate_pool: CandidatePool::Deck,
+            candidate_pool: CandidatePool::CardPileDeck,
             filters: &[],
             selection_kind: SelectionKind::Input { count: 1 },
         },

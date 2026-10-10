@@ -25,7 +25,7 @@ pub mod process_effect_card_move;
 pub mod process_effect_card_nightmare_pick;
 pub mod process_effect_card_nightmare_spawn;
 pub mod process_effect_card_place;
-pub mod process_effect_card_play_from_draw_top;
+pub mod process_effect_card_play_from_card_pile_draw_top;
 pub mod process_effect_card_play_relocate;
 pub mod process_effect_card_purge;
 pub mod process_effect_card_remove;
@@ -111,7 +111,7 @@ pub mod process_effect_set_cost_override;
 pub mod process_effect_shop_build;
 pub mod process_effect_shop_buy;
 pub mod process_effect_shop_purge;
-pub mod process_effect_shuffle_discard_pile_into_draw_pile;
+pub mod process_effect_shuffle_card_pile_discard_into_card_pile_draw;
 pub mod process_effect_singing_bowl_proc;
 pub mod process_effect_sneaky_strike_proc;
 pub mod process_effect_storm_of_steel_proc;
@@ -151,7 +151,7 @@ use self::process_effect_card_move::process_effect_card_move;
 use self::process_effect_card_nightmare_pick::process_effect_card_nightmare_pick;
 use self::process_effect_card_nightmare_spawn::process_effect_card_nightmare_spawn;
 use self::process_effect_card_place::process_effect_card_place;
-use self::process_effect_card_play_from_draw_top::process_effect_card_play_from_draw_top;
+use self::process_effect_card_play_from_card_pile_draw_top::process_effect_card_play_from_card_pile_draw_top;
 use self::process_effect_card_play_relocate::process_effect_card_play_relocate;
 use self::process_effect_card_purge::process_effect_card_purge;
 use self::process_effect_card_remove::process_effect_card_remove;
@@ -237,7 +237,7 @@ use self::process_effect_set_cost_override::process_effect_set_cost_override;
 use self::process_effect_shop_build::process_effect_shop_build;
 use self::process_effect_shop_buy::process_effect_shop_buy;
 use self::process_effect_shop_purge::process_effect_shop_purge;
-use self::process_effect_shuffle_discard_pile_into_draw_pile::process_effect_shuffle_discard_pile_into_draw_pile;
+use self::process_effect_shuffle_card_pile_discard_into_card_pile_draw::process_effect_shuffle_card_pile_discard_into_card_pile_draw;
 use self::process_effect_singing_bowl_proc::process_effect_singing_bowl_proc;
 use self::process_effect_sneaky_strike_proc::process_effect_sneaky_strike_proc;
 use self::process_effect_storm_of_steel_proc::process_effect_storm_of_steel_proc;
@@ -299,25 +299,25 @@ fn fill_buf_candidates(
     id_character: usize,
     combat: &Combat,
     event: &Event,
-    id_card_deck: &[usize],
+    id_card_pile_deck: &[usize],
 ) {
-    // Combat-scoped pools demand the combat context; Character/Source/Deck don't
+    // Combat-scoped pools demand the combat context; Character/Source/CardPileDeck don't
     match candidate_pool {
-        CandidatePool::Hand => {
-            assert!(combat.active, "Hand pool outside combat");
-            effect_candidate_buf.extend_from_slice(&combat.id_card_hand)
+        CandidatePool::CardPileHand => {
+            assert!(combat.active, "CardPileHand pool outside combat");
+            effect_candidate_buf.extend_from_slice(&combat.id_card_pile_hand)
         }
-        CandidatePool::PileDraw => {
-            assert!(combat.active, "PileDraw pool outside combat");
-            effect_candidate_buf.extend_from_slice(&combat.id_card_draw)
+        CandidatePool::CardPileDraw => {
+            assert!(combat.active, "CardPileDraw pool outside combat");
+            effect_candidate_buf.extend_from_slice(&combat.id_card_pile_draw)
         }
-        CandidatePool::PileDiscard => {
-            assert!(combat.active, "PileDiscard pool outside combat");
-            effect_candidate_buf.extend_from_slice(&combat.id_card_discard)
+        CandidatePool::CardPileDiscard => {
+            assert!(combat.active, "CardPileDiscard pool outside combat");
+            effect_candidate_buf.extend_from_slice(&combat.id_card_pile_discard)
         }
-        CandidatePool::PileExhaust => {
-            assert!(combat.active, "PileExhaust pool outside combat");
-            effect_candidate_buf.extend_from_slice(&combat.id_card_exhaust)
+        CandidatePool::CardPileExhaust => {
+            assert!(combat.active, "CardPileExhaust pool outside combat");
+            effect_candidate_buf.extend_from_slice(&combat.id_card_pile_exhaust)
         }
         CandidatePool::Character => effect_candidate_buf.push(id_character),
         CandidatePool::Monsters => {
@@ -334,22 +334,22 @@ fn fill_buf_candidates(
 
             effect_candidate_buf.push(id_source)
         }
-        CandidatePool::Discover => {
-            assert!(combat.active, "Discover pool outside combat");
-            effect_candidate_buf.extend_from_slice(&combat.id_card_discover)
+        CandidatePool::CardPileDiscover => {
+            assert!(combat.active, "CardPileDiscover pool outside combat");
+            effect_candidate_buf.extend_from_slice(&combat.id_card_pile_discover)
         }
-        CandidatePool::Deck => effect_candidate_buf.extend_from_slice(id_card_deck),
-        CandidatePool::EventRollCard => {
-            assert!(event.active, "EventRollCard pool outside an event");
-            effect_candidate_buf.extend_from_slice(&event.id_roll_card)
+        CandidatePool::CardPileDeck => effect_candidate_buf.extend_from_slice(id_card_pile_deck),
+        CandidatePool::CardPileEventRoll => {
+            assert!(event.active, "CardPileEventRoll pool outside an event");
+            effect_candidate_buf.extend_from_slice(&event.id_card_pile_event_roll)
         }
-        CandidatePool::EventRollRelic => {
-            assert!(event.active, "EventRollRelic pool outside an event");
-            effect_candidate_buf.extend_from_slice(&event.id_roll_relic)
+        CandidatePool::RelicEventRoll => {
+            assert!(event.active, "RelicEventRoll pool outside an event");
+            effect_candidate_buf.extend_from_slice(&event.id_relic_event_roll)
         }
-        CandidatePool::EventRollPotion => {
-            assert!(event.active, "EventRollPotion pool outside an event");
-            effect_candidate_buf.extend_from_slice(&event.id_roll_potion)
+        CandidatePool::PotionEventRoll => {
+            assert!(event.active, "PotionEventRoll pool outside an event");
+            effect_candidate_buf.extend_from_slice(&event.id_potion_event_roll)
         }
     }
 }
@@ -410,11 +410,11 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> bool {
                 );
             } else {
                 // A hand pick drops the waiting plays of Cards still in the hand
-                if candidate_pool == CandidatePool::Hand {
-                    let id_card_hand = &state.combat.id_card_hand;
+                if candidate_pool == CandidatePool::CardPileHand {
+                    let id_card_pile_hand = &state.combat.id_card_pile_hand;
                     state
                         .card_play_queue
-                        .retain(|card_play| !id_card_hand.contains(&card_play.id_card));
+                        .retain(|card_play| !id_card_pile_hand.contains(&card_play.id_card));
                 }
 
                 // Effect needs player input to be resolved
@@ -449,7 +449,7 @@ fn resolve_or_halt(
         state.id_character,
         &state.combat,
         &state.event,
-        &state.id_card_deck,
+        &state.id_card_pile_deck,
     );
 
     // Stage 2: the filters retain
@@ -474,7 +474,7 @@ fn resolve_or_halt(
 
     // A Hand pick that takes every Card takes them from the right
     if resolved
-        && candidate_pool == CandidatePool::Hand
+        && candidate_pool == CandidatePool::CardPileHand
         && matches!(selection_kind, SelectionKind::Input { .. })
     {
         state.effect_candidate_buf.reverse();
@@ -496,13 +496,13 @@ fn dispatch_by_kind(
         EffectKind::CardAddRandom {
             color,
             kind,
-            pile,
+            card_pile,
             count,
             cost_zero,
             upgraded,
             rarity,
         } => process_effect_card_add_random(
-            state, color, kind, pile, count, cost_zero, upgraded, rarity,
+            state, color, kind, card_pile, count, cost_zero, upgraded, rarity,
         ),
         EffectKind::HandOfGreedProc { gold } => {
             process_effect_hand_of_greed_proc(id_target, state, gold)
@@ -510,19 +510,20 @@ fn dispatch_by_kind(
         EffectKind::CardDrawUpTo { amount } => process_effect_card_draw_up_to(state, amount),
         EffectKind::CardAdd {
             card_name,
-            pile,
+            card_pile,
             count,
             upgraded,
-        } => process_effect_card_add(state, card_name, pile, count, upgraded),
+        } => process_effect_card_add(state, card_name, card_pile, count, upgraded),
         EffectKind::CardDiscard { source } => process_effect_card_discard(id_target, state, source),
-        EffectKind::CardMove { pile, cost_zero } => {
-            process_effect_card_move(id_target, state, pile, cost_zero)
-        }
+        EffectKind::CardMove {
+            card_pile,
+            cost_zero,
+        } => process_effect_card_move(id_target, state, card_pile, cost_zero),
         EffectKind::DamageMindBlast => {
             unreachable!("Mind Blast's play turns its hit into DamagePhysical")
         }
-        EffectKind::ShuffleDiscardPileIntoDrawPile => {
-            process_effect_shuffle_discard_pile_into_draw_pile(state)
+        EffectKind::ShuffleCardPileDiscardIntoCardPileDraw => {
+            process_effect_shuffle_card_pile_discard_into_card_pile_draw(state)
         }
         EffectKind::CardRetain => process_effect_card_retain(id_target, state),
         EffectKind::CardSetupPick { free, bottom } => {
@@ -532,7 +533,9 @@ fn dispatch_by_kind(
         EffectKind::CardNightmareSpawn => process_effect_card_nightmare_spawn(id_target, state),
         EffectKind::CardPlace { pile } => process_effect_card_place(id_target, state, pile),
         EffectKind::CardExhaust => process_effect_card_exhaust(id_target, state),
-        EffectKind::CardPlayFromDrawTop => process_effect_card_play_from_draw_top(id_target, state),
+        EffectKind::CardPlayFromCardPileDrawTop => {
+            process_effect_card_play_from_card_pile_draw_top(id_target, state)
+        }
         EffectKind::BombArm { turns, damage } => process_effect_bomb_arm(state, turns, damage),
         EffectKind::BombTick { seq } => process_effect_bomb_tick(state, seq),
         EffectKind::LifestealHeal => process_effect_lifesteal_heal(id_target, state),
@@ -692,7 +695,9 @@ fn dispatch_by_kind(
         EffectKind::GoldDelta { sign, amount } => process_effect_gold_delta(state, sign, amount),
         EffectKind::RoomSelect => process_effect_room_select(id_target, state),
         EffectKind::CardPurge => process_effect_card_purge(id_target, state),
-        EffectKind::CardDuplicate { pile } => process_effect_card_duplicate(id_target, state, pile),
+        EffectKind::CardDuplicate { card_pile } => {
+            process_effect_card_duplicate(id_target, state, card_pile)
+        }
         EffectKind::CardTransform { upgraded } => {
             process_effect_card_transform(id_target, state, upgraded)
         }
@@ -737,9 +742,9 @@ fn dispatch_by_kind(
         EffectKind::EventConsume => process_effect_event_consume(state),
         EffectKind::CardDiscoverPick {
             cost_zero,
-            pile,
+            card_pile,
             copies,
-        } => process_effect_card_discover_pick(id_target, state, cost_zero, pile, copies),
+        } => process_effect_card_discover_pick(id_target, state, cost_zero, card_pile, copies),
         EffectKind::NoOp => panic!("NoOp effect should never be dispatched"),
     }
 }

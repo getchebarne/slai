@@ -30,7 +30,7 @@ static MOVE_SCOURING_WHIP_A18: Move = make_move(
         Effect {
             kind: EffectKind::CardAdd {
                 card_name: CardName::Wound,
-                pile: CardPile::Discard,
+                card_pile: CardPile::Discard,
                 count: 3,
                 upgraded: false,
             },

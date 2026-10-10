@@ -90,7 +90,7 @@ fn queue_pickup_effects(state: &mut GameState, id_relic: usize) {
 
         // Pandora's Box: every starter Strike / Defend becomes a random Card
         RelicName::PandorasBox => {
-            for &id in &state.id_card_deck {
+            for &id in &state.id_card_pile_deck {
                 if matches!(
                     state.entities[id].card_name,
                     CardName::Strike | CardName::Defend
@@ -133,7 +133,7 @@ fn queue_pickup_effects(state: &mut GameState, id_relic: usize) {
             state.effect_queue.push_front(Effect {
                 kind: EffectKind::CardAdd {
                     card_name: CardName::CurseOfTheBell,
-                    pile: CardPile::Deck,
+                    card_pile: CardPile::Deck,
                     count: 1,
                     upgraded: false,
                 },

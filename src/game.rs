@@ -19,8 +19,8 @@ use crate::consts::MAX_CANDIDATES;
 use crate::consts::MAX_EFFECTS_PER_HANDLER;
 use crate::consts::MAX_ENTITIES;
 use crate::consts::MAX_MONSTERS;
+use crate::consts::MAX_SIZE_CARD_PILE_HAND;
 use crate::consts::MAX_SIZE_DECK;
-use crate::consts::MAX_SIZE_HAND;
 use crate::consts::PANACHE_PLAYS;
 use crate::consts::POTION_SLOTS_DEFAULT;
 use crate::consts::POTION_SLOTS_DEFAULT_A11;
@@ -105,7 +105,7 @@ pub struct GameState {
     pub encounter_boss: MonsterEncounter,
 
     // Master deck (persists across combats)
-    pub id_card_deck: Vec<usize>,
+    pub id_card_pile_deck: Vec<usize>,
 
     // Name-indexed: `id_relics[name as usize]` is `Some(entity_id)` iff owned
     pub id_relics: [Option<usize>; RelicName::COUNT],
@@ -184,10 +184,10 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
 
     // Initialize starter deck
     let deck_starter = get_silent_starter_deck(ascension);
-    let mut id_card_deck: Vec<usize> = Vec::with_capacity(MAX_SIZE_DECK);
+    let mut id_card_pile_deck: Vec<usize> = Vec::with_capacity(MAX_SIZE_DECK);
     for card in deck_starter {
         let id_card = push_entity(&mut entities, card);
-        id_card_deck.push(id_card);
+        id_card_pile_deck.push(id_card);
     }
 
     // Initialize map
@@ -234,7 +234,7 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
         act: 1,
         entities,
         id_character: 0,
-        id_card_deck,
+        id_card_pile_deck,
         id_relics,
         relic_seq_next: 1,
         id_potions,
@@ -251,7 +251,7 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
         effect_buf: Vec::with_capacity(MAX_EFFECTS_PER_HANDLER),
         effect_candidate_buf: Vec::with_capacity(MAX_CANDIDATES),
         effect_pending: None,
-        effect_pending_selected: Vec::with_capacity(MAX_SIZE_HAND),
+        effect_pending_selected: Vec::with_capacity(MAX_SIZE_CARD_PILE_HAND),
         unknown_chance_monster: UNKNOWN_CHANCE_BASE_MONSTER,
         unknown_chance_shop: UNKNOWN_CHANCE_BASE_SHOP,
         unknown_chance_treasure: UNKNOWN_CHANCE_BASE_TREASURE,
@@ -267,16 +267,16 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
         // Contexts start inactive with their high-water capacities pre-reserved
         combat: Combat {
             active: false,
-            id_card_hand: Vec::with_capacity(MAX_SIZE_HAND),
-            id_card_draw: Vec::with_capacity(MAX_SIZE_DECK),
-            id_card_discard: Vec::with_capacity(MAX_SIZE_DECK),
-            id_card_exhaust: Vec::with_capacity(MAX_SIZE_DECK),
+            id_card_pile_hand: Vec::with_capacity(MAX_SIZE_CARD_PILE_HAND),
+            id_card_pile_draw: Vec::with_capacity(MAX_SIZE_DECK),
+            id_card_pile_discard: Vec::with_capacity(MAX_SIZE_DECK),
+            id_card_pile_exhaust: Vec::with_capacity(MAX_SIZE_DECK),
             id_monsters: [None; MAX_MONSTERS],
-            id_card_stasis: [None; MAX_MONSTERS],
+            id_card_pile_stasis: [None; MAX_MONSTERS],
             id_monster_picked: None,
             id_card_last_drawn: None,
-            id_card_nightmares: Vec::new(),
-            id_card_discover: Vec::with_capacity(DISCOVER_PICK_COUNT as usize),
+            id_card_pile_nightmare: Vec::new(),
+            id_card_pile_discover: Vec::with_capacity(DISCOVER_PICK_COUNT as usize),
             id_card_origins: Vec::new(),
             energy: Energy {
                 energy_current: 0,
@@ -316,15 +316,15 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
             stage: 0,
             id_event_options: Vec::new(),
             health_max_at_open: 0,
-            id_roll_card: Vec::new(),
-            id_roll_relic: Vec::new(),
-            id_roll_potion: Vec::new(),
+            id_card_pile_event_roll: Vec::new(),
+            id_relic_event_roll: Vec::new(),
+            id_potion_event_roll: Vec::new(),
             adventurer_elite: MonsterEncounter::ThreeSentries,
             found_gold: false,
             found_nothing: false,
             found_relic: false,
-            id_match_flipped: None,
-            id_match_unseen: Vec::new(),
+            id_card_match_flipped: None,
+            id_card_match_unseen: Vec::new(),
             match_attempts: 0,
         },
         shop: Shop {

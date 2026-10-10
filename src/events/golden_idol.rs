@@ -38,7 +38,7 @@ const OPTION_OUTRUN: &[Effect] = &[
     Effect {
         kind: EffectKind::CardAdd {
             card_name: CardName::Injury,
-            pile: CardPile::Deck,
+            card_pile: CardPile::Deck,
             count: 1,
             upgraded: false,
         },

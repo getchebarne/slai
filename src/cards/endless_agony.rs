@@ -36,7 +36,7 @@ pub static ENDLESS_AGONY: CardTemplate = make_card_template(
     // Drawing it adds a copy of it, as drawn, to the hand
     &[Effect {
         kind: EffectKind::CardDuplicate {
-            pile: CardPile::Hand,
+            card_pile: CardPile::Hand,
         },
         id_source: None,
         target: TARGET_SOURCE,

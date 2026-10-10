@@ -24,7 +24,7 @@ pub static NECRONOMICON: RelicTemplate = RelicTemplate {
     effects_pickup: &[Effect {
         kind: EffectKind::CardAdd {
             card_name: CardName::Necronomicurse,
-            pile: CardPile::Deck,
+            card_pile: CardPile::Deck,
             count: 1,
             upgraded: false,
         },

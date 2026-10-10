@@ -88,7 +88,7 @@ pub fn process_effect_chest_open(state: &mut GameState) {
             kind: EffectKind::CardAddRandom {
                 color: CardColor::Curse,
                 kind: None,
-                pile: CardPile::Deck,
+                card_pile: CardPile::Deck,
                 count: 1,
                 cost_zero: None,
                 upgraded: false,

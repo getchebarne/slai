@@ -19,7 +19,7 @@ const OPTION_TRADE: &[Effect] = &[
         kind: EffectKind::RelicLose,
         id_source: None,
         target: Target::Resolve {
-            candidate_pool: CandidatePool::EventRollRelic,
+            candidate_pool: CandidatePool::RelicEventRoll,
             filters: &[],
             selection_kind: SelectionKind::Input { count: 1 },
         },
@@ -53,8 +53,14 @@ pub fn spawn(state: &mut GameState) -> Vec<usize> {
     }
 
     // Push and bake Event Options
-    state.event.id_roll_relic.push(relic_name_id_owned[idx].1);
-    state.event.id_roll_relic.push(relic_name_id_owned[jdx].1);
+    state
+        .event
+        .id_relic_event_roll
+        .push(relic_name_id_owned[idx].1);
+    state
+        .event
+        .id_relic_event_roll
+        .push(relic_name_id_owned[jdx].1);
     bake_options(state, catalog(state.ascension))
 }
 

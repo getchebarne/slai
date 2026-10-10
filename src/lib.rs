@@ -42,7 +42,7 @@ impl GameEnv {
     #[classattr]
     const MAX_MONSTERS: usize = consts::MAX_MONSTERS;
     #[classattr]
-    const MAX_SIZE_HAND: usize = consts::MAX_SIZE_HAND;
+    const MAX_SIZE_CARD_PILE_HAND: usize = consts::MAX_SIZE_CARD_PILE_HAND;
     #[classattr]
     const MAX_COMBAT_CARD_REWARD: usize = consts::MAX_COMBAT_CARD_REWARD;
     #[classattr]
@@ -54,11 +54,11 @@ impl GameEnv {
     #[classattr]
     const CAULDRON_POTION_COUNT: usize = consts::CAULDRON_POTION_COUNT;
     #[classattr]
-    const MAX_EVENT_ROLL_CARDS: usize = consts::MAX_EVENT_ROLL_CARDS;
+    const MAX_SIZE_CARD_PILE_EVENT_ROLL: usize = consts::MAX_SIZE_CARD_PILE_EVENT_ROLL;
     #[classattr]
-    const MAX_EVENT_ROLL_RELICS: usize = consts::MAX_EVENT_ROLL_RELICS;
+    const MAX_SIZE_RELIC_EVENT_ROLL: usize = consts::MAX_SIZE_RELIC_EVENT_ROLL;
     #[classattr]
-    const MAX_EVENT_ROLL_POTIONS: usize = consts::MAX_EVENT_ROLL_POTIONS;
+    const MAX_SIZE_POTION_EVENT_ROLL: usize = consts::MAX_SIZE_POTION_EVENT_ROLL;
     #[classattr]
     const POTION_SLOTS_MAX: usize = consts::POTION_SLOTS_MAX;
     #[classattr]
@@ -93,6 +93,14 @@ impl GameEnv {
     const ACT_FINAL: u8 = consts::ACT_FINAL;
     #[classattr]
     const MAP_WIDTH: usize = consts::MAP_WIDTH;
+    #[classattr]
+    const CARD_REWARD_ROLL_OFFSET_BASE: i8 = consts::CARD_REWARD_ROLL_OFFSET_BASE;
+    #[classattr]
+    const CARD_REWARD_ROLL_OFFSET_MIN: i8 = consts::CARD_REWARD_ROLL_OFFSET_MIN;
+    #[classattr]
+    const POTION_DROP_CHANCE_BASE: i32 = consts::POTION_DROP_CHANCE_BASE;
+    #[classattr]
+    const MATCH_AND_KEEP_ATTEMPTS: u8 = consts::MATCH_AND_KEEP_ATTEMPTS;
 
     #[new]
     #[pyo3(signature = (ascension=0, fast_mode=false, neow=false))]
@@ -267,7 +275,7 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEffectCardNightmarePick;
     #[pymodule_export]
-    use super::ffi::PyEffectCardPlayFromDrawTop;
+    use super::ffi::PyEffectCardPlayFromCardPileDrawTop;
     #[pymodule_export]
     use super::ffi::PyEffectCardPurge;
     #[pymodule_export]
@@ -383,7 +391,7 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEffectSetCostOverride;
     #[pymodule_export]
-    use super::ffi::PyEffectShuffleDiscardPileIntoDrawPile;
+    use super::ffi::PyEffectShuffleCardPileDiscardIntoCardPileDraw;
     #[pymodule_export]
     use super::ffi::PyEffectSneakyStrikeProc;
     #[pymodule_export]

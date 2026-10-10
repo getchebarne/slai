@@ -19,7 +19,7 @@ const OPTION_JAX: [Effect; 2] = [
     Effect {
         kind: EffectKind::CardAdd {
             card_name: CardName::Jax,
-            pile: CardPile::Deck,
+            card_pile: CardPile::Deck,
             count: 1,
             upgraded: false,
         },
@@ -35,7 +35,7 @@ const OPTION_TRANSFORM: [Effect; 2] = [
         kind: EffectKind::CardTransform { upgraded: false },
         id_source: None,
         target: Target::Resolve {
-            candidate_pool: CandidatePool::Deck,
+            candidate_pool: CandidatePool::CardPileDeck,
             filters: &[CandidateFilter::NotBoundCurse],
             selection_kind: SelectionKind::Input { count: 2 },
         },
@@ -65,7 +65,7 @@ pub fn option_available(state: &GameState, idx: usize) -> bool {
     match idx {
         // Transforming two requires two Cards the pick offers
         1 => state
-            .id_card_deck
+            .id_card_pile_deck
             .iter()
             .filter(|&&id| !card_name_bound_curse(state.entities[id].card_name))
             .nth(1)

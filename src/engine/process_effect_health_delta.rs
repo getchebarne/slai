@@ -109,7 +109,7 @@ fn apply_loss(id_source: Option<usize>, id_target: usize, state: &mut GameState,
         state.effect_queue.push_front(Effect {
             kind: EffectKind::CardAdd {
                 card_name: CardName::Wound,
-                pile: CardPile::Discard,
+                card_pile: CardPile::Discard,
                 count: 1,
                 upgraded: false,
             },
