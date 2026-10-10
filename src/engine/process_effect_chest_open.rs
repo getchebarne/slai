@@ -59,7 +59,9 @@ pub fn process_effect_chest_open(state: &mut GameState) {
                 .id_relics
                 .extend_from_slice(&state.chest.id_relics);
             state.reward.relics_exclusive = true;
+            state.reward.closes_on_pick = true;
             state.reward.active = true;
+            state.chest.chest_relics_seen = true;
             return;
         }
         ChestKind::Small => ChestParams {
@@ -109,6 +111,9 @@ pub fn process_effect_chest_open(state: &mut GameState) {
     state.reward.gold = gold;
     state.reward.active = true;
 
+    // An opened chest is spent: leaving its Reward leaves the Room
+    state.chest.active = false;
+
     // Matryoshka: the next 2 chests hold an extra Relic (75% Common / 25% Uncommon)
     if let Some(id) = state.id_relics[RelicName::Matryoshka as usize]
         && state.entities[id].relic_counter > 0
@@ -148,11 +153,13 @@ pub fn process_effect_chest_open(state: &mut GameState) {
         },
     );
 
-    // N'loth's Hungry Face: its one charge empties the chest of a Relic, which uses it up
+    // N'loth's Hungry Face: its one charge empties the chest of a Relic; used up at 0 charges
     if let Some(id) = state.id_relics[RelicName::NlothsHungryFace as usize]
-        && !state.entities[id].relic_used_up
+        && state.entities[id].relic_counter > 0
     {
-        state.entities[id].relic_used_up = true;
+        let relic = &mut state.entities[id];
+        relic.relic_counter -= 1;
+        relic.relic_used_up = relic.relic_counter == 0;
         queue_effect_untargeted(state, EffectKind::RelicRewardRemoveOne);
     }
 }

@@ -81,6 +81,7 @@ flat_variants!(PyEffect {
     EventAdvanceState => PyEffectEventAdvanceState as "EffectEventAdvanceState" { delta: i8 },
     ScrapOozeReach => PyEffectScrapOozeReach as "EffectScrapOozeReach" { chance: u8, advance_on_miss: bool },
     EventConsume => PyEffectEventConsume as "EffectEventConsume",
+    EventClose => PyEffectEventClose as "EffectEventClose",
     CardDiscoverPick => PyEffectCardDiscoverPick as "EffectCardDiscoverPick" { cost_zero: Option<PyCostScope>, card_pile: PyCardPile, copies: u8, target: PyTarget },
     CardPurge => PyEffectCardPurge as "EffectCardPurge" { target: PyTarget },
     CardUpgrade => PyEffectCardUpgrade as "EffectCardUpgrade" { target: PyTarget },
@@ -203,6 +204,7 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
                     | EffectKind::DistractionAdd
                     | EffectKind::EnergyDelta { .. }
                     | EffectKind::EventAdvanceState { .. }
+                    | EffectKind::EventClose
                     | EffectKind::EventConsume
                     | EffectKind::Gamble { .. }
                     | EffectKind::GoldDelta { .. }
@@ -424,6 +426,7 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
             advance_on_miss,
         }),
         EffectKind::EventConsume => PyEffect::EventConsume(PyEffectEventConsume),
+        EffectKind::EventClose => PyEffect::EventClose(PyEffectEventClose),
         EffectKind::PotionAddRandom { limited, uniform } => {
             PyEffect::PotionAddRandom(PyEffectPotionAddRandom { limited, uniform })
         }

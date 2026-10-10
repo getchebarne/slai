@@ -315,6 +315,8 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEffectEventAdvanceState;
     #[pymodule_export]
+    use super::ffi::PyEffectEventClose;
+    #[pymodule_export]
     use super::ffi::PyEffectEventConsume;
     #[pymodule_export]
     use super::ffi::PyEffectGamble;

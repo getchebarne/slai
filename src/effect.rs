@@ -151,6 +151,7 @@ pub enum EffectKind {
     EventAdvanceState {
         delta: i8,
     },
+    EventClose,
     EventConsume,
     Gamble {
         choose_discards: bool,

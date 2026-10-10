@@ -73,16 +73,18 @@ const fn punch(damage: u16) -> [Effect; 2] {
     ]
 }
 
-// One paid shape covers four options; availability keys on the payload
+// One paid shape covers four options; availability keys on the payload, and consuming first lands a pick over the spent event
 const fn paid_option(cost: u16, middle: Effect) -> [Effect; 3] {
-    [gold_delta(cost), middle, EFFECT_EVENT_CONSUME]
+    [gold_delta(cost), EFFECT_EVENT_CONSUME, middle]
 }
+
+// Full Service: consume first, so the purge pick lands over the spent event
 const fn full_service(cost: u16) -> [Effect; 4] {
     [
         gold_delta(cost),
+        EFFECT_EVENT_CONSUME,
         EFFECT_DECK_PURGE_PICK_1,
         upgrade_random(1),
-        EFFECT_EVENT_CONSUME,
     ]
 }
 
@@ -201,10 +203,9 @@ pub fn option_available(state: &GameState, idx: usize) -> bool {
     match idx {
         0 => gold >= adjust_cost && deck_has_upgradable(state),
         1 => {
-            // The baked variant carries its own requirement: one unbottled Card
-            // to remove, two to transform
+            // The baked payload, after the cost and the consume, sets the requirement: one unbottled Card to remove, two to transform
             let id_option = state.event.id_event_options[idx];
-            match state.entities[id_option].event_option_effects[1].kind {
+            match state.entities[id_option].event_option_effects[2].kind {
                 EffectKind::CardPurge => gold >= cleanup_cost && unbottled >= 1,
                 EffectKind::CardTransform { .. } => gold >= cleanup_cost && unbottled >= 2,
                 kind => unreachable!("Designer cleanup option with unexpected effect: {kind:?}"),

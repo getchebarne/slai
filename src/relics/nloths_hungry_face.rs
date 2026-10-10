@@ -7,7 +7,7 @@ use crate::types::RelicTier;
 pub static NLOTHS_HUNGRY_FACE: RelicTemplate = RelicTemplate {
     name: RelicName::NlothsHungryFace,
     tier: RelicTier::Special,
-    counter_init: 0,
+    counter_init: 1, // Its one charge; used up at 0 charges
     counter_reset: 0,
     effects_combat_start: &[],
     effects_turn_start: &[],

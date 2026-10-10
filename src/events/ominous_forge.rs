@@ -13,8 +13,8 @@ use crate::types::CardName;
 use crate::types::CardPile;
 use crate::types::RelicName;
 
-// Forge
-const OPTION_FORGE: &[Effect] = &[EFFECT_DECK_UPGRADE_PICK_1, EFFECT_EVENT_CONSUME];
+// Forge; consume first, so the pick lands over the spent event
+const OPTION_FORGE: &[Effect] = &[EFFECT_EVENT_CONSUME, EFFECT_DECK_UPGRADE_PICK_1];
 
 // Rummage
 const OPTION_RUMMAGE: &[Effect] = &[

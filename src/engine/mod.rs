@@ -50,6 +50,7 @@ pub mod process_effect_du_vu_doll_recount;
 pub mod process_effect_energy_delta;
 pub mod process_effect_escape_plan_check;
 pub mod process_effect_event_advance_state;
+pub mod process_effect_event_close;
 pub mod process_effect_event_consume;
 pub mod process_effect_gamble;
 pub mod process_effect_gamble_draw;
@@ -177,6 +178,7 @@ use self::process_effect_du_vu_doll_recount::process_effect_du_vu_doll_recount;
 use self::process_effect_energy_delta::process_effect_energy_delta;
 use self::process_effect_escape_plan_check::process_effect_escape_plan_check;
 use self::process_effect_event_advance_state::process_effect_event_advance_state;
+use self::process_effect_event_close::process_effect_event_close;
 use self::process_effect_event_consume::process_effect_event_consume;
 use self::process_effect_gamble::process_effect_gamble;
 use self::process_effect_gamble_draw::process_effect_gamble_draw;
@@ -744,6 +746,7 @@ fn dispatch_by_kind(
             chance,
             advance_on_miss,
         } => process_effect_scrap_ooze_reach(state, chance, advance_on_miss),
+        EffectKind::EventClose => process_effect_event_close(state),
         EffectKind::EventConsume => process_effect_event_consume(state),
         EffectKind::CardDiscoverPick {
             cost_zero,

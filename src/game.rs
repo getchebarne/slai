@@ -91,7 +91,7 @@ pub struct GameState {
     // Location
     pub location: Location,
 
-    // What the last entered Room resolved into; a "?" keeps Unknown on the map
+    // What the current Room resolved into, None at Location::Start; a "?" keeps Unknown on the map
     pub room_kind_resolved: Option<RoomKind>,
 
     // Entities and indices
@@ -308,6 +308,7 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
             gold_stolen: None,
             relics_exclusive: false,
             cards_forced: false,
+            closes_on_pick: false,
         },
         event: Event {
             active: false,
@@ -344,6 +345,7 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
             active: false,
             chest_kind: ChestKind::Small,
             chest_opened: false,
+            chest_relics_seen: false,
             id_relics: Vec::with_capacity(BOSS_RELIC_REWARD_COUNT),
         },
         game_over: false,

@@ -15,7 +15,7 @@ pub fn process_effect_room_exit(state: &mut GameState) {
     match context_focus(state) {
         Focus::Reward => {
             // A boss chest left with its pick untaken closes again, holding the same Relics
-            if state.reward.relics_exclusive && !state.reward.id_relics.is_empty() {
+            if state.reward.relics_exclusive {
                 state.chest.chest_opened = false;
             }
             state.reward.active = false;

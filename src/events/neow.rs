@@ -18,6 +18,7 @@ use crate::effect::SelectionKind;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
 use crate::events::EFFECT_DECK_UPGRADE_PICK_1;
+use crate::events::EFFECT_EVENT_CLOSE;
 use crate::events::EFFECT_EVENT_CONSUME;
 use crate::events::EventOptionTemplate;
 use crate::events::bake_options;
@@ -368,9 +369,11 @@ const fn eots_for_asc(ascension: u8) -> [EventOptionTemplate; CATALOG_LEN] {
         } else {
             BONUS_CAT_1[idx - IDX_CAT_1]
         };
+
+        // The Potions close Neow first: leaving their Reward leaves for the map
         eots[idx] = if matches!(bonus, NeowBonus::ThreeSmallPotions) {
             make_event_option_template(&[
-                EFFECT_EVENT_CONSUME,
+                EFFECT_EVENT_CLOSE,
                 effect_bonus(bonus, health_bonus),
                 EFFECT_POTIONS_CARD_ROLL,
             ])

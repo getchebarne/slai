@@ -238,6 +238,7 @@ pub fn process_effect_turn_start_character(state: &mut GameState) {
             &mut state.entities,
             &mut state.effect_buf,
             art_of_war_energy,
+            *turn,
         );
     }
 
@@ -399,6 +400,7 @@ pub fn process_effect_turn_start_character(state: &mut GameState) {
             &mut state.entities,
             &mut state.effect_buf,
             art_of_war_energy,
+            *turn,
         );
     }
 
@@ -496,6 +498,7 @@ fn push_relics_turn_start(
     entities: &mut [Entity],
     effect_buf: &mut Vec<Effect>,
     art_of_war_energy: bool,
+    turn: u16,
 ) {
     for &id_relic in id_relics_by_seq {
         let relic = &mut entities[id_relic];
@@ -510,15 +513,10 @@ fn push_relics_turn_start(
             // Stone Calendar: counts the combat's turns; it fires at the turn end
             RelicName::StoneCalendar => relic.relic_counter += 1,
 
-            // Horn Cleat and Captain's Wheel: one-shot turn counters
+            // Horn Cleat and Captain's Wheel: count the combat's turns up to their turn, fire there once, then read 0
             RelicName::HornCleat | RelicName::CaptainsWheel => {
-                if relic.relic_counter >= 0 {
-                    relic.relic_counter += 1;
-                    if relic.relic_counter == relic.relic_counter_reset {
-                        // Use -1 so that it doesn't proc again
-                        relic.relic_counter = -1;
-                        effect_buf.extend_from_slice(relic.relic_effects_counter);
-                    }
+                if turn <= relic.relic_counter_reset as u16 && trigger_relic_counter(relic) {
+                    effect_buf.extend_from_slice(relic.relic_effects_counter);
                 }
             }
 

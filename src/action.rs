@@ -859,7 +859,7 @@ fn fill_legal_actions_rest_site(state: &mut GameState) {
     push_potion_actions(state);
 }
 
-// An opened chest cannot be opened again (N'loth's eaten chests rest opened)
+// An opened chest cannot be opened again (the boss chest after its pick)
 fn fill_legal_actions_chest(state: &mut GameState) {
     if !state.chest.chest_opened {
         state.legal_actions.push(Action::ChestOpen);

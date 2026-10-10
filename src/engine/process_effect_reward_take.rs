@@ -21,7 +21,6 @@ pub fn process_effect_reward_take(
         id_potions,
         gold,
         gold_stolen,
-        relics_exclusive,
         ..
     } = &mut state.reward;
 
@@ -46,11 +45,6 @@ pub fn process_effect_reward_take(
                 .position(|&id| id == id_relic)
                 .expect("Taken Relic is a staged reward");
             id_relics.remove(idx);
-
-            // Pick-one-of-N offer (boss Relics): taking one drops the rest
-            if *relics_exclusive {
-                id_relics.clear();
-            }
             (id_relic, EffectKind::RelicAdopt)
         }
 
@@ -85,6 +79,11 @@ pub fn process_effect_reward_take(
             return;
         }
     };
+
+    // A pick screen closes on its pick
+    if state.reward.closes_on_pick {
+        state.reward.active = false;
+    }
 
     state.effect_queue.push_front(Effect {
         kind: kind_adopt,

@@ -13,7 +13,7 @@ use crate::events::make_event_option_template;
 use crate::game::GameState;
 use crate::types::DeltaSign;
 
-// Pray
+// Pray; consume after the HP cost, so the pick lands over the spent event
 const OPTION_PRAY: &[Effect] = &[
     Effect {
         kind: EffectKind::HealthDelta {
@@ -23,8 +23,8 @@ const OPTION_PRAY: &[Effect] = &[
         id_source: None,
         target: TARGET_CHARACTER,
     },
-    EFFECT_DECK_PURGE_PICK_1,
     EFFECT_EVENT_CONSUME,
+    EFFECT_DECK_PURGE_PICK_1,
 ];
 
 // Attack

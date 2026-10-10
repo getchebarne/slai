@@ -117,6 +117,12 @@ pub const EFFECT_EVENT_CONSUME: Effect = Effect {
     target: Target::Direct(None),
 };
 
+pub const EFFECT_EVENT_CLOSE: Effect = Effect {
+    kind: EffectKind::EventClose,
+    id_source: None,
+    target: Target::Direct(None),
+};
+
 // Character HP loss, the standard Event Option cost
 pub const fn health_delta(amount: u16) -> Effect {
     Effect {
