@@ -16,7 +16,7 @@ const OPTION_OFFER: &[Effect] = &[
         kind: EffectKind::BonfireOffer,
         id_source: None,
         target: Target::Resolve {
-            candidate_pool: CandidatePool::Deck,
+            candidate_pool: CandidatePool::CardPileDeck,
             filters: &[CandidateFilter::NotBottled, CandidateFilter::NotBoundCurse],
             selection_kind: SelectionKind::Input { count: 1 },
         },

@@ -23,15 +23,15 @@ pub fn process_effect_match_flip_seen(id_target: Option<usize>, state: &mut Game
 
     // The flipped Card leaves the face-down Cards
     let idx = event
-        .id_roll_card
+        .id_card_pile_event_roll
         .iter()
         .position(|&id| id == id_card)
         .expect("A seen flip picks a seen Card");
-    event.id_roll_card.remove(idx);
+    event.id_card_pile_event_roll.remove(idx);
 
     // The attempt's first flip stays face up
-    let Some(id_card_first) = event.id_match_flipped.take() else {
-        event.id_match_flipped = Some(id_card);
+    let Some(id_card_first) = event.id_card_match_flipped.take() else {
+        event.id_card_match_flipped = Some(id_card);
         return;
     };
 
@@ -41,7 +41,7 @@ pub fn process_effect_match_flip_seen(id_target: Option<usize>, state: &mut Game
         state.effect_queue.push_back(Effect {
             kind: EffectKind::CardAdd {
                 card_name,
-                pile: CardPile::Deck,
+                card_pile: CardPile::Deck,
                 count: 1,
                 upgraded: false,
             },
@@ -50,8 +50,8 @@ pub fn process_effect_match_flip_seen(id_target: Option<usize>, state: &mut Game
         });
     } else {
         // A miss goes back face down, among the seen Cards
-        event.id_roll_card.push(id_card_first);
-        event.id_roll_card.push(id_card);
+        event.id_card_pile_event_roll.push(id_card_first);
+        event.id_card_pile_event_roll.push(id_card);
     }
     event.match_attempts -= 1;
 

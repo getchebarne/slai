@@ -24,7 +24,7 @@ pub fn process_effect_card_play_relocate(id_target: Option<usize>, state: &mut G
     } else {
         // Not a real discard: skips this_turn_discards and on discard triggers
         EffectKind::CardMove {
-            pile: CardPile::Discard,
+            card_pile: CardPile::Discard,
             cost_zero: None,
         }
     };

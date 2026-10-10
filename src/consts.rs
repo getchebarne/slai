@@ -39,7 +39,7 @@ pub const MAX_CARD_REWARD_ROLL: usize = 20;
 const _: () = assert!(LIBRARY_CARD_COUNT <= MAX_CARD_REWARD_ROLL);
 
 // Combat
-pub const MAX_SIZE_HAND: usize = 10;
+pub const MAX_SIZE_CARD_PILE_HAND: usize = 10;
 pub const MAX_SIZE_DECK: usize = 99;
 pub const MAX_ENTITIES: usize = 1024;
 pub const CARDS_DRAWN_PER_TURN: u16 = 5;
@@ -85,9 +85,9 @@ pub const BOMB_FUSE_TURNS: u8 = 3;
 pub const PANACHE_PLAYS: u8 = 5;
 
 // Event roll-pool stakes: the widest offer any event places in `id_roll_*`
-pub const MAX_EVENT_ROLL_CARDS: usize = 2 * MATCH_AND_KEEP_ATTEMPTS as usize; // Match and Keep!
-pub const MAX_EVENT_ROLL_RELICS: usize = 2; // N'loth's two owned relics
-pub const MAX_EVENT_ROLL_POTIONS: usize = 1; // We Meet Again
+pub const MAX_SIZE_CARD_PILE_EVENT_ROLL: usize = 2 * MATCH_AND_KEEP_ATTEMPTS as usize; // Match and Keep!
+pub const MAX_SIZE_RELIC_EVENT_ROLL: usize = 2; // N'loth's two owned relics
+pub const MAX_SIZE_POTION_EVENT_ROLL: usize = 1; // We Meet Again
 
 // Card rewards
 pub const CARD_REWARD_ROLL_OFFSET_BASE: i8 = 5;

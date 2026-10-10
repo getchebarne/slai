@@ -18,9 +18,10 @@ pub fn process_effect_card_discover_roll(
         "process_effect_card_discover_roll outside the Combat frame"
     );
     let Combat {
-        id_card_discover, ..
+        id_card_pile_discover,
+        ..
     } = &mut state.combat;
-    id_card_discover.clear();
+    id_card_pile_discover.clear();
 
     let card_picks = get_random_cards(
         color,
@@ -33,6 +34,6 @@ pub fn process_effect_card_discover_roll(
     );
     for card_pick in card_picks {
         let id = push_entity(&mut state.entities, card_pick);
-        id_card_discover.push(id);
+        id_card_pile_discover.push(id);
     }
 }

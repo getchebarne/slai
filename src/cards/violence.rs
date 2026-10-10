@@ -27,12 +27,12 @@ pub static VIOLENCE: CardTemplate = make_card_template(
     false,
     &[Effect {
         kind: EffectKind::CardMove {
-            pile: CardPile::Hand,
+            card_pile: CardPile::Hand,
             cost_zero: None,
         },
         id_source: None,
         target: Target::Resolve {
-            candidate_pool: CandidatePool::PileDraw,
+            candidate_pool: CandidatePool::CardPileDraw,
             filters: &[CandidateFilter::KindAttack],
             selection_kind: SelectionKind::Random { count: 3 },
         },
@@ -47,7 +47,7 @@ pub static VIOLENCE_PLUS: CardTemplate = CardTemplate {
     effects_play: {
         let mut effects = VIOLENCE.effects_play;
         effects[0].target = Target::Resolve {
-            candidate_pool: CandidatePool::PileDraw,
+            candidate_pool: CandidatePool::CardPileDraw,
             filters: &[CandidateFilter::KindAttack],
             selection_kind: SelectionKind::Random { count: 4 }, // +1 Card
         };

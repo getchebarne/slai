@@ -16,9 +16,11 @@ pub fn process_effect_damage_flechettes(
         state.combat.active,
         "process_effect_damage_flechettes outside the Combat frame"
     );
-    let Combat { id_card_hand, .. } = &mut state.combat;
+    let Combat {
+        id_card_pile_hand, ..
+    } = &mut state.combat;
     let id_target = id_target.expect("DamageFlechettes requires id_target");
-    let num_skills_in_hand = id_card_hand
+    let num_skills_in_hand = id_card_pile_hand
         .iter()
         .filter(|&&id| state.entities[id].card_kind == CardKind::Skill)
         .count();

@@ -85,7 +85,7 @@ def create_action_spec(action_type: ActionType, *args: ArgSpec) -> ActionSpec:
 
 
 # Per-slot description strings
-_HAND_POS = "position in state.combat.pile_hand"
+_HAND_POS = "position in state.combat.card_pile_hand"
 _MONSTER_POS = "position in the alive-monster list at dispatch time"
 _REWARD_BUNDLE_POS = "bundle in state.reward.cards"
 _REWARD_POS = "card within the bundle"
@@ -112,7 +112,7 @@ ACTION_SPEC_REGISTRY = ActionSpecRegistry(
             ArgSpec(
                 "idx",
                 "position in the collection named by state.effect_pending.target.candidate_pool "
-                "(hand, deck, discover, pile, or event roll list)",
+                "(a card_pile_* list, relic_event_roll or potion_event_roll)",
             ),
         ),
         create_action_spec(ActionType.PickSkip),
@@ -229,7 +229,7 @@ EffectCardDrawUpTo = _rs.EffectCardDrawUpTo
 EffectCardDiscard = _rs.EffectCardDiscard
 EffectCardRetain = _rs.EffectCardRetain
 EffectDamageMindBlast = _rs.EffectDamageMindBlast
-EffectShuffleDiscardPileIntoDrawPile = _rs.EffectShuffleDiscardPileIntoDrawPile
+EffectShuffleCardPileDiscardIntoCardPileDraw = _rs.EffectShuffleCardPileDiscardIntoCardPileDraw
 EffectMaxHealthDelta = _rs.EffectMaxHealthDelta
 EffectHealthDelta = _rs.EffectHealthDelta
 EffectPotionAddRandom = _rs.EffectPotionAddRandom
@@ -255,7 +255,7 @@ EffectRestSmith = _rs.EffectRestSmith
 EffectRestToke = _rs.EffectRestToke
 EffectCardDuplicate = _rs.EffectCardDuplicate
 EffectCardTransform = _rs.EffectCardTransform
-EffectCardPlayFromDrawTop = _rs.EffectCardPlayFromDrawTop
+EffectCardPlayFromCardPileDrawTop = _rs.EffectCardPlayFromCardPileDrawTop
 EffectGamble = _rs.EffectGamble
 EffectCombatEnd = _rs.EffectCombatEnd
 EffectRelicLose = _rs.EffectRelicLose
@@ -312,7 +312,7 @@ Effect = (
     | EffectCardDiscard
     | EffectCardRetain
     | EffectDamageMindBlast
-    | EffectShuffleDiscardPileIntoDrawPile
+    | EffectShuffleCardPileDiscardIntoCardPileDraw
     | EffectMaxHealthDelta
     | EffectHealthDelta
     | EffectPotionAddRandom
@@ -338,7 +338,7 @@ Effect = (
     | EffectRestToke
     | EffectCardDuplicate
     | EffectCardTransform
-    | EffectCardPlayFromDrawTop
+    | EffectCardPlayFromCardPileDrawTop
     | EffectGamble
     | EffectCombatEnd
     | EffectRelicLose
@@ -572,7 +572,7 @@ __all__ = [
     "EffectCardDiscard",
     "EffectCardRetain",
     "EffectDamageMindBlast",
-    "EffectShuffleDiscardPileIntoDrawPile",
+    "EffectShuffleCardPileDiscardIntoCardPileDraw",
     "EffectMaxHealthDelta",
     "EffectHealthDelta",
     "EffectPotionAddRandom",
@@ -598,7 +598,7 @@ __all__ = [
     "EffectRestToke",
     "EffectCardDuplicate",
     "EffectCardTransform",
-    "EffectCardPlayFromDrawTop",
+    "EffectCardPlayFromCardPileDrawTop",
     "EffectGamble",
     "EffectCombatEnd",
     "EffectRelicLose",

@@ -19,7 +19,7 @@ static MOVE_GOOP_SPRAY_3: Move = make_move(
     &[Effect {
         kind: EffectKind::CardAdd {
             card_name: CardName::Slimed,
-            pile: CardPile::Discard,
+            card_pile: CardPile::Discard,
             count: 3,
             upgraded: false,
         },
@@ -33,7 +33,7 @@ static MOVE_GOOP_SPRAY_5: Move = make_move(
     &[Effect {
         kind: EffectKind::CardAdd {
             card_name: CardName::Slimed,
-            pile: CardPile::Discard,
+            card_pile: CardPile::Discard,
             count: 5,
             upgraded: false,
         },

@@ -13,16 +13,18 @@ pub fn process_effect_storm_of_steel_proc(state: &mut GameState, upgraded: bool)
         state.combat.active,
         "process_effect_storm_of_steel_proc outside the Combat frame"
     );
-    let Combat { id_card_hand, .. } = &mut state.combat;
+    let Combat {
+        id_card_pile_hand, ..
+    } = &mut state.combat;
 
     // Executes in reverse:
     //     1. CardDiscard (whole hand)
     //     2. CardAdd (Shivs)
-    let count = id_card_hand.len() as u16;
+    let count = id_card_pile_hand.len() as u16;
     state.effect_queue.push_front(Effect {
         kind: EffectKind::CardAdd {
             card_name: CardName::Shiv,
-            pile: CardPile::Hand,
+            card_pile: CardPile::Hand,
             count,
             upgraded,
         },
@@ -31,8 +33,8 @@ pub fn process_effect_storm_of_steel_proc(state: &mut GameState, upgraded: bool)
     });
 
     // Discard the current Cards
-    for idx in 0..id_card_hand.len() {
-        let id_card = id_card_hand[idx];
+    for idx in 0..id_card_pile_hand.len() {
+        let id_card = id_card_pile_hand[idx];
         state.effect_queue.push_front(Effect {
             kind: EffectKind::CardDiscard {
                 source: DiscardSource::Explicit, // Triggers on-discard sinergies

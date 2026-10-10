@@ -24,7 +24,7 @@ const OPTION_DRINK: &[Effect] = &[
         kind: EffectKind::CardPurge,
         id_source: None,
         target: Target::Resolve {
-            candidate_pool: CandidatePool::Deck,
+            candidate_pool: CandidatePool::CardPileDeck,
             filters: FOUNTAIN_CURSE_FILTERS,
             selection_kind: SelectionKind::All,
         },

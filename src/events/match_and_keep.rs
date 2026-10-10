@@ -34,7 +34,7 @@ const OPTION_FLIP_SEEN: &[Effect] = &[Effect {
     kind: EffectKind::MatchFlipSeen,
     id_source: None,
     target: Target::Resolve {
-        candidate_pool: CandidatePool::EventRollCard,
+        candidate_pool: CandidatePool::CardPileEventRoll,
         filters: &[],
         selection_kind: SelectionKind::Input { count: 1 },
     },
@@ -74,18 +74,18 @@ pub fn spawn(state: &mut GameState) -> Vec<usize> {
         let upgraded = egg_upgrades_kind(get_card_template(name, false).kind, &state.id_relics);
         for _ in 0..2 {
             let id_card = push_entity(&mut state.entities, get_card(name, upgraded));
-            state.event.id_match_unseen.push(id_card);
+            state.event.id_card_match_unseen.push(id_card);
         }
     }
-    shuffle(&mut state.event.id_match_unseen, &mut state.rng);
+    shuffle(&mut state.event.id_card_match_unseen, &mut state.rng);
     state.event.match_attempts = MATCH_AND_KEEP_ATTEMPTS;
     bake_options(state, catalog(state.ascension))
 }
 
 pub fn option_available(state: &GameState, idx: usize) -> bool {
     match idx {
-        0 => !state.event.id_match_unseen.is_empty(),
-        1 => !state.event.id_roll_card.is_empty(),
+        0 => !state.event.id_card_match_unseen.is_empty(),
+        1 => !state.event.id_card_pile_event_roll.is_empty(),
         _ => unreachable!("Match and Keep! option out of range: {idx}"),
     }
 }

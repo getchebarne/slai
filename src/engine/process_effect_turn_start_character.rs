@@ -45,11 +45,11 @@ pub fn process_effect_turn_start_character(state: &mut GameState) {
 
     let Combat {
         id_monsters,
-        id_card_hand,
-        id_card_draw,
-        id_card_discard,
+        id_card_pile_hand,
+        id_card_pile_draw,
+        id_card_pile_discard,
         energy,
-        id_card_nightmares,
+        id_card_pile_nightmare,
         turn,
         this_turn_attacks,
         this_turn_cards_played,
@@ -128,10 +128,10 @@ pub fn process_effect_turn_start_character(state: &mut GameState) {
     }
 
     // Eviscerate's cost this turn restarts at its combat cost; one the Monsters' half returned was priced by last turn's discards
-    for &id_card in id_card_draw
+    for &id_card in id_card_pile_draw
         .iter()
-        .chain(id_card_hand.iter())
-        .chain(id_card_discard.iter())
+        .chain(id_card_pile_hand.iter())
+        .chain(id_card_pile_discard.iter())
     {
         let card = &mut state.entities[id_card];
         if card.card_cost_kind == CardCostKind::MinusDiscardsThisTurn
@@ -172,7 +172,7 @@ pub fn process_effect_turn_start_character(state: &mut GameState) {
         }
 
         // Innate and bottled Cards past the hand size draw extra, after the first Relics
-        let num_top = id_card_draw
+        let num_top = id_card_pile_draw
             .iter()
             .filter(|&&id| {
                 let card = &state.entities[id];
@@ -262,7 +262,7 @@ pub fn process_effect_turn_start_character(state: &mut GameState) {
     let mut hooks: Vec<((u8, u32), Effect)> = Vec::new();
 
     // Nightmare: each pending snapshot is its own hook and adds its copies
-    for &(id_snapshot, seq) in id_card_nightmares.iter() {
+    for &(id_snapshot, seq) in id_card_pile_nightmare.iter() {
         hooks.push((
             (PRIORITY_DEFAULT, seq),
             Effect {
@@ -281,7 +281,7 @@ pub fn process_effect_turn_start_character(state: &mut GameState) {
             Effect {
                 kind: EffectKind::CardAdd {
                     card_name: CardName::Shiv,
-                    pile: CardPile::Hand,
+                    card_pile: CardPile::Hand,
                     count: stacks.max(0) as u16,
                     upgraded: false,
                 },
@@ -300,7 +300,7 @@ pub fn process_effect_turn_start_character(state: &mut GameState) {
                 kind: EffectKind::CardAddRandom {
                     color: CardColor::Colorless,
                     kind: None,
-                    pile: CardPile::Hand,
+                    card_pile: CardPile::Hand,
                     count: stacks.max(0) as u16,
                     cost_zero: None,
                     upgraded: false,
@@ -478,7 +478,7 @@ pub fn process_effect_turn_start_character(state: &mut GameState) {
             },
             id_source: None,
             target: Target::Resolve {
-                candidate_pool: CandidatePool::Hand,
+                candidate_pool: CandidatePool::CardPileHand,
                 filters: &[],
                 selection_kind: SelectionKind::Input {
                     count: stacks.max(0) as u16,

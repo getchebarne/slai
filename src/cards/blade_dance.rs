@@ -25,7 +25,7 @@ pub static BLADE_DANCE: CardTemplate = make_card_template(
     &[Effect {
         kind: EffectKind::CardAdd {
             card_name: CardName::Shiv,
-            pile: CardPile::Hand,
+            card_pile: CardPile::Hand,
             count: 3,
             upgraded: false,
         },
@@ -43,7 +43,7 @@ pub static BLADE_DANCE_PLUS: CardTemplate = CardTemplate {
         let mut effects = BLADE_DANCE.effects_play;
         effects[0].kind = EffectKind::CardAdd {
             card_name: CardName::Shiv,
-            pile: CardPile::Hand,
+            card_pile: CardPile::Hand,
             count: 4, // +1 shiv
             upgraded: false,
         };

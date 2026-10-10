@@ -21,7 +21,7 @@ pub fn process_effect_mausoleum_open(state: &mut GameState) {
         state.effect_queue.push_front(Effect {
             kind: EffectKind::CardAdd {
                 card_name: CardName::Writhe,
-                pile: CardPile::Deck,
+                card_pile: CardPile::Deck,
                 count: 1,
                 upgraded: false,
             },

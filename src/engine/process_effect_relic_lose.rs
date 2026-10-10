@@ -21,7 +21,7 @@ pub fn process_effect_relic_lose(id_target: Option<usize>, state: &mut GameState
         _ => None,
     };
     if let Some(kind) = bottled_kind {
-        for &id_card in state.id_card_deck.iter() {
+        for &id_card in state.id_card_pile_deck.iter() {
             let card = &mut state.entities[id_card];
             if card.card_bottled && card.card_kind == kind {
                 card.card_bottled = false;
@@ -32,10 +32,10 @@ pub fn process_effect_relic_lose(id_target: Option<usize>, state: &mut GameState
     // Necronomicon leaving takes the first Necronomicurse out of the deck; Du-Vu Doll's counter stays stale until the next deck change
     if name == RelicName::Necronomicon
         && let Some(pos) = state
-            .id_card_deck
+            .id_card_pile_deck
             .iter()
             .position(|&id| state.entities[id].card_name == CardName::Necronomicurse)
     {
-        state.id_card_deck.remove(pos);
+        state.id_card_pile_deck.remove(pos);
     }
 }

@@ -76,7 +76,7 @@ impl From<CardCostKind> for PyCardCostKind {
 }
 
 mirror_enum!(PyPlayRestriction from PlayRestriction, "PlayRestriction", {
-    Always, Never, DrawPileEmpty, DrawPileHasAttack, DrawPileHasSkill,
+    Always, Never, CardPileDrawEmpty, CardPileDrawHasAttack, CardPileDrawHasSkill,
 });
 
 mirror_enum!(PyCardPile from CardPile, "CardPile", {
@@ -447,12 +447,12 @@ pub(crate) fn snapshot_card_combat(
     let playable = is_play_restriction_satisfied(
         card.card_play_restriction,
         card.card_kind,
-        &state.combat.id_card_draw,
+        &state.combat.id_card_pile_draw,
         &state.entities,
         &state.id_relics,
     ) && !(entangled && card.card_kind == CardKind::Attack)
         && !play_cap_reached(
-            &state.combat.id_card_hand,
+            &state.combat.id_card_pile_hand,
             &state.entities,
             &state.id_relics,
             state.combat.this_turn_cards_played,

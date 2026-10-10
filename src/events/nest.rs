@@ -39,7 +39,7 @@ const OPTION_DAGGER: [Effect; 3] = [
     Effect {
         kind: EffectKind::CardAdd {
             card_name: CardName::RitualDagger,
-            pile: CardPile::Deck,
+            card_pile: CardPile::Deck,
             count: 1,
             upgraded: false,
         },

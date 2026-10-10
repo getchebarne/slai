@@ -32,7 +32,7 @@ pub static CLOAK_AND_DAGGER: CardTemplate = make_card_template(
         Effect {
             kind: EffectKind::CardAdd {
                 card_name: CardName::Shiv,
-                pile: CardPile::Hand,
+                card_pile: CardPile::Hand,
                 count: 1,
                 upgraded: false,
             },
@@ -51,7 +51,7 @@ pub static CLOAK_AND_DAGGER_PLUS: CardTemplate = CardTemplate {
         let mut effects = CLOAK_AND_DAGGER.effects_play;
         effects[1].kind = EffectKind::CardAdd {
             card_name: CardName::Shiv,
-            pile: CardPile::Hand,
+            card_pile: CardPile::Hand,
             count: 2, // +1 shiv
             upgraded: false,
         };

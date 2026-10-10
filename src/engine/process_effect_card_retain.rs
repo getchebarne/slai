@@ -7,10 +7,10 @@ pub fn process_effect_card_retain(id_target: Option<usize>, state: &mut GameStat
         "process_effect_card_retain outside the Combat frame"
     );
     let id_target = id_target.expect("CardRetain requires id_target");
-    let id_card_hand = &mut state.combat.id_card_hand;
-    if let Some(pos) = id_card_hand.iter().position(|&id| id == id_target) {
-        id_card_hand.remove(pos);
-        id_card_hand.push(id_target);
+    let id_card_pile_hand = &mut state.combat.id_card_pile_hand;
+    if let Some(pos) = id_card_pile_hand.iter().position(|&id| id == id_target) {
+        id_card_pile_hand.remove(pos);
+        id_card_pile_hand.push(id_target);
     }
     let card = &mut state.entities[id_target];
     if !card.card_ethereal {

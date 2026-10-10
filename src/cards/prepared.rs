@@ -36,7 +36,7 @@ pub static PREPARED: CardTemplate = make_card_template(
             },
             id_source: None,
             target: Target::Resolve {
-                candidate_pool: CandidatePool::Hand,
+                candidate_pool: CandidatePool::CardPileHand,
                 filters: &[],
                 selection_kind: SelectionKind::Input { count: 1 },
             },
@@ -53,7 +53,7 @@ pub static PREPARED_PLUS: CardTemplate = CardTemplate {
         let mut effects = PREPARED.effects_play;
         effects[0].kind = EffectKind::CardDraw { count: 2 }; // +1 Card
         effects[1].target = Target::Resolve {
-            candidate_pool: CandidatePool::Hand,
+            candidate_pool: CandidatePool::CardPileHand,
             filters: &[],
             selection_kind: SelectionKind::Input { count: 2 }, // +1 Card
         };

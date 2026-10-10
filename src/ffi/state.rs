@@ -49,7 +49,7 @@ pub struct PyGameState {
     pub ascension: u8,
     pub act: u8,
     pub character: PyCharacter,
-    pub deck: Vec<PyCard>,
+    pub card_pile_deck: Vec<PyCard>,
     pub relics: Vec<PyRelic>,
     pub potions: Vec<PyPotion>,
     pub potion_slots_max: u8,
@@ -77,8 +77,8 @@ pub fn snapshot_state(state: &GameState) -> PyGameState {
         ascension: state.ascension,
         act: state.act,
         character: snapshot_character(state),
-        deck: state
-            .id_card_deck
+        card_pile_deck: state
+            .id_card_pile_deck
             .iter()
             .map(|&id| snapshot_card(state, id))
             .collect(),
@@ -112,7 +112,7 @@ pub fn snapshot_state(state: &GameState) -> PyGameState {
             .iter()
             .map(|&id| {
                 if state.combat.active {
-                    snapshot_card_combat(state, id, state.combat.id_card_draw.len() as u16)
+                    snapshot_card_combat(state, id, state.combat.id_card_pile_draw.len() as u16)
                 } else {
                     snapshot_card(state, id)
                 }

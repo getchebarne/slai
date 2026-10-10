@@ -66,7 +66,7 @@ const OPTION_EAT: &[Effect] = &[
     Effect {
         kind: EffectKind::CardAdd {
             card_name: CardName::Parasite,
-            pile: CardPile::Deck,
+            card_pile: CardPile::Deck,
             count: 1,
             upgraded: false,
         },

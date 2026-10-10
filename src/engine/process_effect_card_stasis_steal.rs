@@ -12,18 +12,18 @@ pub fn process_effect_card_stasis_steal(id_source: Option<usize>, state: &mut Ga
     );
     let Combat {
         id_monsters,
-        id_card_stasis,
-        id_card_draw,
-        id_card_discard,
+        id_card_pile_stasis,
+        id_card_pile_draw,
+        id_card_pile_discard,
         ..
     } = &mut state.combat;
     let id_source = id_source.expect("CardStasisSteal requires id_source");
 
     // Pick pile to steal from. Prefers draw over discard
-    let id_pile: &mut Vec<usize> = if !id_card_draw.is_empty() {
-        id_card_draw
-    } else if !id_card_discard.is_empty() {
-        id_card_discard
+    let id_pile: &mut Vec<usize> = if !id_card_pile_draw.is_empty() {
+        id_card_pile_draw
+    } else if !id_card_pile_discard.is_empty() {
+        id_card_pile_discard
     } else {
         return;
     };
@@ -58,11 +58,11 @@ pub fn process_effect_card_stasis_steal(id_source: Option<usize>, state: &mut Ga
         .position(|slot| *slot == Some(id_source))
         .expect("CardStasisSteal source is not on the roster");
     assert!(
-        id_card_stasis[idx_monster].is_none(),
+        id_card_pile_stasis[idx_monster].is_none(),
         "a Bronze Orb steals once"
     );
 
     // Move the stolen Card from its pile into the slot
     let id_card = id_pile.remove(best_idx);
-    id_card_stasis[idx_monster] = Some(id_card);
+    id_card_pile_stasis[idx_monster] = Some(id_card);
 }

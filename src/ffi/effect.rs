@@ -55,13 +55,13 @@ flat_variants!(PyEffect {
     ModifierDelta => PyEffectModifierDelta as "EffectModifierDelta" { kind: PyModifierKind, stacks: i16, target: PyTarget },
     ModifierMultiply => PyEffectModifierMultiply as "EffectModifierMultiply" { kind: PyModifierKind, factor: u8, target: PyTarget },
     EnergyDelta => PyEffectEnergyDelta as "EffectEnergyDelta" { sign: PyDeltaSign, amount: u16 },
-    CardAdd => PyEffectCardAdd as "EffectCardAdd" { card_name: PyCardName, pile: PyCardPile, count: u16, upgraded: bool },
+    CardAdd => PyEffectCardAdd as "EffectCardAdd" { card_name: PyCardName, card_pile: PyCardPile, count: u16, upgraded: bool },
     CardDraw => PyEffectCardDraw as "EffectCardDraw" { count: u16 },
     CardDrawUpTo => PyEffectCardDrawUpTo as "EffectCardDrawUpTo" { amount: u8 },
     CardDiscard => PyEffectCardDiscard as "EffectCardDiscard" { target: PyTarget },
     CardRetain => PyEffectCardRetain as "EffectCardRetain" { target: PyTarget },
     DamageMindBlast => PyEffectDamageMindBlast as "EffectDamageMindBlast" { damage: u16, target: PyTarget },
-    ShuffleDiscardPileIntoDrawPile => PyEffectShuffleDiscardPileIntoDrawPile as "EffectShuffleDiscardPileIntoDrawPile",
+    ShuffleCardPileDiscardIntoCardPileDraw => PyEffectShuffleCardPileDiscardIntoCardPileDraw as "EffectShuffleCardPileDiscardIntoCardPileDraw",
     MaxHealthDelta => PyEffectMaxHealthDelta as "EffectMaxHealthDelta" { sign: PyDeltaSign, amount: PyAmountScalar, target: PyTarget },
     HealthDelta => PyEffectHealthDelta as "EffectHealthDelta" { sign: PyDeltaSign, amount: PyAmountScalar, target: PyTarget },
     PotionAddRandom => PyEffectPotionAddRandom as "EffectPotionAddRandom" { limited: bool, uniform: bool },
@@ -81,20 +81,20 @@ flat_variants!(PyEffect {
     EventAdvanceState => PyEffectEventAdvanceState as "EffectEventAdvanceState" { delta: i8 },
     ScrapOozeReach => PyEffectScrapOozeReach as "EffectScrapOozeReach" { chance: u8, advance_on_miss: bool },
     EventConsume => PyEffectEventConsume as "EffectEventConsume",
-    CardDiscoverPick => PyEffectCardDiscoverPick as "EffectCardDiscoverPick" { cost_zero: Option<PyCostScope>, pile: PyCardPile, copies: u8, target: PyTarget },
+    CardDiscoverPick => PyEffectCardDiscoverPick as "EffectCardDiscoverPick" { cost_zero: Option<PyCostScope>, card_pile: PyCardPile, copies: u8, target: PyTarget },
     CardPurge => PyEffectCardPurge as "EffectCardPurge" { target: PyTarget },
     CardUpgrade => PyEffectCardUpgrade as "EffectCardUpgrade" { target: PyTarget },
     RestSmith => PyEffectRestSmith as "EffectRestSmith" { target: PyTarget },
     RestToke => PyEffectRestToke as "EffectRestToke" { target: PyTarget },
-    CardDuplicate => PyEffectCardDuplicate as "EffectCardDuplicate" { pile: PyCardPile, target: PyTarget },
+    CardDuplicate => PyEffectCardDuplicate as "EffectCardDuplicate" { card_pile: PyCardPile, target: PyTarget },
     CardTransform => PyEffectCardTransform as "EffectCardTransform" { upgraded: bool, target: PyTarget },
-    CardAddRandom => PyEffectCardAddRandom as "EffectCardAddRandom" { color: PyCardColor, kind: Option<PyCardKind>, pile: PyCardPile, count: u16, cost_zero: Option<PyCostScope>, upgraded: bool, rarity: Option<PyCardRarity> },
+    CardAddRandom => PyEffectCardAddRandom as "EffectCardAddRandom" { color: PyCardColor, kind: Option<PyCardKind>, card_pile: PyCardPile, count: u16, cost_zero: Option<PyCostScope>, upgraded: bool, rarity: Option<PyCardRarity> },
     CardDrawIfNoAttacks => PyEffectCardDrawIfNoAttacks as "EffectCardDrawIfNoAttacks" { count: u16 },
     HandOfGreedProc => PyEffectHandOfGreedProc as "EffectHandOfGreedProc" { gold: u16, target: PyTarget },
     RitualDaggerProc => PyEffectRitualDaggerProc as "EffectRitualDaggerProc" { bump: u16, target: PyTarget },
     CardExhaust => PyEffectCardExhaust as "EffectCardExhaust" { target: PyTarget },
-    CardMove => PyEffectCardMove as "EffectCardMove" { pile: PyCardPile, cost_zero: Option<PyCostScope>, target: PyTarget },
-    CardPlayFromDrawTop => PyEffectCardPlayFromDrawTop as "EffectCardPlayFromDrawTop",
+    CardMove => PyEffectCardMove as "EffectCardMove" { card_pile: PyCardPile, cost_zero: Option<PyCostScope>, target: PyTarget },
+    CardPlayFromCardPileDrawTop => PyEffectCardPlayFromCardPileDrawTop as "EffectCardPlayFromCardPileDrawTop",
     Gamble => PyEffectGamble as "EffectGamble" { choose_discards: bool },
     CombatEnd => PyEffectCombatEnd as "EffectCombatEnd" { escaped_character: bool },
     RelicLose => PyEffectRelicLose as "EffectRelicLose" { target: PyTarget },
@@ -196,7 +196,7 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
                     | EffectKind::CardDraw { .. }
                     | EffectKind::CardDrawIfNoAttacks { .. }
                     | EffectKind::CardDrawUpTo { .. }
-                    | EffectKind::CardPlayFromDrawTop
+                    | EffectKind::CardPlayFromCardPileDrawTop
                     | EffectKind::CardStasisSteal
                     | EffectKind::CombatEnd { .. }
                     | EffectKind::CombatStart { .. }
@@ -221,7 +221,7 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
                     | EffectKind::RewardRollPotions { .. }
                     | EffectKind::RewardRollRelic { .. }
                     | EffectKind::ScrapOozeReach { .. }
-                    | EffectKind::ShuffleDiscardPileIntoDrawPile
+                    | EffectKind::ShuffleCardPileDiscardIntoCardPileDraw
                     | EffectKind::SneakyStrikeProc { .. }
                     | EffectKind::StormOfSteelProc { .. }
                     | EffectKind::UnloadDiscard
@@ -333,12 +333,12 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
         }),
         EffectKind::CardAdd {
             card_name,
-            pile,
+            card_pile,
             count,
             upgraded,
         } => PyEffect::CardAdd(PyEffectCardAdd {
             card_name: card_name.into(),
-            pile: pile.into(),
+            card_pile: card_pile.into(),
             count,
             upgraded,
         }),
@@ -357,8 +357,10 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
             damage: 0,
             target: require_target(target),
         }),
-        EffectKind::ShuffleDiscardPileIntoDrawPile => {
-            PyEffect::ShuffleDiscardPileIntoDrawPile(PyEffectShuffleDiscardPileIntoDrawPile)
+        EffectKind::ShuffleCardPileDiscardIntoCardPileDraw => {
+            PyEffect::ShuffleCardPileDiscardIntoCardPileDraw(
+                PyEffectShuffleCardPileDiscardIntoCardPileDraw,
+            )
         }
         EffectKind::GoldDelta { sign, amount } => PyEffect::GoldDelta(PyEffectGoldDelta {
             sign: sign.into(),
@@ -379,8 +381,8 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
         EffectKind::CardPurge => PyEffect::CardPurge(PyEffectCardPurge {
             target: require_target(target),
         }),
-        EffectKind::CardDuplicate { pile } => PyEffect::CardDuplicate(PyEffectCardDuplicate {
-            pile: pile.into(),
+        EffectKind::CardDuplicate { card_pile } => PyEffect::CardDuplicate(PyEffectCardDuplicate {
+            card_pile: card_pile.into(),
             target: require_target(target),
         }),
         EffectKind::CardTransform { upgraded } => PyEffect::CardTransform(PyEffectCardTransform {
@@ -459,10 +461,10 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
         }),
         EffectKind::CardDiscoverPick {
             cost_zero,
-            pile,
+            card_pile,
             copies,
         } => PyEffect::CardDiscoverPick(PyEffectCardDiscoverPick {
-            pile: pile.into(),
+            card_pile: card_pile.into(),
             copies,
             cost_zero: cost_zero.map(|cost_scope| cost_scope.into()),
             target: require_target(target),
@@ -470,7 +472,7 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
         EffectKind::CardAddRandom {
             color,
             kind,
-            pile,
+            card_pile,
             count,
             cost_zero,
             upgraded,
@@ -478,7 +480,7 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
         } => PyEffect::CardAddRandom(PyEffectCardAddRandom {
             color: color.into(),
             kind: kind.map(|card_kind| card_kind.into()),
-            pile: pile.into(),
+            card_pile: card_pile.into(),
             count,
             cost_zero: cost_zero.map(|cost_scope| cost_scope.into()),
             upgraded,
@@ -502,13 +504,16 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
         EffectKind::CardExhaust => PyEffect::CardExhaust(PyEffectCardExhaust {
             target: require_target(target),
         }),
-        EffectKind::CardMove { pile, cost_zero } => PyEffect::CardMove(PyEffectCardMove {
-            pile: pile.into(),
+        EffectKind::CardMove {
+            card_pile,
+            cost_zero,
+        } => PyEffect::CardMove(PyEffectCardMove {
+            card_pile: card_pile.into(),
             cost_zero: cost_zero.map(|cost_scope| cost_scope.into()),
             target: require_target(target),
         }),
-        EffectKind::CardPlayFromDrawTop => {
-            PyEffect::CardPlayFromDrawTop(PyEffectCardPlayFromDrawTop)
+        EffectKind::CardPlayFromCardPileDrawTop => {
+            PyEffect::CardPlayFromCardPileDrawTop(PyEffectCardPlayFromCardPileDrawTop)
         }
         EffectKind::Gamble { choose_discards } => {
             PyEffect::Gamble(PyEffectGamble { choose_discards })

@@ -642,7 +642,7 @@ pub const fn move_attack_card_add(
             Effect {
                 kind: EffectKind::CardAdd {
                     card_name,
-                    pile: CardPile::Discard,
+                    card_pile: CardPile::Discard,
                     count,
                     upgraded,
                 },

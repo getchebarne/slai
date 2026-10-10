@@ -17,7 +17,7 @@ pub static NINJA_SCROLL: RelicTemplate = RelicTemplate {
     effects_combat_start: &[Effect {
         kind: EffectKind::CardAdd {
             card_name: CardName::Shiv,
-            pile: CardPile::Hand,
+            card_pile: CardPile::Hand,
             count: 3,
             upgraded: false,
         },

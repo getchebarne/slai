@@ -1,6 +1,6 @@
 use rand::Rng;
 
-use crate::consts::MAX_SIZE_HAND;
+use crate::consts::MAX_SIZE_CARD_PILE_HAND;
 use crate::effect::EFFECT_ACCURACY_RESYNC_HAND;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
@@ -19,9 +19,9 @@ pub fn process_effect_card_draw(state: &mut GameState, count: u16) {
         "process_effect_card_draw outside the Combat frame"
     );
     let Combat {
-        id_card_hand,
-        id_card_draw,
-        id_card_discard,
+        id_card_pile_hand,
+        id_card_pile_draw,
+        id_card_pile_discard,
         id_card_last_drawn,
         ..
     } = &mut state.combat;
@@ -36,12 +36,12 @@ pub fn process_effect_card_draw(state: &mut GameState, count: u16) {
     }
 
     // Both piles empty: nothing to draw and no reshuffle
-    if id_card_draw.is_empty() && id_card_discard.is_empty() {
+    if id_card_pile_draw.is_empty() && id_card_pile_discard.is_empty() {
         return;
     }
 
     // Overdraw never happens: the excess stays on the draw pile
-    let count = count.min(MAX_SIZE_HAND.saturating_sub(id_card_hand.len()) as u16);
+    let count = count.min(MAX_SIZE_CARD_PILE_HAND.saturating_sub(id_card_pile_hand.len()) as u16);
 
     // Initialize variables to track IDs and count of drawn Cards, and wether reshuffle is needed
     let mut id_drawn = [0usize; 32];
@@ -51,14 +51,14 @@ pub fn process_effect_card_draw(state: &mut GameState, count: u16) {
     // Try to draw all Cards
     for idx in 0..count {
         // Out of cards partway: reshuffle, even an empty discard, and draw the rest
-        if id_card_draw.is_empty() {
+        if id_card_pile_draw.is_empty() {
             shuffle_resume_remaining = Some(count - idx);
             break;
         }
 
         // Remove Card from draw pile
-        let id_card = id_card_draw.pop().unwrap();
-        id_card_hand.push(id_card);
+        let id_card = id_card_pile_draw.pop().unwrap();
+        id_card_pile_hand.push(id_card);
         *id_card_last_drawn = Some(id_card);
 
         // Update drawn IDs and count
@@ -71,7 +71,7 @@ pub fn process_effect_card_draw(state: &mut GameState, count: u16) {
     // Reshuffle -> redraw if needed
     if let Some(remaining) = shuffle_resume_remaining {
         // Executes in reverse:
-        //     1. ShuffleDiscardPileIntoDrawPile
+        //     1. ShuffleCardPileDiscardIntoCardPileDraw
         //     2. CardDraw (remaining)
         state.effect_queue.push_front(Effect {
             kind: EffectKind::CardDraw { count: remaining },
@@ -79,7 +79,7 @@ pub fn process_effect_card_draw(state: &mut GameState, count: u16) {
             target: Target::Direct(None),
         });
         state.effect_queue.push_front(Effect {
-            kind: EffectKind::ShuffleDiscardPileIntoDrawPile,
+            kind: EffectKind::ShuffleCardPileDiscardIntoCardPileDraw,
             id_source: None,
             target: Target::Direct(None),
         });

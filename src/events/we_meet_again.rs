@@ -35,7 +35,7 @@ const OPTION_GIVE_POTION: [Effect; 3] = [
         kind: EffectKind::PotionDiscard,
         id_source: None,
         target: Target::Resolve {
-            candidate_pool: CandidatePool::EventRollPotion,
+            candidate_pool: CandidatePool::PotionEventRoll,
             filters: &[],
             selection_kind: SelectionKind::Single,
         },
@@ -65,7 +65,7 @@ const OPTION_GIVE_CARD: [Effect; 3] = [
         kind: EffectKind::CardPurge,
         id_source: None,
         target: Target::Resolve {
-            candidate_pool: CandidatePool::EventRollCard,
+            candidate_pool: CandidatePool::CardPileEventRoll,
             filters: &[],
             selection_kind: SelectionKind::Single,
         },
@@ -120,7 +120,7 @@ pub fn catalog(_ascension: u8) -> &'static [EventOptionTemplate] {
 pub fn spawn(state: &mut GameState) -> Vec<usize> {
     // Card offer: uniform among non-Basic, non-Curse deck Cards
     let id_card_eligible: Vec<usize> = state
-        .id_card_deck
+        .id_card_pile_deck
         .iter()
         .copied()
         .filter(|&id| card_is_non_basic_non_curse(&state.entities[id]))
@@ -142,8 +142,8 @@ pub fn spawn(state: &mut GameState) -> Vec<usize> {
     });
 
     // `extend` on an `Option` pushes only for `Some`, so an unrolled offer stays empty
-    state.event.id_roll_card.extend(id_card);
-    state.event.id_roll_potion.extend(id_potion);
+    state.event.id_card_pile_event_roll.extend(id_card);
+    state.event.id_potion_event_roll.extend(id_potion);
     let eots = catalog(state.ascension);
 
     // GOLD_EOTS[0] is the unrolled 0; the rollable asks follow from MIN
@@ -177,15 +177,15 @@ fn baked_gold_ask(state: &GameState) -> u16 {
 pub fn option_available(state: &GameState, idx: usize) -> bool {
     match idx {
         // The Room locks every Potion, so a rolled one is still on the belt
-        0 => !state.event.id_roll_potion.is_empty(),
+        0 => !state.event.id_potion_event_roll.is_empty(),
         // A rolled ask is always <= the gold held at spawn, and nothing
         // reachable from here spends gold, so affordability needs no re-check
         1 => baked_gold_ask(state) > 0,
         2 => state
             .event
-            .id_roll_card
+            .id_card_pile_event_roll
             .first()
-            .is_some_and(|&id| state.id_card_deck.contains(&id)),
+            .is_some_and(|&id| state.id_card_pile_deck.contains(&id)),
         3 => true,
         _ => unreachable!("We meet again option out of range: {idx}"),
     }

@@ -11,7 +11,7 @@ pub static DISTILLED_CHAOS: PotionTemplate = PotionTemplate {
     combat_only: true,
     doubled: false,
     effects: &[Effect {
-        kind: EffectKind::CardPlayFromDrawTop,
+        kind: EffectKind::CardPlayFromCardPileDrawTop,
         id_source: None,
         target: Target::Direct(None),
     }; 3],
@@ -20,7 +20,7 @@ pub static DISTILLED_CHAOS: PotionTemplate = PotionTemplate {
 pub static DISTILLED_CHAOS_DOUBLED: PotionTemplate = PotionTemplate {
     doubled: true,
     effects: &[Effect {
-        kind: EffectKind::CardPlayFromDrawTop,
+        kind: EffectKind::CardPlayFromCardPileDrawTop,
         id_source: None,
         target: Target::Direct(None),
     }; 6],

@@ -16,12 +16,12 @@ pub static LIQUID_MEMORIES: PotionTemplate = PotionTemplate {
     doubled: false,
     effects: &[Effect {
         kind: EffectKind::CardMove {
-            pile: CardPile::Hand,
+            card_pile: CardPile::Hand,
             cost_zero: Some(CostScope::Turn),
         },
         id_source: None,
         target: Target::Resolve {
-            candidate_pool: CandidatePool::PileDiscard,
+            candidate_pool: CandidatePool::CardPileDiscard,
             filters: &[],
             selection_kind: SelectionKind::Input { count: 1 },
         },
@@ -32,12 +32,12 @@ pub static LIQUID_MEMORIES_DOUBLED: PotionTemplate = PotionTemplate {
     doubled: true,
     effects: &[Effect {
         kind: EffectKind::CardMove {
-            pile: CardPile::Hand,
+            card_pile: CardPile::Hand,
             cost_zero: Some(CostScope::Turn),
         },
         id_source: None,
         target: Target::Resolve {
-            candidate_pool: CandidatePool::PileDiscard,
+            candidate_pool: CandidatePool::CardPileDiscard,
             filters: &[],
             selection_kind: SelectionKind::Input { count: 2 },
         },

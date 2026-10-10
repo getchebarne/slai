@@ -41,7 +41,7 @@ const OPTION_STEAL: &[Effect] = &[
     Effect {
         kind: EffectKind::CardAdd {
             card_name: CardName::Shame,
-            pile: CardPile::Deck,
+            card_pile: CardPile::Deck,
             count: 1,
             upgraded: false,
         },

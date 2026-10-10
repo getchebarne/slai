@@ -26,7 +26,7 @@ pub static BOTTLED_FLAME: RelicTemplate = RelicTemplate {
         kind: EffectKind::CardBottle,
         id_source: None,
         target: Target::Resolve {
-            candidate_pool: CandidatePool::Deck,
+            candidate_pool: CandidatePool::CardPileDeck,
             filters: &[CandidateFilter::KindAttack],
             selection_kind: SelectionKind::Input { count: 1 },
         },

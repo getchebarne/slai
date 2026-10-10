@@ -16,11 +16,11 @@ pub fn process_effect_card_nightmare_spawn(id_target: Option<usize>, state: &mut
     let id_target = id_target.expect("CardNightmareSpawn requires id_target");
     let idx = state
         .combat
-        .id_card_nightmares
+        .id_card_pile_nightmare
         .iter()
         .position(|&(id, _)| id == id_target)
         .expect("CardNightmareSpawn requires a pending snapshot");
-    state.combat.id_card_nightmares.remove(idx);
+    state.combat.id_card_pile_nightmare.remove(idx);
 
     state.effect_buf.clear();
     let card_template = state.entities[id_target];

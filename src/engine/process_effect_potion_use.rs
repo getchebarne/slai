@@ -50,7 +50,7 @@ pub fn process_effect_potion_use(
         };
 
         // Distilled Chaos rolls its targets in play order, all before any Card resolves
-        if matches!(effect.kind, EffectKind::CardPlayFromDrawTop) {
+        if matches!(effect.kind, EffectKind::CardPlayFromCardPileDrawTop) {
             let alive: Vec<usize> = state.combat.id_monsters.iter().flatten().copied().collect();
             let id_monster = alive[state.rng.random_range(0..alive.len())];
             effect.target = Target::Direct(Some(id_monster));

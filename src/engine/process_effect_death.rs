@@ -1,4 +1,4 @@
-use crate::consts::MAX_SIZE_HAND;
+use crate::consts::MAX_SIZE_CARD_PILE_HAND;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
@@ -75,8 +75,8 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState, wit
     );
     let Combat {
         id_monsters,
-        id_card_hand,
-        id_card_stasis,
+        id_card_pile_hand,
+        id_card_pile_stasis,
         gold_stolen: gold_stolen_total,
         this_combat_monster_died,
         ..
@@ -159,11 +159,11 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState, wit
 
     // Stasis: the hostage comes back ahead of the Relics' effects; a death that ends the combat leaves it to the combat reset
     if let Some(slot) = slot
-        && let Some(id_card) = id_card_stasis[slot].take()
+        && let Some(id_card) = id_card_pile_stasis[slot].take()
     {
         state.effect_buf.push(Effect {
             kind: EffectKind::CardStasisReturn {
-                hand_full: id_card_hand.len() >= MAX_SIZE_HAND,
+                hand_full: id_card_pile_hand.len() >= MAX_SIZE_CARD_PILE_HAND,
             },
             id_source: None,
             target: Target::Direct(Some(id_card)),

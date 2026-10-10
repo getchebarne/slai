@@ -24,7 +24,7 @@ pub static EMPTY_CAGE: RelicTemplate = RelicTemplate {
         kind: EffectKind::CardPurge,
         id_source: None,
         target: Target::Resolve {
-            candidate_pool: CandidatePool::Deck,
+            candidate_pool: CandidatePool::CardPileDeck,
             filters: &[CandidateFilter::NotBoundCurse],
             selection_kind: SelectionKind::Input { count: 2 },
         },

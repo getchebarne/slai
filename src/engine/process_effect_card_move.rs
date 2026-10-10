@@ -1,4 +1,4 @@
-use crate::consts::MAX_SIZE_HAND;
+use crate::consts::MAX_SIZE_CARD_PILE_HAND;
 use crate::effect::EFFECT_ACCURACY_RESYNC_HAND;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
@@ -22,8 +22,8 @@ pub fn process_effect_card_move(
 
     // A full hand turns a Card away to the discard pile, so one already there keeps its place
     if pile == CardPile::Hand
-        && state.combat.id_card_hand.len() >= MAX_SIZE_HAND
-        && state.combat.id_card_discard.contains(&id_target)
+        && state.combat.id_card_pile_hand.len() >= MAX_SIZE_CARD_PILE_HAND
+        && state.combat.id_card_pile_discard.contains(&id_target)
     {
         return;
     }

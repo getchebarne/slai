@@ -17,7 +17,7 @@ pub static BLESSING_OF_THE_FORGE: PotionTemplate = PotionTemplate {
         kind: EffectKind::CardUpgrade,
         id_source: None,
         target: Target::Resolve {
-            candidate_pool: CandidatePool::Hand,
+            candidate_pool: CandidatePool::CardPileHand,
             filters: &[CandidateFilter::Upgradeable],
             selection_kind: SelectionKind::All,
         },

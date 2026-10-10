@@ -28,7 +28,7 @@ const OPTION_RUMMAGE: &[Effect] = &[
     Effect {
         kind: EffectKind::CardAdd {
             card_name: CardName::Pain,
-            pile: CardPile::Deck,
+            card_pile: CardPile::Deck,
             count: 1,
             upgraded: false,
         },

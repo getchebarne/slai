@@ -41,7 +41,7 @@ const fn upgrade_random(count: u8) -> Effect {
         kind: EffectKind::CardUpgrade,
         id_source: None,
         target: Target::Resolve {
-            candidate_pool: CandidatePool::Deck,
+            candidate_pool: CandidatePool::CardPileDeck,
             filters: &[CandidateFilter::Upgradeable],
             selection_kind: SelectionKind::Random { count },
         },
@@ -53,7 +53,7 @@ const EFFECT_DECK_TRANSFORM_PICK_2: Effect = Effect {
     kind: EffectKind::CardTransform { upgraded: false },
     id_source: None,
     target: Target::Resolve {
-        candidate_pool: CandidatePool::Deck,
+        candidate_pool: CandidatePool::CardPileDeck,
         filters: &[CandidateFilter::NotBottled, CandidateFilter::NotBoundCurse],
         selection_kind: SelectionKind::Input { count: 2 },
     },
@@ -194,7 +194,7 @@ pub fn option_available(state: &GameState, idx: usize) -> bool {
 
     // Clean Up and Full Service count every Card outside a bottle, bound curses included
     let unbottled = state
-        .id_card_deck
+        .id_card_pile_deck
         .iter()
         .filter(|&&id| !state.entities[id].card_bottled)
         .count();

@@ -27,7 +27,7 @@ pub static CHRYSALIS: CardTemplate = make_card_template(
         kind: EffectKind::CardAddRandom {
             color: CardColor::Green,
             kind: Some(CardKind::Skill),
-            pile: CardPile::Draw,
+            card_pile: CardPile::Draw,
             count: 3,
             cost_zero: Some(CostScope::Combat),
             upgraded: false,
@@ -48,7 +48,7 @@ pub static CHRYSALIS_PLUS: CardTemplate = CardTemplate {
         effects[0].kind = EffectKind::CardAddRandom {
             color: CardColor::Green,
             kind: Some(CardKind::Skill),
-            pile: CardPile::Draw,
+            card_pile: CardPile::Draw,
             count: 5, // +2 Cards
             cost_zero: Some(CostScope::Combat),
             upgraded: false,

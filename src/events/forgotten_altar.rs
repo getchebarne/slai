@@ -24,7 +24,7 @@ const OPTION_IDOL: [Effect; 3] = [
         kind: EffectKind::RelicLose,
         id_source: None,
         target: Target::Resolve {
-            candidate_pool: CandidatePool::EventRollRelic,
+            candidate_pool: CandidatePool::RelicEventRoll,
             filters: &[],
             selection_kind: SelectionKind::Single,
         },
@@ -72,7 +72,7 @@ const OPTION_DECAY: [Effect; 2] = [
     Effect {
         kind: EffectKind::CardAdd {
             card_name: CardName::Decay,
-            pile: CardPile::Deck,
+            card_pile: CardPile::Deck,
             count: 1,
             upgraded: false,
         },
@@ -113,7 +113,7 @@ pub fn option_available(state: &GameState, idx: usize) -> bool {
 // The Idol trade consumes the staked Relic; availability gates it on ownership
 pub fn spawn(state: &mut GameState) -> Vec<usize> {
     if let Some(id) = state.id_relics[RelicName::GoldenIdol as usize] {
-        state.event.id_roll_relic.push(id);
+        state.event.id_relic_event_roll.push(id);
     }
     bake_options(state, catalog(state.ascension))
 }

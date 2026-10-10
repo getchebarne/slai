@@ -60,7 +60,7 @@ pub fn process_effect_wheel_spin(state: &mut GameState) {
         3 => Effect {
             kind: EffectKind::CardAdd {
                 card_name: CardName::Decay,
-                pile: CardPile::Deck,
+                card_pile: CardPile::Deck,
                 count: 1,
                 upgraded: false,
             },
@@ -71,7 +71,7 @@ pub fn process_effect_wheel_spin(state: &mut GameState) {
             kind: EffectKind::CardPurge,
             id_source: None,
             target: Target::Resolve {
-                candidate_pool: CandidatePool::Deck,
+                candidate_pool: CandidatePool::CardPileDeck,
                 filters: &[CandidateFilter::NotBottled, CandidateFilter::NotBoundCurse],
                 selection_kind: SelectionKind::Input { count: 1 },
             },

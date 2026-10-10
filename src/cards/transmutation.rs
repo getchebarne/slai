@@ -27,7 +27,7 @@ pub static TRANSMUTATION: CardTemplate = make_card_template(
         kind: EffectKind::CardAddRandom {
             color: CardColor::Colorless,
             kind: None,
-            pile: CardPile::Hand,
+            card_pile: CardPile::Hand,
             count: 1,
             cost_zero: Some(CostScope::Turn),
             upgraded: false,
@@ -48,7 +48,7 @@ pub static TRANSMUTATION_PLUS: CardTemplate = CardTemplate {
         effects[0].kind = EffectKind::CardAddRandom {
             color: CardColor::Colorless,
             kind: None,
-            pile: CardPile::Hand,
+            card_pile: CardPile::Hand,
             count: 1,
             cost_zero: Some(CostScope::Turn),
             upgraded: true, // Added Cards are upgraded

@@ -8,19 +8,19 @@ use crate::types::RelicName;
 use crate::utils::has_relic;
 use crate::utils::shuffle;
 
-pub fn process_effect_shuffle_discard_pile_into_draw_pile(state: &mut GameState) {
+pub fn process_effect_shuffle_card_pile_discard_into_card_pile_draw(state: &mut GameState) {
     assert!(
         state.combat.active,
-        "process_effect_shuffle_discard_pile_into_draw_pile outside the Combat frame"
+        "process_effect_shuffle_card_pile_discard_into_card_pile_draw outside the Combat frame"
     );
     let Combat {
-        id_card_draw,
-        id_card_discard,
+        id_card_pile_draw,
+        id_card_pile_discard,
         ..
     } = &mut state.combat;
 
-    id_card_draw.append(id_card_discard);
-    shuffle(&mut id_card_draw[..], &mut state.rng);
+    id_card_pile_draw.append(id_card_pile_discard);
+    shuffle(&mut id_card_pile_draw[..], &mut state.rng);
 
     // Abacus: reshuffling the discard pile grants 6 block
     if has_relic(&state.id_relics, RelicName::Abacus) {

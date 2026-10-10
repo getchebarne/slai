@@ -54,10 +54,10 @@ pub fn process_effect_modifier_delta(
     // Accuracy resets every Shiv in the hand and the draw, discard and exhaust piles; one held by Stasis or Nightmare keeps its damage
     if kind == ModifierKind::Accuracy && stacks != 0 && id_target == state.id_character {
         for candidate_pool in [
-            CandidatePool::Hand,
-            CandidatePool::PileDraw,
-            CandidatePool::PileDiscard,
-            CandidatePool::PileExhaust,
+            CandidatePool::CardPileHand,
+            CandidatePool::CardPileDraw,
+            CandidatePool::CardPileDiscard,
+            CandidatePool::CardPileExhaust,
         ] {
             state
                 .effect_queue

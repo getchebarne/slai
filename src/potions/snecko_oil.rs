@@ -28,7 +28,7 @@ pub static SNECKO_OIL: PotionTemplate = PotionTemplate {
             },
             id_source: None,
             target: Target::Resolve {
-                candidate_pool: CandidatePool::Hand,
+                candidate_pool: CandidatePool::CardPileHand,
                 filters: &[],
                 selection_kind: SelectionKind::All,
             },
@@ -53,7 +53,7 @@ pub static SNECKO_OIL_DOUBLED: PotionTemplate = PotionTemplate {
             },
             id_source: None,
             target: Target::Resolve {
-                candidate_pool: CandidatePool::Hand,
+                candidate_pool: CandidatePool::CardPileHand,
                 filters: &[],
                 selection_kind: SelectionKind::All,
             },

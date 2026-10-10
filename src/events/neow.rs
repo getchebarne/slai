@@ -139,7 +139,7 @@ const fn effect_bonus(bonus: NeowBonus, health_bonus: u16) -> Effect {
             kind: EffectKind::CardAddRandom {
                 color: CardColor::Green,
                 kind: None,
-                pile: CardPile::Deck,
+                card_pile: CardPile::Deck,
                 count: 1,
                 cost_zero: None,
                 upgraded: false,
@@ -152,7 +152,7 @@ const fn effect_bonus(bonus: NeowBonus, health_bonus: u16) -> Effect {
             kind: EffectKind::CardPurge,
             id_source: None,
             target: Target::Resolve {
-                candidate_pool: CandidatePool::Deck,
+                candidate_pool: CandidatePool::CardPileDeck,
                 filters: &[CandidateFilter::NotBottled, CandidateFilter::NotBoundCurse],
                 selection_kind: SelectionKind::Input { count },
             },
@@ -162,7 +162,7 @@ const fn effect_bonus(bonus: NeowBonus, health_bonus: u16) -> Effect {
             kind: EffectKind::CardTransform { upgraded: false },
             id_source: None,
             target: Target::Resolve {
-                candidate_pool: CandidatePool::Deck,
+                candidate_pool: CandidatePool::CardPileDeck,
                 filters: &[CandidateFilter::NotBottled, CandidateFilter::NotBoundCurse],
                 selection_kind: SelectionKind::Input { count },
             },
@@ -210,7 +210,7 @@ const fn effect_drawback(drawback: NeowDrawback, health_bonus: u16, damage: u16)
             kind: EffectKind::CardAddRandom {
                 color: CardColor::Curse,
                 kind: None,
-                pile: CardPile::Deck,
+                card_pile: CardPile::Deck,
                 count: 1,
                 cost_zero: None,
                 upgraded: false,
@@ -352,7 +352,7 @@ const fn eots_for_asc(ascension: u8) -> [EventOptionTemplate; CATALOG_LEN] {
             kind: EffectKind::RelicLose,
             id_source: None,
             target: Target::Resolve {
-                candidate_pool: CandidatePool::EventRollRelic,
+                candidate_pool: CandidatePool::RelicEventRoll,
                 filters: &[],
                 selection_kind: SelectionKind::Single,
             },
@@ -444,7 +444,7 @@ pub fn spawn(state: &mut GameState) -> Vec<usize> {
     // The boss swap consumes the staked starter Relic
     let id_ring_of_the_snake = state.id_relics[RelicName::RingOfTheSnake as usize]
         .expect("Neow spawns at run start with the starter relic");
-    state.event.id_roll_relic.push(id_ring_of_the_snake);
+    state.event.id_relic_event_roll.push(id_ring_of_the_snake);
 
     let options = [
         eots[idx_cat_0],

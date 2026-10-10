@@ -25,16 +25,16 @@ pub enum DeltaSign {
 #[derive(Debug, Clone)]
 pub struct Combat {
     pub active: bool,
-    pub id_card_hand: Vec<usize>,
-    pub id_card_draw: Vec<usize>,
-    pub id_card_discard: Vec<usize>,
-    pub id_card_exhaust: Vec<usize>,
+    pub id_card_pile_hand: Vec<usize>,
+    pub id_card_pile_draw: Vec<usize>,
+    pub id_card_pile_discard: Vec<usize>,
+    pub id_card_pile_exhaust: Vec<usize>,
     pub id_monsters: [Option<usize>; MAX_MONSTERS],
-    pub id_card_stasis: [Option<usize>; MAX_MONSTERS], // Slot-parallel to `id_monsters`
+    pub id_card_pile_stasis: [Option<usize>; MAX_MONSTERS], // Slot-parallel to `id_monsters`
     pub id_monster_picked: Option<usize>,
     pub id_card_last_drawn: Option<usize>,
-    pub id_card_nightmares: Vec<(usize, u32)>, // (snapshot, seq), one per Nightmare play; they never merge
-    pub id_card_discover: Vec<usize>,
+    pub id_card_pile_nightmare: Vec<(usize, u32)>, // (snapshot, seq), one per Nightmare play; they never merge
+    pub id_card_pile_discover: Vec<usize>,
     pub id_card_origins: Vec<(usize, usize)>, // (combat_copy, original), for Ritual Dagger
 
     // Energy
@@ -68,16 +68,16 @@ pub struct Combat {
 }
 
 pub fn combat_reset(combat: &mut Combat) {
-    combat.id_card_hand.clear();
-    combat.id_card_draw.clear();
-    combat.id_card_discard.clear();
-    combat.id_card_exhaust.clear();
+    combat.id_card_pile_hand.clear();
+    combat.id_card_pile_draw.clear();
+    combat.id_card_pile_discard.clear();
+    combat.id_card_pile_exhaust.clear();
     combat.id_monsters.fill(None);
-    combat.id_card_stasis.fill(None);
+    combat.id_card_pile_stasis.fill(None);
     combat.id_monster_picked = None;
     combat.id_card_last_drawn = None;
-    combat.id_card_nightmares.clear();
-    combat.id_card_discover.clear();
+    combat.id_card_pile_nightmare.clear();
+    combat.id_card_pile_discover.clear();
     combat.id_card_origins.clear();
     combat.energy = Energy {
         energy_current: 0,
@@ -143,9 +143,9 @@ pub struct Event {
     pub health_max_at_open: u16,
 
     // Entities an event stakes; options target them via the EventRoll<...> pools
-    pub id_roll_card: Vec<usize>,
-    pub id_roll_relic: Vec<usize>,
-    pub id_roll_potion: Vec<usize>,
+    pub id_card_pile_event_roll: Vec<usize>,
+    pub id_relic_event_roll: Vec<usize>,
+    pub id_potion_event_roll: Vec<usize>,
 
     // Dead Adventurer's elite, rolled when the event opens; a failed search fights it
     pub adventurer_elite: MonsterEncounter,
@@ -155,24 +155,24 @@ pub struct Event {
     pub found_nothing: bool,
     pub found_relic: bool,
 
-    // Match and Keep!'s board; the seen face-down Cards sit in `id_roll_card`
-    pub id_match_flipped: Option<usize>, // The attempt's first flip, face up
-    pub id_match_unseen: Vec<usize>,     // Never flipped, in board order; not in the snapshot
-    pub match_attempts: u8,              // Attempts left
+    // Match and Keep!'s board; the seen face-down Cards sit in `id_card_pile_event_roll`
+    pub id_card_match_flipped: Option<usize>, // The attempt's first flip, face up
+    pub id_card_match_unseen: Vec<usize>,     // Never flipped, in board order; not in the snapshot
+    pub match_attempts: u8,                   // Attempts left
 }
 
 // Runs before a spawn fills the context; the caller sets kind/options/active
 pub fn event_reset(event: &mut Event) {
     event.consumed = false;
     event.stage = 0;
-    event.id_roll_card.clear();
-    event.id_roll_relic.clear();
-    event.id_roll_potion.clear();
+    event.id_card_pile_event_roll.clear();
+    event.id_relic_event_roll.clear();
+    event.id_potion_event_roll.clear();
     event.found_gold = false;
     event.found_nothing = false;
     event.found_relic = false;
-    event.id_match_flipped = None;
-    event.id_match_unseen.clear();
+    event.id_card_match_flipped = None;
+    event.id_card_match_unseen.clear();
     event.match_attempts = 0;
 }
 

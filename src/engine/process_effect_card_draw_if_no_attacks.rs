@@ -10,8 +10,10 @@ pub fn process_effect_card_draw_if_no_attacks(state: &mut GameState, count: u16)
         state.combat.active,
         "process_effect_card_draw_if_no_attacks outside the Combat frame"
     );
-    let Combat { id_card_hand, .. } = &state.combat;
-    let any_attack = id_card_hand
+    let Combat {
+        id_card_pile_hand, ..
+    } = &state.combat;
+    let any_attack = id_card_pile_hand
         .iter()
         .any(|&id| state.entities[id].card_kind == CardKind::Attack);
     if !any_attack {
