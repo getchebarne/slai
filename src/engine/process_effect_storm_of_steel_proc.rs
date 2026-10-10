@@ -37,7 +37,7 @@ pub fn process_effect_storm_of_steel_proc(state: &mut GameState, upgraded: bool)
         let id_card = id_card_pile_hand[idx];
         state.effect_queue.push_front(Effect {
             kind: EffectKind::CardDiscard {
-                source: DiscardSource::Explicit, // Triggers on-discard sinergies
+                source: DiscardSource::Explicit, // Triggers on-discard synergies
             },
             id_source: None,
             target: Target::Direct(Some(id_card)),

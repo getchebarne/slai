@@ -110,7 +110,7 @@ pub struct GameState {
     // Name-indexed: `id_relics[name as usize]` is `Some(entity_id)` iff owned
     pub id_relics: [Option<usize>; RelicName::COUNT],
 
-    // Next acquisition stamp for `relic_seq`; Relic hooks run in pickup order
+    // Next pickup stamp for `relic_seq`; Relic hooks run in pickup order
     pub relic_seq_next: u16,
 
     // Dense belt in pickup order (duplicates allowed); `potion_slots_max` caps its length

@@ -44,7 +44,7 @@ const OPTION_TRANSFORM: [Effect; 2] = [
     },
 ];
 
-// Mutagens: swap the Golden Idol for Toolbox
+// Mutagens: gain Mutagenic Strength
 const OPTION_MUTAGENS: [Effect; 2] = [
     Effect {
         kind: EffectKind::RelicGrantSpecific {

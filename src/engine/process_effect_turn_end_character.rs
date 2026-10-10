@@ -57,7 +57,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
             });
         }
 
-        // Turn-end Relic effects, in acquisition order (Stone Calendar's damage, Nilry's Codex discover)
+        // Turn-end Relic effects, in pickup order (Stone Calendar's damage, Nilry's Codex discover)
         let mut id_relics: Vec<usize> = state.id_relics.iter().flatten().copied().collect();
         id_relics.sort_unstable_by_key(|&id| state.entities[id].relic_seq);
 

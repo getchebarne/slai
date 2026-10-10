@@ -111,7 +111,7 @@ pub struct Reward {
     pub gold_stolen: Option<u16>, // The thieves' purse, claimed apart from the room's gold
     pub relics_exclusive: bool,   // The boss chest's pick-one offer; a skip shuts the chest again
     pub cards_forced: bool,       // The Library's grid: one pick, no skip and no Singing Bowl
-    pub closes_on_pick: bool,     // A take or Singing Bowl closes it (boss chest, Dream Catcher)
+    pub closes_on_pick: bool, // A take or Singing Bowl closes it (boss chest, Dream Catcher, the Library, Neow's Cards)
 }
 
 pub fn reward_reset(reward: &mut Reward) {
@@ -835,12 +835,6 @@ pub enum RelicName {
     BloodyIdol,
     FrozenEye,
     RunicDome,
-}
-
-pub fn relic_name_from_u8(v: u8) -> RelicName {
-    assert!((v as usize) < RelicName::COUNT, "Invalid RelicName: {v}");
-    // SAFETY: repr(u8) and we validated the range
-    unsafe { std::mem::transmute(v) }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

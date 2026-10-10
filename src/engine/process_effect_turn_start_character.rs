@@ -147,7 +147,7 @@ pub fn process_effect_turn_start_character(state: &mut GameState) {
         }
     }
 
-    // Owned Relics in acquisition order
+    // Owned Relics in pickup order
     let mut id_relics: Vec<usize> = state.id_relics.iter().flatten().copied().collect();
     id_relics.sort_unstable_by_key(|&id| state.entities[id].relic_seq);
 
@@ -365,7 +365,7 @@ pub fn process_effect_turn_start_character(state: &mut GameState) {
     });
 
     if first_turn {
-        // Turn 1: back-queued combat-start Relics, acquisition order
+        // Turn 1: back-queued combat-start Relics, pickup order
         for &id_relic in &id_relics {
             let relic = &state.entities[id_relic];
             let name = relic.relic_name;
@@ -476,7 +476,7 @@ pub fn process_effect_turn_start_character(state: &mut GameState) {
         });
         state.effect_buf.push(Effect {
             kind: EffectKind::CardDiscard {
-                source: DiscardSource::Explicit, // Triggers on-discard sinergies
+                source: DiscardSource::Explicit, // Triggers on-discard synergies
             },
             id_source: None,
             target: Target::Resolve {
@@ -492,7 +492,7 @@ pub fn process_effect_turn_start_character(state: &mut GameState) {
     flush_effects_from_buf_to_queue_front(state);
 }
 
-// Turn-start Relics in acquisition order: each advances its counter and queues what fires; post-draw ones wait for the draw
+// Turn-start Relics in pickup order: each advances its counter and queues what fires; post-draw ones wait for the draw
 fn push_relics_turn_start(
     id_relics_by_seq: &[usize],
     entities: &mut [Entity],

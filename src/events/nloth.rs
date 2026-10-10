@@ -10,7 +10,6 @@ use crate::events::EventOptionTemplate;
 use crate::events::bake_options;
 use crate::events::make_event_option_template;
 use crate::game::GameState;
-use crate::relics::iter_owned_relics;
 use crate::types::RelicName;
 
 // One trade for both offers: the player picks which staked Relic to give up
@@ -41,26 +40,19 @@ pub static EOTS_BASE: &[EventOptionTemplate] = &[
 
 // Two distinct owned Relics, staked on the context for the trade to pick from
 pub fn spawn(state: &mut GameState) -> Vec<usize> {
-    // Collect owned `RelicName`s and their IDs
-    let relic_name_id_owned: Vec<(RelicName, usize)> =
-        iter_owned_relics(&state.id_relics).collect();
+    // Collect owned Relics
+    let id_relics: Vec<usize> = state.id_relics.iter().flatten().copied().collect();
 
     // Roll picks
-    let idx = state.rng.random_range(0..relic_name_id_owned.len());
-    let mut jdx = state.rng.random_range(0..relic_name_id_owned.len() - 1);
+    let idx = state.rng.random_range(0..id_relics.len());
+    let mut jdx = state.rng.random_range(0..id_relics.len() - 1);
     if jdx >= idx {
         jdx += 1;
     }
 
     // Push and bake Event Options
-    state
-        .event
-        .id_relic_event_roll
-        .push(relic_name_id_owned[idx].1);
-    state
-        .event
-        .id_relic_event_roll
-        .push(relic_name_id_owned[jdx].1);
+    state.event.id_relic_event_roll.push(id_relics[idx]);
+    state.event.id_relic_event_roll.push(id_relics[jdx]);
     bake_options(state, catalog(state.ascension))
 }
 
