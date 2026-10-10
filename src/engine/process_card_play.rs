@@ -141,6 +141,7 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
         card.card_play_restriction,
         card.card_kind,
         id_card_draw,
+        &state.entities,
         &state.id_relics,
     ) && !(entangled && card.card_kind == CardKind::Attack)
         && !target_gone

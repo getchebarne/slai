@@ -15,7 +15,6 @@ use crate::types::CardName;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
 
-// First move: essentially a no-op
 const INFERNO_HITS: u8 = 6;
 
 // Inferno: six hits then the burn upgrade
@@ -45,6 +44,7 @@ const fn move_inferno(damage: u16) -> Move {
     )
 }
 
+// First move: essentially a no-op
 static MOVE_ACTIVATE: Move = make_move("Activate", &[], Intent::Unknown);
 
 // Divider damage (HP/12+1 x 6); the 0 damage is a placeholder, locked in at move selection

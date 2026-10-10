@@ -244,6 +244,7 @@ pub fn is_play_restriction_satisfied(
     restriction: PlayRestriction,
     card_kind: CardKind,
     id_card_draw: &[usize],
+    entities: &[Entity],
     id_relics: &[Option<usize>; RelicName::COUNT],
 ) -> bool {
     match restriction {
@@ -254,6 +255,12 @@ pub fn is_play_restriction_satisfied(
             _ => false,
         },
         PlayRestriction::DrawPileEmpty => id_card_draw.is_empty(),
+        PlayRestriction::DrawPileHasAttack => id_card_draw
+            .iter()
+            .any(|&id| entities[id].card_kind == CardKind::Attack),
+        PlayRestriction::DrawPileHasSkill => id_card_draw
+            .iter()
+            .any(|&id| entities[id].card_kind == CardKind::Skill),
     }
 }
 
