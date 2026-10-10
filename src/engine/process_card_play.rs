@@ -134,9 +134,10 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
     // The Card's picked-Monster effects resolve against this play's target
     *id_monster_picked = id_target;
 
-    // Draw-top plays and replays are re-gated when served; a Card needing a target needs it alive, and none plays once the turn has ended
+    // Draw-top plays and replays are re-gated when served; a Card needing a target needs it alive, and none plays once the turn has ended or every Monster is gone
     let target_gone = entity_requires_target(&card)
         && id_target.is_some_and(|id| !id_monsters.contains(&Some(id)));
+    let monsters_gone = id_monsters.iter().all(Option::is_none);
     let entangled = has_modifier(
         &state.entities[id_character].modifiers,
         ModifierKind::Entangled,
@@ -149,6 +150,7 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
         &state.id_relics,
     ) && !(entangled && card.card_kind == CardKind::Attack)
         && !target_gone
+        && !monsters_gone
         && !*turn_ended
         && !play_cap_reached(
             id_card_pile_hand,

@@ -38,9 +38,11 @@ pub fn process_effect_card_exhaust(id_target: Option<usize>, state: &mut GameSta
         state.entities[id_card].card_cost_override = None;
     }
 
-    // Dead Branch: every exhaust conjures a random Silent Card into the hand
+    // Dead Branch: every exhaust while a Monster is left conjures a random Silent Card into the hand
     // (all green Cards are rewardable, so no kind/rarity filter is needed)
-    if has_relic(&state.id_relics, RelicName::DeadBranch) {
+    if has_relic(&state.id_relics, RelicName::DeadBranch)
+        && state.combat.id_monsters.iter().any(Option::is_some)
+    {
         let card_name =
             get_random_card_names(CardColor::Green, None, None, &[], true, 1, &mut state.rng)[0];
         state.effect_queue.push_back(Effect {

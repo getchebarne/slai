@@ -943,8 +943,8 @@ fn push_potion_actions(state: &mut GameState) {
             continue;
         }
 
-        // Combat-only Potions
-        if potion.potion_combat_only && !in_combat {
+        // Combat-only Potions need a combat with a Monster left in it
+        if potion.potion_combat_only && (!in_combat || alive_count == 0) {
             state.legal_actions.push(Action::PotionDiscard { idx: s });
             continue;
         }

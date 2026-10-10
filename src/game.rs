@@ -75,7 +75,7 @@ pub struct GameState {
     // Plays waiting their turn; the next one starts once effect_queue is empty
     pub card_play_queue: VecDeque<CardPlay>,
 
-    // Turn phases, and the CombatEnd of the last kill or a Smoke Bomb, waiting their turn; the next one starts once effect_queue and card_play_queue are empty
+    // Turn phases, and the CombatEnd of the last kill, the last escape or a Smoke Bomb, waiting their turn; the next one starts once effect_queue and card_play_queue are empty
     pub phase_queue: VecDeque<Effect>,
 
     // Per-handler effect builder; drained back-to-front into queue front

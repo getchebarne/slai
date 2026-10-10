@@ -20,7 +20,7 @@ const MODE_SHIFT_STACKS_35: i16 = 35;
 const MODE_SHIFT_STACKS_40: i16 = 40;
 pub const DEFENSIVE_MODE_BLOCK: u16 = 20;
 
-// Twin Slam: Mode Shift arms ahead of the two hits, so their Thorns count; Sharp Hide drops; a count short of a break starts over from the full threshold
+// Twin Slam: Mode Shift arms ahead of the two hits, so their Thorns count; Sharp Hide drops; a count short of a break starts over from the full threshold; the stacks are the base, 10 more per Defensive Mode locked in when the move is chosen
 const fn move_twin_slam(mode_shift_stacks: i16) -> Move {
     make_move(
         "Twin Slam",

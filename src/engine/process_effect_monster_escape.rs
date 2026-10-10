@@ -49,9 +49,11 @@ pub fn process_effect_monster_escape(id_target: Option<usize>, state: &mut GameS
     if !any_alive && !state.combat.this_combat_monster_died {
         state.combat.this_combat_escaped = true;
     }
+
+    // The last escape closes the combat behind every queued effect and waiting Card play; no turn phase starts
     if !any_alive {
-        state.effect_queue.clear();
-        state.effect_queue.push_back(Effect {
+        state.phase_queue.clear();
+        state.phase_queue.push_back(Effect {
             kind: EffectKind::CombatEnd {
                 escaped_character: false,
             },
