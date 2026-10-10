@@ -108,9 +108,9 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
         id_monster_picked,
         this_turn_attacks,
         this_turn_cards_played,
-        this_turn_played_attack,
-        this_turn_played_skill,
-        this_turn_played_power,
+        orange_pellets_played_attack,
+        orange_pellets_played_skill,
+        orange_pellets_played_power,
         turn_ended,
         panache_countdown,
         ..
@@ -542,9 +542,9 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
 
             // Orange Pellets: Attack + Skill + Power in one turn sweeps all debuffs
             (RelicName::OrangePellets, _) => orange_pellets_track_and_sweep(
-                this_turn_played_attack,
-                this_turn_played_skill,
-                this_turn_played_power,
+                orange_pellets_played_attack,
+                orange_pellets_played_skill,
+                orange_pellets_played_power,
                 &mut state.effect_buf,
                 card.card_kind,
                 id_character,

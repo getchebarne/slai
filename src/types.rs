@@ -44,9 +44,9 @@ pub struct Combat {
     pub this_turn_discards: u16,
     pub this_turn_attacks: u8,
     pub this_turn_cards_played: u8,
-    pub this_turn_played_attack: bool, // Card kinds played since Orange Pellets last fired this turn
-    pub this_turn_played_skill: bool,
-    pub this_turn_played_power: bool,
+    pub orange_pellets_played_attack: bool, // Card kinds played since Orange Pellets last fired this turn
+    pub orange_pellets_played_skill: bool,
+    pub orange_pellets_played_power: bool,
     pub turn_ended: bool, // From the first Monster turn start to the Character's next turn start
     pub panache_countdown: u8, // Plays left until Panache's hit
 
@@ -86,9 +86,9 @@ pub fn combat_reset(combat: &mut Combat) {
     combat.this_turn_discards = 0;
     combat.this_turn_attacks = 0;
     combat.this_turn_cards_played = 0;
-    combat.this_turn_played_attack = false;
-    combat.this_turn_played_skill = false;
-    combat.this_turn_played_power = false;
+    combat.orange_pellets_played_attack = false;
+    combat.orange_pellets_played_skill = false;
+    combat.orange_pellets_played_power = false;
     combat.turn_ended = false;
     combat.panache_countdown = PANACHE_PLAYS;
     combat.turn = 0;
