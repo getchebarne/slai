@@ -54,9 +54,9 @@ pub fn process_effect_turn_start_character(state: &mut GameState) {
         this_turn_attacks,
         this_turn_cards_played,
         this_turn_discards,
-        this_turn_played_attack,
-        this_turn_played_skill,
-        this_turn_played_power,
+        orange_pellets_played_attack,
+        orange_pellets_played_skill,
+        orange_pellets_played_power,
         panache_countdown,
         ..
     } = &mut state.combat;
@@ -117,9 +117,9 @@ pub fn process_effect_turn_start_character(state: &mut GameState) {
     *this_turn_attacks = 0;
     *this_turn_cards_played = 0;
     *this_turn_discards = 0;
-    *this_turn_played_attack = false;
-    *this_turn_played_skill = false;
-    *this_turn_played_power = false;
+    *orange_pellets_played_attack = false;
+    *orange_pellets_played_skill = false;
+    *orange_pellets_played_power = false;
     *panache_countdown = PANACHE_PLAYS;
     for &name in RELIC_COUNTERS_PER_TURN {
         if let Some(id) = state.id_relics[name as usize] {

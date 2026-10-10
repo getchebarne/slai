@@ -62,9 +62,9 @@ pub struct PyCombat {
     pub pile_nightmare: Vec<PyCard>, // Each arrives NIGHTMARE_COPIES times next turn
     pub panache_countdown: u8,       // Plays left until Panache's hit
     pub this_turn_discards: u16, // Cards discarded this turn (Sneaky Strike's refund, Eviscerate's discount)
-    pub this_turn_played_attack: bool, // Card kinds played since Orange Pellets last fired this turn
-    pub this_turn_played_skill: bool,
-    pub this_turn_played_power: bool,
+    pub orange_pellets_played_attack: bool, // Card kinds played since Orange Pellets last fired this turn
+    pub orange_pellets_played_skill: bool,
+    pub orange_pellets_played_power: bool,
 }
 
 #[pyclass(
@@ -233,9 +233,9 @@ pub(crate) fn snapshot_combat(state: &GameState) -> PyCombat {
             .collect(),
         panache_countdown: combat.panache_countdown,
         this_turn_discards: combat.this_turn_discards,
-        this_turn_played_attack: combat.this_turn_played_attack,
-        this_turn_played_skill: combat.this_turn_played_skill,
-        this_turn_played_power: combat.this_turn_played_power,
+        orange_pellets_played_attack: combat.orange_pellets_played_attack,
+        orange_pellets_played_skill: combat.orange_pellets_played_skill,
+        orange_pellets_played_power: combat.orange_pellets_played_power,
     }
 }
 
