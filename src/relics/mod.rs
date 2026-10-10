@@ -156,7 +156,6 @@ use crate::entity::EntityKind;
 use crate::types::CardKind;
 use crate::types::RelicName;
 use crate::types::RelicTier;
-use crate::types::relic_name_from_u8;
 
 // Totality relies on the len == COUNT and no-duplicate asserts below
 const fn build_relic_template_by_name() -> [&'static RelicTemplate; RelicName::COUNT] {
@@ -262,15 +261,6 @@ pub const RELIC_COUNTERS_COMBAT_ONLY: &[RelicName] = &[
     RelicName::Necronomicon,
     RelicName::CentennialPuzzle,
 ];
-
-pub fn iter_owned_relics(
-    id_relics: &[Option<usize>; RelicName::COUNT],
-) -> impl Iterator<Item = (RelicName, usize)> + '_ {
-    id_relics
-        .iter()
-        .enumerate()
-        .filter_map(|(idx, &opt)| opt.map(|id| (relic_name_from_u8(idx as u8), id)))
-}
 
 pub const ALL_RELICS: &[&'static RelicTemplate] = &[
     &ring_of_the_snake::RING_OF_THE_SNAKE,

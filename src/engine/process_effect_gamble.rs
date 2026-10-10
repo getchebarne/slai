@@ -34,7 +34,7 @@ pub fn process_effect_gamble(state: &mut GameState, choose_discards: bool) {
     if choose_discards {
         state.effect_queue.push_front(Effect {
             kind: EffectKind::CardDiscard {
-                source: DiscardSource::ExplicitRelicsFirst, // Triggers on-discard sinergies
+                source: DiscardSource::ExplicitRelicsFirst, // Triggers on-discard synergies
             },
             id_source: None,
             target: Target::Resolve {
@@ -52,7 +52,7 @@ pub fn process_effect_gamble(state: &mut GameState, choose_discards: bool) {
     for &id_card in id_card_pile_hand.iter() {
         state.effect_queue.push_front(Effect {
             kind: EffectKind::CardDiscard {
-                source: DiscardSource::Explicit, // Triggers on-discard sinergies
+                source: DiscardSource::Explicit, // Triggers on-discard synergies
             },
             id_source: None,
             target: Target::Direct(Some(id_card)),

@@ -30,7 +30,7 @@ pub fn process_effect_relic_adopt(id_target: Option<usize>, state: &mut GameStat
         return;
     }
 
-    // Flag Relic as owned and stamp its acquisition order
+    // Flag Relic as owned and stamp its pickup order
     state.id_relics[name as usize] = Some(id_relic);
     state.entities[id_relic].relic_seq = state.relic_seq_next;
     state.relic_seq_next += 1;
@@ -142,9 +142,11 @@ fn queue_pickup_effects(state: &mut GameState, id_relic: usize) {
             });
         }
 
-        // Ring of the Serpent: replaces the starter; RingOfTheSnake's combat-start draw is lost
+        // Ring of the Serpent: replaces the starter and takes its pickup stamp; RingOfTheSnake's combat-start draw is lost
         RelicName::RingOfTheSerpent => {
-            state.id_relics[RelicName::RingOfTheSnake as usize] = None;
+            if let Some(id_snake) = state.id_relics[RelicName::RingOfTheSnake as usize].take() {
+                state.entities[id_relic].relic_seq = state.entities[id_snake].relic_seq;
+            }
         }
 
         _ => {}

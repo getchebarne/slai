@@ -21,7 +21,6 @@ use crate::map::get_active_room_kind;
 use crate::monsters::encounters::generate_act_elites;
 use crate::monsters::encounters::spawn_encounter_monsters;
 use crate::relics::get_relic;
-use crate::relics::iter_owned_relics;
 use crate::types::ChestKind;
 use crate::types::DeltaSign;
 use crate::types::EventName;
@@ -341,7 +340,7 @@ fn draw_event_special(state: &mut GameState) -> Option<EventName> {
             EventName::TheWomanInBlue => gold >= 50,
             EventName::TheJoust => gold >= 50,
             EventName::Designer => gold >= 75,
-            EventName::Nloth => iter_owned_relics(&state.id_relics).nth(1).is_some(),
+            EventName::Nloth => state.id_relics.iter().flatten().nth(1).is_some(),
             EventName::KnowingSkull => state.entities[state.id_character].vitals.health > 12,
             _ => true,
         })

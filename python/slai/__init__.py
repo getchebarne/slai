@@ -494,6 +494,7 @@ __all__ = [
     "ArgSpec",
     "ActionSpec",
     "ActionSpecRegistry",
+    "create_action_spec",
     "ACTION_SPEC_REGISTRY",
     # Views
     "Card",

@@ -365,14 +365,6 @@ pub fn count_monsters_named(
         .count()
 }
 
-// True if `move_idx` ends a cycle; callers bump monster_cycle_count
-pub fn is_cycle_boundary(name: MonsterName, move_idx: u8) -> bool {
-    match name {
-        MonsterName::TheGuardian => move_idx == the_guardian::IDX_MOVE_TWIN_SLAM as u8,
-        _ => false,
-    }
-}
-
 // Takes the whole arena: some AIs read other Monsters' state (ally counts, party HP)
 pub fn get_next_move(
     entities: &[Entity],

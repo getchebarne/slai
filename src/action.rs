@@ -448,7 +448,7 @@ fn handle_rest(state: &mut GameState) {
 
     push_rest_site_consume(state);
 
-    // Rest Relic effects, in acquisition order, after the consume
+    // Rest Relic effects, in pickup order, after the consume
     let mut id_relics: Vec<usize> = state.id_relics.iter().flatten().copied().collect();
 
     id_relics.sort_unstable_by_key(|&id| state.entities[id].relic_seq);
@@ -725,7 +725,7 @@ fn fill_legal_actions_reward(state: &mut GameState) {
     }
 
     // The Library's grid has no cancel button
-    if !(state.reward.cards_forced && !id_cards.is_empty()) {
+    if !state.reward.cards_forced {
         state.legal_actions.push(Action::RoomExit);
     }
     push_potion_actions(state);

@@ -33,7 +33,7 @@ pub static SURVIVOR: CardTemplate = make_card_template(
         },
         Effect {
             kind: EffectKind::CardDiscard {
-                source: DiscardSource::Explicit, // Triggers on-discard sinergies
+                source: DiscardSource::Explicit, // Triggers on-discard synergies
             },
             id_source: None,
             target: Target::Resolve {

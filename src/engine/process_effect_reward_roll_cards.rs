@@ -51,8 +51,16 @@ pub fn process_effect_reward_roll_cards(
         state.reward.cards_forced = true;
     }
 
-    // Dream Catcher's offer is a pick screen of its own
-    if trigger == RewardRollTrigger::DreamCatcher {
+    // Dream Catcher's, the Library's and Neow's offers are pick screens of their own
+    if matches!(
+        trigger,
+        RewardRollTrigger::DreamCatcher
+            | RewardRollTrigger::Library
+            | RewardRollTrigger::Neow
+            | RewardRollTrigger::NeowRare
+            | RewardRollTrigger::NeowColorless
+            | RewardRollTrigger::NeowColorlessRare
+    ) {
         state.reward.closes_on_pick = true;
     }
 }

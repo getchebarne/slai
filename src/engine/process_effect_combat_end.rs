@@ -249,7 +249,7 @@ fn queue_combat_end_relics(state: &mut GameState) {
         }
     }
 
-    // Combat-end Relic effects, in acquisition order (Face of Cleric, etc.)
+    // Combat-end Relic effects, in pickup order (Face of Cleric, etc.)
     let mut id_relics: Vec<usize> = state.id_relics.iter().flatten().copied().collect();
     id_relics.sort_unstable_by_key(|&id| state.entities[id].relic_seq);
 

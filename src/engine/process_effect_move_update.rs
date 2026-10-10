@@ -6,7 +6,6 @@ use crate::modifier::ModifierKind;
 use crate::monsters::book_of_stabbing;
 use crate::monsters::get_next_move;
 use crate::monsters::hexaghost;
-use crate::monsters::is_cycle_boundary;
 use crate::monsters::push_move_history;
 use crate::monsters::the_guardian;
 use crate::types::Combat;
@@ -62,17 +61,12 @@ pub fn process_effect_move_update(
             book_of_stabbing::multi_stab_instances(&entity.monster_move_uses, state.ascension)
         });
 
-    // The cycle count already includes the move being chosen
-    let move_idx = move_next as u8;
-    if is_cycle_boundary(entity.monster_name, move_idx) {
-        entity.monster_cycle_count += 1;
-    }
-
-    // Twin Slam's Mode Shift locks in at selection: 10 more for each Defensive Mode before it
+    // Twin Slam's Mode Shift locks in at selection: 10 more per Defensive Mode so far, each ending in one Twin Slam, this one included
     let mode_shift_bonus = if entity.monster_name == MonsterName::TheGuardian
         && move_next == the_guardian::IDX_MOVE_TWIN_SLAM
     {
-        MODE_SHIFT_INCREASE_PER_CYCLE * i16::from(entity.monster_cycle_count)
+        MODE_SHIFT_INCREASE_PER_CYCLE
+            * (i16::from(entity.monster_move_uses[the_guardian::IDX_MOVE_TWIN_SLAM]) + 1)
     } else {
         0
     };
@@ -94,5 +88,5 @@ pub fn process_effect_move_update(
         }
     }
 
-    push_move_history(entity, move_idx);
+    push_move_history(entity, move_next as u8);
 }
