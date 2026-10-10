@@ -271,7 +271,7 @@ EffectModifierRemove = _rs.EffectModifierRemove
 EffectMonsterEscape = _rs.EffectMonsterEscape
 EffectMonsterRemove = _rs.EffectMonsterRemove
 EffectMonsterSplit = _rs.EffectMonsterSplit
-EffectStasisSteal = _rs.EffectStasisSteal
+EffectCardStasisSteal = _rs.EffectCardStasisSteal
 EffectRewardRollCards = _rs.EffectRewardRollCards
 EffectRewardRollRelic = _rs.EffectRewardRollRelic
 EffectDamageDeal = _rs.EffectDamageDeal
@@ -354,7 +354,7 @@ Effect = (
     | EffectMonsterEscape
     | EffectMonsterRemove
     | EffectMonsterSplit
-    | EffectStasisSteal
+    | EffectCardStasisSteal
     | EffectRewardRollCards
     | EffectRewardRollRelic
     | EffectDamageDeal
@@ -607,6 +607,20 @@ __all__ = [
     "EffectKnowingSkullCostBump",
     "EffectJoustBet",
     "EffectRelicGrantPool",
+    "EffectDebuffsClear",
+    "EffectGremlinSummon",
+    "EffectHexaghostBurnIncrease",
+    "EffectModifierRemove",
+    "EffectMonsterEscape",
+    "EffectMonsterRemove",
+    "EffectMonsterSplit",
+    "EffectCardStasisSteal",
+    "EffectRewardRollCards",
+    "EffectRewardRollRelic",
+    "EffectDamageDeal",
+    "EffectMatchFlipSeen",
+    "EffectMatchFlipUnseen",
+    "RewardRollTrigger",
     "Amount",
     "AmountAbsolute",
     "AmountRelative",
@@ -628,6 +642,8 @@ __all__ = [
     "RelicTemplate",
     "PotionTemplate",
     "MonsterTemplate",
+    "MonsterMoveTemplate",
+    "ModifierSpawnTemplate",
     "EventOptionTemplate",
     "MonsterKind",
     "EventName",

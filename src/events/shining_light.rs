@@ -30,6 +30,7 @@ const fn enter(numerator: u8, denominator: u8) -> [Effect; 3] {
             },
         },
         EFFECT_EVENT_CONSUME,
+        // The Boot and Torii never touch this loss: they act only on 1 to 5 damage, which needs max HP of 27 or less (18 or less at A15+), and in Act 1, the only act with this event, max HP never drops that low
         Effect {
             kind: EffectKind::HealthDelta {
                 sign: DeltaSign::Loss,

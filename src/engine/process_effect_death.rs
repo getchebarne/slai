@@ -1,3 +1,4 @@
+use crate::consts::MAX_SIZE_HAND;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
@@ -15,7 +16,6 @@ use crate::types::PotionName;
 use crate::types::RelicName;
 use crate::utils::flush_effects_from_buf_to_queue_front;
 use crate::utils::has_relic;
-use crate::utils::release_stasis_card;
 use crate::utils::resolve_health_fraction;
 
 pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState, with_leader: bool) {
@@ -160,14 +160,16 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState, wit
     state.effect_buf.clear();
 
     // Stasis: the hostage comes back ahead of the Relics' effects; a death that ends the combat leaves it to the combat reset
-    if let Some(slot) = slot {
-        release_stasis_card(
-            slot,
-            id_card_stasis,
-            id_card_hand,
-            &state.entities,
-            &mut state.effect_buf,
-        );
+    if let Some(slot) = slot
+        && let Some(id_card) = id_card_stasis[slot].take()
+    {
+        state.effect_buf.push(Effect {
+            kind: EffectKind::CardStasisReturn {
+                hand_full: id_card_hand.len() >= MAX_SIZE_HAND,
+            },
+            id_source: None,
+            target: Target::Direct(Some(id_card)),
+        });
     }
 
     // CorpseExplosion: max_health to each survivor; no source scaling, no Envenom proc

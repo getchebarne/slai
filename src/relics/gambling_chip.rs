@@ -16,7 +16,6 @@ pub static GAMBLING_CHIP: RelicTemplate = RelicTemplate {
     effects_combat_start: &[Effect {
         kind: EffectKind::Gamble {
             choose_discards: true,
-            discards_before: None,
         },
         id_source: None,
         target: Target::Direct(None),

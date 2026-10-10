@@ -275,6 +275,8 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEffectCardSetupPick;
     #[pymodule_export]
+    use super::ffi::PyEffectCardStasisSteal;
+    #[pymodule_export]
     use super::ffi::PyEffectCardTransform;
     #[pymodule_export]
     use super::ffi::PyEffectCardUpgrade;
@@ -384,8 +386,6 @@ mod slai {
     use super::ffi::PyEffectShuffleDiscardPileIntoDrawPile;
     #[pymodule_export]
     use super::ffi::PyEffectSneakyStrikeProc;
-    #[pymodule_export]
-    use super::ffi::PyEffectStasisSteal;
     #[pymodule_export]
     use super::ffi::PyEffectStormOfSteelProc;
     #[pymodule_export]

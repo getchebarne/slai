@@ -3,7 +3,7 @@ use crate::types::RelicName;
 use crate::types::RelicTier;
 
 // See:
-//    - `process_effect_chest_open.rs` (the next chest opened is empty)
+//    - `process_effect_chest_open.rs` (the next non-boss chest opened loses one Relic and keeps its gold)
 pub static NLOTHS_HUNGRY_FACE: RelicTemplate = RelicTemplate {
     name: RelicName::NlothsHungryFace,
     tier: RelicTier::Special,

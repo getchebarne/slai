@@ -5,10 +5,10 @@ use rand::Rng;
 
 // Bronze Orb's Stasis: exile a Card from the draw pile (discard as fallback) until
 // the orb dies. Prefers the highest rarity present; random among ties
-pub fn process_effect_stasis_steal(id_source: Option<usize>, state: &mut GameState) {
+pub fn process_effect_card_stasis_steal(id_source: Option<usize>, state: &mut GameState) {
     assert!(
         state.combat.active,
-        "process_effect_stasis_steal outside the Combat frame"
+        "process_effect_card_stasis_steal outside the Combat frame"
     );
     let Combat {
         id_monsters,
@@ -17,7 +17,7 @@ pub fn process_effect_stasis_steal(id_source: Option<usize>, state: &mut GameSta
         id_card_discard,
         ..
     } = &mut state.combat;
-    let id_source = id_source.expect("StasisSteal requires id_source");
+    let id_source = id_source.expect("CardStasisSteal requires id_source");
 
     // Pick pile to steal from. Prefers draw over discard
     let id_pile: &mut Vec<usize> = if !id_card_draw.is_empty() {
@@ -56,7 +56,7 @@ pub fn process_effect_stasis_steal(id_source: Option<usize>, state: &mut GameSta
     let idx_monster = id_monsters
         .iter()
         .position(|slot| *slot == Some(id_source))
-        .expect("StasisSteal source is not on the roster");
+        .expect("CardStasisSteal source is not on the roster");
     assert!(
         id_card_stasis[idx_monster].is_none(),
         "a Bronze Orb steals once"

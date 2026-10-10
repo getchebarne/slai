@@ -34,7 +34,7 @@ pub fn process_effect_card_move(
     // Place in new one
     let placed = place_card(state, id_target, pile);
 
-    // A full hand reroutes to discard without the cost break (source game parity)
+    // Only a placed Card takes the cost break; one a full hand reroutes to discard keeps its cost
     if placed && let Some(scope) = cost_zero {
         state.effect_queue.push_front(Effect {
             kind: EffectKind::SetCostOverride {

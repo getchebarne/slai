@@ -31,6 +31,8 @@ pub mod process_effect_card_purge;
 pub mod process_effect_card_remove;
 pub mod process_effect_card_retain;
 pub mod process_effect_card_setup_pick;
+pub mod process_effect_card_stasis_return;
+pub mod process_effect_card_stasis_steal;
 pub mod process_effect_card_transform;
 pub mod process_effect_card_upgrade;
 pub mod process_effect_chest_open;
@@ -51,6 +53,7 @@ pub mod process_effect_escape_plan_check;
 pub mod process_effect_event_advance_state;
 pub mod process_effect_event_consume;
 pub mod process_effect_gamble;
+pub mod process_effect_gamble_draw;
 pub mod process_effect_girya_lift;
 pub mod process_effect_glass_knife_decay;
 pub mod process_effect_gold_delta;
@@ -111,7 +114,6 @@ pub mod process_effect_shop_purge;
 pub mod process_effect_shuffle_discard_pile_into_draw_pile;
 pub mod process_effect_singing_bowl_proc;
 pub mod process_effect_sneaky_strike_proc;
-pub mod process_effect_stasis_steal;
 pub mod process_effect_storm_of_steel_proc;
 pub mod process_effect_strength_lose_temp;
 pub mod process_effect_turn_end_character;
@@ -155,6 +157,8 @@ use self::process_effect_card_purge::process_effect_card_purge;
 use self::process_effect_card_remove::process_effect_card_remove;
 use self::process_effect_card_retain::process_effect_card_retain;
 use self::process_effect_card_setup_pick::process_effect_card_setup_pick;
+use self::process_effect_card_stasis_return::process_effect_card_stasis_return;
+use self::process_effect_card_stasis_steal::process_effect_card_stasis_steal;
 use self::process_effect_card_transform::process_effect_card_transform;
 use self::process_effect_card_upgrade::process_effect_card_upgrade;
 use self::process_effect_chest_open::process_effect_chest_open;
@@ -175,6 +179,7 @@ use self::process_effect_escape_plan_check::process_effect_escape_plan_check;
 use self::process_effect_event_advance_state::process_effect_event_advance_state;
 use self::process_effect_event_consume::process_effect_event_consume;
 use self::process_effect_gamble::process_effect_gamble;
+use self::process_effect_gamble_draw::process_effect_gamble_draw;
 use self::process_effect_girya_lift::process_effect_girya_lift;
 use self::process_effect_glass_knife_decay::process_effect_glass_knife_decay;
 use self::process_effect_gold_delta::process_effect_gold_delta;
@@ -235,7 +240,6 @@ use self::process_effect_shop_purge::process_effect_shop_purge;
 use self::process_effect_shuffle_discard_pile_into_draw_pile::process_effect_shuffle_discard_pile_into_draw_pile;
 use self::process_effect_singing_bowl_proc::process_effect_singing_bowl_proc;
 use self::process_effect_sneaky_strike_proc::process_effect_sneaky_strike_proc;
-use self::process_effect_stasis_steal::process_effect_stasis_steal;
 use self::process_effect_storm_of_steel_proc::process_effect_storm_of_steel_proc;
 use self::process_effect_strength_lose_temp::process_effect_strength_lose_temp;
 use self::process_effect_turn_end_character::process_effect_turn_end_character;
@@ -669,7 +673,10 @@ fn dispatch_by_kind(
         EffectKind::GoldSteal { amount } => process_effect_gold_steal(id_source, state, amount),
         EffectKind::GremlinSummon => process_effect_gremlin_summon(state),
         EffectKind::DebuffsClear => process_effect_debuffs_clear(id_target, state),
-        EffectKind::StasisSteal => process_effect_stasis_steal(id_source, state),
+        EffectKind::CardStasisReturn { hand_full } => {
+            process_effect_card_stasis_return(id_target, state, hand_full)
+        }
+        EffectKind::CardStasisSteal => process_effect_card_stasis_steal(id_source, state),
         EffectKind::JoustBet { on_owner } => process_effect_joust_bet(state, on_owner),
         EffectKind::KnowingSkullCostBump => {
             process_effect_knowing_skull_cost_bump(id_source, state)
@@ -710,10 +717,10 @@ fn dispatch_by_kind(
         } => {
             process_effect_card_discover_roll(state, kind, color, exclude, count);
         }
-        EffectKind::Gamble {
-            choose_discards,
-            discards_before,
-        } => process_effect_gamble(state, choose_discards, discards_before),
+        EffectKind::Gamble { choose_discards } => process_effect_gamble(state, choose_discards),
+        EffectKind::GambleDraw { discards_before } => {
+            process_effect_gamble_draw(state, discards_before)
+        }
         EffectKind::RelicGrantPool { pool } => process_effect_relic_grant_pool(state, pool),
         EffectKind::RelicGrantRandom { tier, exclusion } => {
             process_effect_relic_grant_random(state, tier, exclusion)

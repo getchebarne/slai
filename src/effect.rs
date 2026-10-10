@@ -100,6 +100,10 @@ pub enum EffectKind {
         free: bool,
         bottom: bool,
     },
+    CardStasisReturn {
+        hand_full: bool, // Fixed as the holder leaves; a full hand sends the Card to the discard pile
+    },
+    CardStasisSteal,
     CardTransform {
         upgraded: bool,
     },
@@ -152,7 +156,9 @@ pub enum EffectKind {
     EventConsume,
     Gamble {
         choose_discards: bool,
-        discards_before: Option<u16>,
+    },
+    GambleDraw {
+        discards_before: u16, // This turn's discards as the Gamble began
     },
     GiryaLift,
     GlassKnifeDecay {
@@ -296,7 +302,6 @@ pub enum EffectKind {
     SneakyStrikeProc {
         energy: u8,
     },
-    StasisSteal,
     StormOfSteelProc {
         upgraded: bool,
     },

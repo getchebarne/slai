@@ -26,7 +26,6 @@ use crate::consts::FACTOR_WEAK_PAPER_KRANE;
 use crate::consts::GOLD_BOSS_MAX;
 use crate::consts::GOLD_BOSS_MIN;
 use crate::consts::MAX_CARD_REWARD_ROLL;
-use crate::consts::MAX_MONSTERS;
 use crate::consts::MAX_SIZE_HAND;
 use crate::consts::NEOW_UNCOMMON_CHANCE;
 use crate::consts::SHOP_CARD_CUT_RARE;
@@ -350,38 +349,6 @@ fn entity_matches(filter: CandidateFilter, entity: &Entity) -> bool {
         }
         CandidateFilter::NotMinion => !has_modifier(&entity.modifiers, ModifierKind::Minion),
         CandidateFilter::Starter => matches!(entity.card_name, CardName::Strike | CardName::Defend),
-    }
-}
-
-// Vacating a roster slot sends its Stasis hostage back to the hand (the discard pile if full now), staged in `effect_buf`
-pub fn release_stasis_card(
-    slot: usize,
-    id_card_stasis: &mut [Option<usize>; MAX_MONSTERS],
-    id_card_hand: &[usize],
-    entities: &[Entity],
-    effect_buf: &mut Vec<Effect>,
-) {
-    let Some(id_card) = id_card_stasis[slot].take() else {
-        return;
-    };
-    let pile = if id_card_hand.len() < MAX_SIZE_HAND {
-        CardPile::Hand
-    } else {
-        CardPile::Discard
-    };
-    effect_buf.push(Effect {
-        kind: EffectKind::CardPlace { pile },
-        id_source: None,
-        target: Target::Direct(Some(id_card)),
-    });
-
-    // A returned Eviscerate restarts its cost this turn at its combat cost less this turn's discards
-    if entities[id_card].card_cost_kind == CardCostKind::MinusDiscardsThisTurn {
-        effect_buf.push(Effect {
-            kind: EffectKind::CardCostMinusDiscards,
-            id_source: None,
-            target: Target::Direct(Some(id_card)),
-        });
     }
 }
 
