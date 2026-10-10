@@ -35,7 +35,7 @@ mirror_enum!(PyRewardRollTrigger from RewardRollTrigger, "RewardRollTrigger", {
 
 // Mirrors only EffectKind variants reachable from static Card/Monster defs or a halted pick; snapshot_effect panics on runtime-only variants
 flat_variants!(PyEffect {
-    DamagePhysical => PyEffectDamagePhysical as "EffectDamagePhysical" { amount: u16, lifesteal: bool, target: PyTarget },
+    DamagePhysical => PyEffectDamagePhysical as "EffectDamagePhysical" { amount: u16, instances: u16, lifesteal: bool, target: PyTarget },
     DamagePhysicalIfPoisoned => PyEffectDamagePhysicalIfPoisoned as "EffectDamagePhysicalIfPoisoned" { amount: u16, target: PyTarget },
     HeelHookProc => PyEffectHeelHookProc as "EffectHeelHookProc" { target: PyTarget },
     EscapePlanCheck => PyEffectEscapePlanCheck as "EffectEscapePlanCheck" { block: u16, target: PyTarget },
@@ -232,13 +232,16 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
         );
     }
     match effect.kind {
-        EffectKind::DamagePhysical { amount, lifesteal } => {
-            PyEffect::DamagePhysical(PyEffectDamagePhysical {
-                amount,
-                lifesteal,
-                target: require_target(target),
-            })
-        }
+        EffectKind::DamagePhysical {
+            amount,
+            instances,
+            lifesteal,
+        } => PyEffect::DamagePhysical(PyEffectDamagePhysical {
+            amount,
+            instances,
+            lifesteal,
+            target: require_target(target),
+        }),
         EffectKind::DamagePhysicalIfPoisoned { amount } => {
             PyEffect::DamagePhysicalIfPoisoned(PyEffectDamagePhysicalIfPoisoned {
                 amount,

@@ -45,6 +45,7 @@ const fn move_face_slap(damage: u16) -> Move {
             Effect {
                 kind: EffectKind::DamagePhysical {
                     amount: damage,
+                    instances: 1,
                     lifesteal: false,
                 },
                 id_source: None,

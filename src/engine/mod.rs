@@ -568,11 +568,15 @@ fn dispatch_by_kind(
         EffectKind::RestSiteConsume => process_effect_rest_site_consume(state),
         EffectKind::RestSmith => process_effect_rest_smith(id_target, state),
         EffectKind::RestToke => process_effect_rest_toke(id_target, state),
-        EffectKind::DamagePhysical { amount, lifesteal } => {
-            process_effect_damage_physical(id_source, id_target, state, amount, false, lifesteal)
-        }
+        EffectKind::DamagePhysical {
+            amount,
+            instances,
+            lifesteal,
+        } => process_effect_damage_physical(
+            id_source, id_target, state, amount, instances, false, lifesteal,
+        ),
         EffectKind::DamagePhysicalIfPoisoned { amount } => {
-            process_effect_damage_physical(id_source, id_target, state, amount, true, false)
+            process_effect_damage_physical(id_source, id_target, state, amount, 1, true, false)
         }
         EffectKind::GlassKnifeDecay { delta } => {
             process_effect_glass_knife_decay(id_target, state, delta)

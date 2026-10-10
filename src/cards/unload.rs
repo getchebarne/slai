@@ -26,6 +26,7 @@ pub static UNLOAD: CardTemplate = make_card_template(
         Effect {
             kind: EffectKind::DamagePhysical {
                 amount: 14,
+                instances: 1,
                 lifesteal: false,
             },
             id_source: None,
@@ -48,6 +49,7 @@ pub static UNLOAD_PLUS: CardTemplate = CardTemplate {
         let mut effects = UNLOAD.effects_play;
         effects[0].kind = EffectKind::DamagePhysical {
             amount: 18,
+            instances: 1,
             lifesteal: false,
         }; // +4 damage
         effects

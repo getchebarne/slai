@@ -99,8 +99,9 @@ pub struct Entity {
     pub monster_name: MonsterName,
     pub monster_kind: MonsterKind,
     pub monster_moves: &'static [Move],
-    pub monster_move_damage_override: Option<u16>, // Only used by "Hexaghost"
     pub monster_move_current: Option<usize>,
+    pub monster_move_effects: [Effect; MAX_EFFECTS_PER_MOVE], // The current move's effects, with the values it locked when chosen (Divider's damage, Multi-Stab's hits)
+    pub monster_move_effects_len: u8,
     pub monster_move_history: [u8; MAX_MOVE_HISTORY],
     pub monster_move_history_exec: [bool; MAX_MOVE_HISTORY], // Per history entry: the chosen move executed; a replaced one never does
     pub monster_move_history_len: u8,
@@ -176,8 +177,9 @@ pub const ENTITY_ZERO: Entity = Entity {
     monster_name: MonsterName::Cultist,
     monster_kind: MonsterKind::Normal,
     monster_moves: &[],
-    monster_move_damage_override: None,
     monster_move_current: None,
+    monster_move_effects: [EFFECT_ZERO; MAX_EFFECTS_PER_MOVE],
+    monster_move_effects_len: 0,
     monster_move_history: [0; MAX_MOVE_HISTORY],
     monster_move_history_exec: [false; MAX_MOVE_HISTORY],
     monster_move_history_len: 0,

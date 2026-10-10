@@ -10,23 +10,6 @@ use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::CardRarity;
 
-const HIT: Effect = Effect {
-    kind: EffectKind::DamagePhysical {
-        amount: 3,
-        lifesteal: false,
-    },
-    id_source: None,
-    target: TARGET_MONSTER_PICKED,
-};
-const HIT_PLUS: Effect = Effect {
-    kind: EffectKind::DamagePhysical {
-        amount: 4,
-        lifesteal: false,
-    }, // +1 damage
-    id_source: None,
-    target: TARGET_MONSTER_PICKED,
-};
-
 pub static RIDDLE_WITH_HOLES: CardTemplate = make_card_template(
     CardName::RiddleWithHoles,
     CardKind::Attack,
@@ -38,7 +21,15 @@ pub static RIDDLE_WITH_HOLES: CardTemplate = make_card_template(
     false,
     false,
     false,
-    &[HIT, HIT, HIT, HIT, HIT],
+    &[Effect {
+        kind: EffectKind::DamagePhysical {
+            amount: 3,
+            instances: 5,
+            lifesteal: false,
+        },
+        id_source: None,
+        target: TARGET_MONSTER_PICKED,
+    }],
     &[],
     &[],
     PlayRestriction::Always,
@@ -48,11 +39,11 @@ pub static RIDDLE_WITH_HOLES_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
     effects_play: {
         let mut effects = RIDDLE_WITH_HOLES.effects_play;
-        effects[0] = HIT_PLUS;
-        effects[1] = HIT_PLUS;
-        effects[2] = HIT_PLUS;
-        effects[3] = HIT_PLUS;
-        effects[4] = HIT_PLUS;
+        effects[0].kind = EffectKind::DamagePhysical {
+            amount: 4,
+            instances: 5,
+            lifesteal: false,
+        }; // +1 damage
         effects
     },
     ..RIDDLE_WITH_HOLES

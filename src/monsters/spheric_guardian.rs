@@ -29,6 +29,7 @@ const fn move_harden(damage: u16) -> Move {
             Effect {
                 kind: EffectKind::DamagePhysical {
                     amount: damage,
+                    instances: 1,
                     lifesteal: false,
                 },
                 id_source: None,

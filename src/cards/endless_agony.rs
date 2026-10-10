@@ -26,6 +26,7 @@ pub static ENDLESS_AGONY: CardTemplate = make_card_template(
     &[Effect {
         kind: EffectKind::DamagePhysical {
             amount: 4,
+            instances: 1,
             lifesteal: false,
         },
         id_source: None,
@@ -49,6 +50,7 @@ pub static ENDLESS_AGONY_PLUS: CardTemplate = CardTemplate {
         let mut effects = ENDLESS_AGONY.effects_play;
         effects[0].kind = EffectKind::DamagePhysical {
             amount: 6,
+            instances: 1,
             lifesteal: false,
         }; // +2 damage
         effects

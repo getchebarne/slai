@@ -1,13 +1,13 @@
 pub const MAX_MOVE_HISTORY: usize = 64;
 
-// Book of Stabbing's table is the largest: 19 Multi-Stab hit counts plus Single Stab
-pub const MAX_MONSTER_MOVES: usize = 20;
+// Hexaghost's, The Guardian's and The Champ's tables are the largest: 7 moves
+pub const MAX_MONSTER_MOVES: usize = 7;
 
 // Per-Card effect array cap; bump if any Card legitimately exceeds 8
 pub const MAX_EFFECTS_PER_CARD: usize = 6;
 
-// Per-move effect array cap; sized for Book of Stabbing's Multi-Stab growth
-pub const MAX_EFFECTS_PER_MOVE: usize = 20;
+// Per-move effect array cap; Twin Slam's 5 effects are the longest list
+pub const MAX_EFFECTS_PER_MOVE: usize = 5;
 
 // Per-event-option effect array cap; Mushrooms' Stomp is the 5-effect maximum
 pub const MAX_EFFECTS_PER_EVENT_OPTION: usize = 5;

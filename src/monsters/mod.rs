@@ -503,7 +503,7 @@ pub fn get_next_move(
         }
         MonsterName::SphericGuardian => spheric_guardian::get_next_move_spheric_guardian(history),
         MonsterName::BookOfStabbing => {
-            book_of_stabbing::get_next_move_book_of_stabbing(history, ascension_level, rng)
+            book_of_stabbing::get_next_move_book_of_stabbing(history, rng)
         }
         MonsterName::GremlinLeader => {
             gremlin_leader::get_next_move_gremlin_leader(history, entity_id, id_monsters, rng)
@@ -545,25 +545,19 @@ pub fn get_next_move(
 
 // The repeated Monster move shapes; each spells out one Effect array longhand
 pub const fn move_attack(name: &'static str, damage: u16, instances: u8) -> Move {
-    let mut effects = [EFFECT_ZERO; MAX_EFFECTS_PER_MOVE];
-    let mut idx = 0;
-    while idx < instances as usize {
-        effects[idx] = Effect {
+    make_move(
+        name,
+        &[Effect {
             kind: EffectKind::DamagePhysical {
                 amount: damage,
+                instances: instances as u16,
                 lifesteal: false,
             },
             id_source: None,
             target: TARGET_CHARACTER,
-        };
-        idx += 1;
-    }
-    Move {
-        name,
-        effects,
-        effects_len: instances,
-        intent: Intent::Attack { damage, instances },
-    }
+        }],
+        Intent::Attack { damage, instances },
+    )
 }
 
 pub const fn move_buff(name: &'static str, kind: ModifierKind, stacks: i16) -> Move {
@@ -607,6 +601,7 @@ pub const fn move_attack_debuff(
             Effect {
                 kind: EffectKind::DamagePhysical {
                     amount: damage,
+                    instances: 1,
                     lifesteal: false,
                 },
                 id_source: None,
@@ -638,6 +633,7 @@ pub const fn move_attack_card_add(
             Effect {
                 kind: EffectKind::DamagePhysical {
                     amount: damage,
+                    instances: 1,
                     lifesteal: false,
                 },
                 id_source: None,

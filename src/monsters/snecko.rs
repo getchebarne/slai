@@ -20,6 +20,7 @@ static MOVE_TAIL_WHIP_10_A17: Move = make_move(
         Effect {
             kind: EffectKind::DamagePhysical {
                 amount: 10,
+                instances: 1,
                 lifesteal: false,
             },
             id_source: None,

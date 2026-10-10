@@ -18,6 +18,7 @@ static MOVE_SMASH_5_W1_F1: Move = make_move(
         Effect {
             kind: EffectKind::DamagePhysical {
                 amount: 5,
+                instances: 1,
                 lifesteal: false,
             },
             id_source: None,

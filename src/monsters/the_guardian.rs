@@ -36,14 +36,7 @@ const fn move_twin_slam(mode_shift_stacks: i16) -> Move {
             Effect {
                 kind: EffectKind::DamagePhysical {
                     amount: 8,
-                    lifesteal: false,
-                },
-                id_source: None,
-                target: TARGET_CHARACTER,
-            },
-            Effect {
-                kind: EffectKind::DamagePhysical {
-                    amount: 8,
+                    instances: 2,
                     lifesteal: false,
                 },
                 id_source: None,
@@ -112,47 +105,7 @@ static MOVE_VENT_STEAM: Move = make_move(
     ],
     Intent::DebuffPowerful,
 );
-static MOVE_WHIRLWIND: Move = make_move(
-    "Whirlwind",
-    &[
-        Effect {
-            kind: EffectKind::DamagePhysical {
-                amount: 5,
-                lifesteal: false,
-            },
-            id_source: None,
-            target: TARGET_CHARACTER,
-        },
-        Effect {
-            kind: EffectKind::DamagePhysical {
-                amount: 5,
-                lifesteal: false,
-            },
-            id_source: None,
-            target: TARGET_CHARACTER,
-        },
-        Effect {
-            kind: EffectKind::DamagePhysical {
-                amount: 5,
-                lifesteal: false,
-            },
-            id_source: None,
-            target: TARGET_CHARACTER,
-        },
-        Effect {
-            kind: EffectKind::DamagePhysical {
-                amount: 5,
-                lifesteal: false,
-            },
-            id_source: None,
-            target: TARGET_CHARACTER,
-        },
-    ],
-    Intent::Attack {
-        damage: 5,
-        instances: 4,
-    },
-);
+static MOVE_WHIRLWIND: Move = move_attack("Whirlwind", 5, 4);
 static MOVE_DEFENSIVE_MODE_3: Move = move_buff("Defensive Frame", ModifierKind::SharpHide, 3);
 static MOVE_DEFENSIVE_MODE_4: Move = move_buff("Defensive Frame", ModifierKind::SharpHide, 4);
 static MOVE_ROLL_ATTACK_9: Move = move_attack("Roll Attack", 9, 1);

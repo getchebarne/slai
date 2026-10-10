@@ -26,14 +26,7 @@ pub static GLASS_KNIFE: CardTemplate = make_card_template(
         Effect {
             kind: EffectKind::DamagePhysical {
                 amount: 8,
-                lifesteal: false,
-            },
-            id_source: None,
-            target: TARGET_MONSTER_PICKED,
-        },
-        Effect {
-            kind: EffectKind::DamagePhysical {
-                amount: 8,
+                instances: 2,
                 lifesteal: false,
             },
             id_source: None,
@@ -54,12 +47,11 @@ pub static GLASS_KNIFE_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
     effects_play: {
         let mut effects = GLASS_KNIFE.effects_play;
-        let upgraded_kind = EffectKind::DamagePhysical {
+        effects[0].kind = EffectKind::DamagePhysical {
             amount: 12,
+            instances: 2,
             lifesteal: false,
         }; // +4 damage
-        effects[0].kind = upgraded_kind;
-        effects[1].kind = upgraded_kind;
         effects
     },
     ..GLASS_KNIFE

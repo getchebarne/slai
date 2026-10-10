@@ -24,6 +24,7 @@ pub static SKEWER: CardTemplate = make_card_template(
     &[Effect {
         kind: EffectKind::DamagePhysical {
             amount: 7,
+            instances: 1,
             lifesteal: false,
         },
         id_source: None,
@@ -40,6 +41,7 @@ pub static SKEWER_PLUS: CardTemplate = CardTemplate {
         let mut effects = SKEWER.effects_play;
         effects[0].kind = EffectKind::DamagePhysical {
             amount: 10,
+            instances: 1,
             lifesteal: false,
         }; // +3 damage
         effects

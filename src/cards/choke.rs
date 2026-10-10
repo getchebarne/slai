@@ -26,6 +26,7 @@ pub static CHOKE: CardTemplate = make_card_template(
         Effect {
             kind: EffectKind::DamagePhysical {
                 amount: 12,
+                instances: 1,
                 lifesteal: false,
             },
             id_source: None,

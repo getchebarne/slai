@@ -21,32 +21,15 @@ pub static EVISCERATE: CardTemplate = make_card_template(
     false,
     false,
     false,
-    &[
-        Effect {
-            kind: EffectKind::DamagePhysical {
-                amount: 7,
-                lifesteal: false,
-            },
-            id_source: None,
-            target: TARGET_MONSTER_PICKED,
+    &[Effect {
+        kind: EffectKind::DamagePhysical {
+            amount: 7,
+            instances: 3,
+            lifesteal: false,
         },
-        Effect {
-            kind: EffectKind::DamagePhysical {
-                amount: 7,
-                lifesteal: false,
-            },
-            id_source: None,
-            target: TARGET_MONSTER_PICKED,
-        },
-        Effect {
-            kind: EffectKind::DamagePhysical {
-                amount: 7,
-                lifesteal: false,
-            },
-            id_source: None,
-            target: TARGET_MONSTER_PICKED,
-        },
-    ],
+        id_source: None,
+        target: TARGET_MONSTER_PICKED,
+    }],
     &[],
     &[],
     PlayRestriction::Always,
@@ -56,13 +39,11 @@ pub static EVISCERATE_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
     effects_play: {
         let mut effects = EVISCERATE.effects_play;
-        let upgraded_kind = EffectKind::DamagePhysical {
+        effects[0].kind = EffectKind::DamagePhysical {
             amount: 9,
+            instances: 3,
             lifesteal: false,
         }; // +2 damage
-        effects[0].kind = upgraded_kind;
-        effects[1].kind = upgraded_kind;
-        effects[2].kind = upgraded_kind;
         effects
     },
     ..EVISCERATE

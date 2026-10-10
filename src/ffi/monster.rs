@@ -199,9 +199,19 @@ pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
                     | Intent::Unknown => (None, None),
                 };
 
-                // Divider-style locked damage replaces the template before scaling
-                let base_damage = base_damage
-                    .map(|damage| monster.monster_move_damage_override.unwrap_or(damage));
+                // The Monster's copy of the move holds the hit as chosen: Divider's locked damage, Multi-Stab's locked count
+                let move_effects =
+                    &monster.monster_move_effects[..monster.monster_move_effects_len as usize];
+                let hit = move_effects.iter().find_map(|effect| match effect.kind {
+                    EffectKind::DamagePhysical {
+                        amount, instances, ..
+                    } => Some((amount, instances)),
+                    _ => None,
+                });
+                let base_damage =
+                    base_damage.map(|damage| hit.map_or(damage, |(amount, _)| amount));
+                let instances =
+                    instances.map(|count| hit.map_or(count, |(_, instances)| instances as u8));
                 let damage = base_damage.map(|damage| {
                     let str_stacks = if has_modifier(&monster.modifiers, ModifierKind::Strength) {
                         modifier_stacks(&monster.modifiers, ModifierKind::Strength)
@@ -229,19 +239,7 @@ pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
                     scaled
                 });
 
-                // Divider's locked damage replaces the template's placeholder, as MoveExecute does
-                let move_effects = mv.effects[..mv.effects_len as usize]
-                    .iter()
-                    .map(|&effect| {
-                        let mut effect = effect;
-                        if let Some(damage) = monster.monster_move_damage_override
-                            && let EffectKind::DamagePhysical { amount, .. } = &mut effect.kind
-                        {
-                            *amount = damage;
-                        }
-                        snapshot_effect(&effect)
-                    })
-                    .collect();
+                let move_effects = move_effects.iter().map(snapshot_effect).collect();
                 (
                     Some(PyIntent {
                         kind: mv.intent.into(),

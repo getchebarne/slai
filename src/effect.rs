@@ -126,6 +126,7 @@ pub enum EffectKind {
     },
     DamagePhysical {
         amount: u16,
+        instances: u16, // Hits on one target, resolved one at a time; an X-cost Card's X can pass 255
         lifesteal: bool, // Life Suck
     },
     DamagePhysicalIfPoisoned {

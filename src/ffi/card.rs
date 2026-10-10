@@ -362,10 +362,12 @@ pub(crate) fn snapshot_adjusted_effects(state: &GameState, card: &Entity) -> Vec
         .map(|effect| match effect {
             PyEffect::DamagePhysical(PyEffectDamagePhysical {
                 amount,
+                instances,
                 lifesteal,
                 target,
             }) => PyEffect::DamagePhysical(PyEffectDamagePhysical {
                 amount: adjusted_damage(amount),
+                instances,
                 lifesteal,
                 target,
             }),

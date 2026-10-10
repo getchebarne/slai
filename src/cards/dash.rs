@@ -31,6 +31,7 @@ pub static DASH: CardTemplate = make_card_template(
         Effect {
             kind: EffectKind::DamagePhysical {
                 amount: 10,
+                instances: 1,
                 lifesteal: false,
             },
             id_source: None,
@@ -49,6 +50,7 @@ pub static DASH_PLUS: CardTemplate = CardTemplate {
         effects[0].kind = EffectKind::BlockGain { amount: 13 }; // +3 block
         effects[1].kind = EffectKind::DamagePhysical {
             amount: 13,
+            instances: 1,
             lifesteal: false,
         }; // +3 damage
         effects

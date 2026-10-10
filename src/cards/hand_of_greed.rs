@@ -25,6 +25,7 @@ pub static HAND_OF_GREED: CardTemplate = make_card_template(
         Effect {
             kind: EffectKind::DamagePhysical {
                 amount: 20,
+                instances: 1,
                 lifesteal: false,
             },
             id_source: None,
@@ -47,6 +48,7 @@ pub static HAND_OF_GREED_PLUS: CardTemplate = CardTemplate {
         let mut effects = HAND_OF_GREED.effects_play;
         effects[0].kind = EffectKind::DamagePhysical {
             amount: 25,
+            instances: 1,
             lifesteal: false,
         }; // +5 damage
         effects[1].kind = EffectKind::HandOfGreedProc { gold: 25 }; // +5 gold

@@ -24,6 +24,7 @@ pub static SHIV: CardTemplate = make_card_template(
     &[Effect {
         kind: EffectKind::DamagePhysical {
             amount: 4,
+            instances: 1,
             lifesteal: false,
         },
         id_source: None,
@@ -40,6 +41,7 @@ pub static SHIV_PLUS: CardTemplate = CardTemplate {
         let mut effects = SHIV.effects_play;
         effects[0].kind = EffectKind::DamagePhysical {
             amount: 6,
+            instances: 1,
             lifesteal: false,
         }; // +2 damage
         effects
