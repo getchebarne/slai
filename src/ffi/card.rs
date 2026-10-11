@@ -470,7 +470,10 @@ pub(crate) fn snapshot_card_combat_at_cost(
             &state.id_relics,
             state.combat.this_turn_cards_played,
         )
-        && cost <= energy_current;
+        && cost <= energy_current
+        // Nothing is playable once the turn has ended or every Monster is gone
+        && !state.combat.turn_ended
+        && state.combat.id_monsters.iter().any(Option::is_some);
     build_py_card(
         id_card,
         card,

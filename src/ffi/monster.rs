@@ -6,6 +6,7 @@ use super::macros::mirror_enum;
 use super::effect::PyEffect;
 use super::effect::snapshot_effect;
 use crate::effect::EffectKind;
+use crate::effect::PlaySource;
 use crate::entity::Intent;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
@@ -15,6 +16,7 @@ use crate::types::MonsterEncounter;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
 use crate::types::RelicName;
+use crate::utils::entity_requires_target;
 use crate::utils::has_relic;
 use crate::utils::scale_attack_damage;
 use crate::utils::vuln_factor;
@@ -145,6 +147,7 @@ pub struct PyMonster {
     pub move_current: Option<u8>,    // Index into the spawn-rolled moveset; None when hidden
     pub move_history: Vec<u8>, // Selection-ordered move indices; the last entry IS the current move, and under Runic Dome only executed moves
     pub gold_stolen: u16,      // Only relevant for Looters and Muggers
+    pub replay_target: bool,   // A waiting replay aims at this Monster
 }
 
 pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
@@ -259,6 +262,15 @@ pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
                 )
             };
 
+            // A replay aims at its first play's target; a draw-top play's random target stays hidden until it hits
+            let replay_target = state.card_play_queue.iter().any(|card_play| {
+                matches!(
+                    card_play.play_source,
+                    PlaySource::Replay | PlaySource::ReplayCopy { .. }
+                ) && entity_requires_target(&state.entities[card_play.id_card])
+                    && card_play.id_target == Some(id_monster)
+            });
+
             PyMonster {
                 id: id_monster,
                 name: monster.monster_name.into(),
@@ -275,6 +287,7 @@ pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
                 },
                 move_history,
                 gold_stolen: monster.monster_gold_stolen,
+                replay_target,
             }
         })
         .collect()

@@ -34,6 +34,9 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
     );
 
     if !landing {
+        // The Character's turn is ending
+        state.combat.turn_end_started = true;
+
         let Combat {
             id_card_pile_hand,
             id_card_pile_draw,
