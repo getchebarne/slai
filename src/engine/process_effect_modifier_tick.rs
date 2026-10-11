@@ -29,6 +29,9 @@ pub fn process_effect_modifier_tick(id_target: Option<usize>, state: &mut GameSt
 
         // A Monster's Modifiers stop being new here; only debuffs on the Character skip a round end
         modifier_set_not_new(modifiers);
+    } else {
+        // The Character's Intangible ticks at every round end, however late it landed
+        modifiers.is_new[ModifierKind::Intangible as usize] = false;
     }
     modifier_tick(modifiers);
 }

@@ -118,7 +118,7 @@ fn apply_loss(id_source: Option<usize>, id_target: usize, state: &mut GameState,
         });
     }
 
-    // Centennial Puzzle: the first actual HP loss each combat draws 3
+    // Centennial Puzzle: the first actual HP loss each combat draws 3 while a Monster is left
     if id_target == state.id_character
         && amount > 0
         && state.combat.active
@@ -126,11 +126,13 @@ fn apply_loss(id_source: Option<usize>, id_target: usize, state: &mut GameState,
         && state.entities[id_relic].relic_counter == 0
     {
         state.entities[id_relic].relic_counter = 1;
-        state.effect_queue.push_front(Effect {
-            kind: EffectKind::CardDraw { count: 3 },
-            id_source: None,
-            target: Target::Direct(None),
-        });
+        if state.combat.id_monsters.iter().any(Option::is_some) {
+            state.effect_queue.push_front(Effect {
+                kind: EffectKind::CardDraw { count: 3 },
+                id_source: None,
+                target: Target::Direct(None),
+            });
+        }
     }
 
     if id_target == state.id_character && amount > 0 && state.combat.active {
