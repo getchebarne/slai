@@ -18,8 +18,15 @@ use crate::types::DeltaSign;
 use crate::types::RelicName;
 use crate::utils::has_relic;
 
-// Offer the Idol: trade it for Bloody Idol
+// Offer the Idol: trade it for Bloody Idol, granted first so it takes Golden Idol's place
 const OPTION_IDOL: [Effect; 3] = [
+    Effect {
+        kind: EffectKind::RelicGrantSpecific {
+            name: RelicName::BloodyIdol,
+        },
+        id_source: None,
+        target: Target::Direct(None),
+    },
     Effect {
         kind: EffectKind::RelicLose,
         id_source: None,
@@ -28,13 +35,6 @@ const OPTION_IDOL: [Effect; 3] = [
             filters: &[],
             selection_kind: SelectionKind::Single,
         },
-    },
-    Effect {
-        kind: EffectKind::RelicGrantSpecific {
-            name: RelicName::BloodyIdol,
-        },
-        id_source: None,
-        target: Target::Direct(None),
     },
     EFFECT_EVENT_CONSUME,
 ];

@@ -7,7 +7,7 @@ use crate::utils::card_reward_count;
 use crate::utils::roll_card_rewards;
 use crate::utils::roll_policy;
 
-// Roll `bundles` Card bundles; the trigger sets the rules, the size, whether they are kept and whether the pick is forced or closes the Reward
+// Roll `bundles` Card bundles; the trigger sets the rules, the size, whether and where they are kept, and whether the pick is forced or closes the Reward
 pub fn process_effect_reward_roll_cards(
     state: &mut GameState,
     bundles: u8,
@@ -43,6 +43,21 @@ pub fn process_effect_reward_roll_cards(
     if !roll_policy(trigger).staged {
         return;
     }
+
+    // Neow's offers wait in the event's roll for its pick
+    if matches!(
+        trigger,
+        RewardRollTrigger::Neow
+            | RewardRollTrigger::NeowRare
+            | RewardRollTrigger::NeowColorless
+            | RewardRollTrigger::NeowColorlessRare
+    ) {
+        state
+            .event
+            .id_card_pile_event_roll
+            .extend(id_card_bundles.into_iter().flatten());
+        return;
+    }
     reward_ensure(&mut state.reward);
     state.reward.id_cards.extend(id_card_bundles);
 
@@ -51,15 +66,10 @@ pub fn process_effect_reward_roll_cards(
         state.reward.cards_forced = true;
     }
 
-    // Dream Catcher's, the Library's and Neow's offers are pick screens of their own
+    // Dream Catcher's and the Library's offers are pick screens of their own
     if matches!(
         trigger,
-        RewardRollTrigger::DreamCatcher
-            | RewardRollTrigger::Library
-            | RewardRollTrigger::Neow
-            | RewardRollTrigger::NeowRare
-            | RewardRollTrigger::NeowColorless
-            | RewardRollTrigger::NeowColorlessRare
+        RewardRollTrigger::DreamCatcher | RewardRollTrigger::Library
     ) {
         state.reward.closes_on_pick = true;
     }

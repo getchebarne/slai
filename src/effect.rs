@@ -72,6 +72,7 @@ pub enum EffectKind {
     CardDuplicate {
         card_pile: CardPile,
     },
+    CardEventRollPick,
     CardExhaust,
     CardFreePlaySpend,
     CardMove {

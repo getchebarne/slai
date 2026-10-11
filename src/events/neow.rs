@@ -96,6 +96,17 @@ const EFFECT_POTIONS_CARD_ROLL: Effect = Effect {
     target: Target::Direct(None),
 };
 
+// A card offer's Cards wait in the event's roll; the pick takes one of them or none
+const EFFECT_CARD_EVENT_ROLL_PICK: Effect = Effect {
+    kind: EffectKind::CardEventRollPick,
+    id_source: None,
+    target: Target::Resolve {
+        candidate_pool: CandidatePool::CardPileEventRoll,
+        filters: &[],
+        selection_kind: SelectionKind::InputUpTo { count: 1 },
+    },
+};
+
 const fn effect_relic_grant_random(tier: RelicTier) -> Effect {
     Effect {
         kind: EffectKind::RelicGrantRandom {
@@ -377,6 +388,12 @@ const fn eots_for_asc(ascension: u8) -> [EventOptionTemplate; CATALOG_LEN] {
                 effect_bonus(bonus, health_bonus),
                 EFFECT_POTIONS_CARD_ROLL,
             ])
+        } else if matches!(bonus, NeowBonus::Cards { .. }) {
+            make_event_option_template(&[
+                EFFECT_EVENT_CONSUME,
+                effect_bonus(bonus, health_bonus),
+                EFFECT_CARD_EVENT_ROLL_PICK,
+            ])
         } else {
             make_event_option_template(&[EFFECT_EVENT_CONSUME, effect_bonus(bonus, health_bonus)])
         };
@@ -392,21 +409,35 @@ const fn eots_for_asc(ascension: u8) -> [EventOptionTemplate; CATALOG_LEN] {
         let bonuses = bonus_for_drawback_cat2(drawback);
         let mut bdx = 0;
         while bdx < bonuses.len() {
-            // The Curse drawback is obtained after the reward is consumed
-            let eot = if matches!(drawback, NeowDrawback::Curse) {
-                [
+            let bonus = bonuses[bdx];
+            let card_offer = matches!(bonus, NeowBonus::Cards { .. });
+
+            // The Curse lands after the bonus; every other drawback lands up front
+            eots[idx] = match drawback {
+                // Neow's offer is a pick; the Curse lands once it is taken or skipped
+                NeowDrawback::Curse if card_offer => make_event_option_template(&[
                     EFFECT_EVENT_CONSUME,
-                    effect_bonus(bonuses[bdx], health_bonus),
+                    effect_bonus(bonus, health_bonus),
+                    EFFECT_CARD_EVENT_ROLL_PICK,
                     effect_drawback(drawback, health_bonus, damage),
-                ]
-            } else {
-                [
+                ]),
+                NeowDrawback::Curse => make_event_option_template(&[
+                    EFFECT_EVENT_CONSUME,
+                    effect_bonus(bonus, health_bonus),
+                    effect_drawback(drawback, health_bonus, damage),
+                ]),
+                _ if card_offer => make_event_option_template(&[
                     EFFECT_EVENT_CONSUME,
                     effect_drawback(drawback, health_bonus, damage),
-                    effect_bonus(bonuses[bdx], health_bonus),
-                ]
+                    effect_bonus(bonus, health_bonus),
+                    EFFECT_CARD_EVENT_ROLL_PICK,
+                ]),
+                _ => make_event_option_template(&[
+                    EFFECT_EVENT_CONSUME,
+                    effect_drawback(drawback, health_bonus, damage),
+                    effect_bonus(bonus, health_bonus),
+                ]),
             };
-            eots[idx] = make_event_option_template(&eot);
 
             // Increment indexes
             idx += 1;

@@ -19,6 +19,7 @@ pub mod process_effect_card_draw;
 pub mod process_effect_card_draw_if_no_attacks;
 pub mod process_effect_card_draw_up_to;
 pub mod process_effect_card_duplicate;
+pub mod process_effect_card_event_roll_pick;
 pub mod process_effect_card_exhaust;
 pub mod process_effect_card_free_play_spend;
 pub mod process_effect_card_move;
@@ -147,6 +148,7 @@ use self::process_effect_card_draw::process_effect_card_draw;
 use self::process_effect_card_draw_if_no_attacks::process_effect_card_draw_if_no_attacks;
 use self::process_effect_card_draw_up_to::process_effect_card_draw_up_to;
 use self::process_effect_card_duplicate::process_effect_card_duplicate;
+use self::process_effect_card_event_roll_pick::process_effect_card_event_roll_pick;
 use self::process_effect_card_exhaust::process_effect_card_exhaust;
 use self::process_effect_card_free_play_spend::process_effect_card_free_play_spend;
 use self::process_effect_card_move::process_effect_card_move;
@@ -757,6 +759,7 @@ fn dispatch_by_kind(
             card_pile,
             copies,
         } => process_effect_card_discover_pick(id_target, state, cost_zero, card_pile, copies),
+        EffectKind::CardEventRollPick => process_effect_card_event_roll_pick(id_target, state),
         EffectKind::NoOp => panic!("NoOp effect should never be dispatched"),
     }
 }

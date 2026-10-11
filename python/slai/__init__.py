@@ -250,6 +250,7 @@ EffectScrapOozeReach = _rs.EffectScrapOozeReach
 EffectEventConsume = _rs.EffectEventConsume
 EffectEventClose = _rs.EffectEventClose
 EffectCardDiscoverPick = _rs.EffectCardDiscoverPick
+EffectCardEventRollPick = _rs.EffectCardEventRollPick
 EffectCardPurge = _rs.EffectCardPurge
 EffectCardUpgrade = _rs.EffectCardUpgrade
 EffectRestSmith = _rs.EffectRestSmith
@@ -334,6 +335,7 @@ Effect = (
     | EffectEventConsume
     | EffectEventClose
     | EffectCardDiscoverPick
+    | EffectCardEventRollPick
     | EffectCardPurge
     | EffectCardUpgrade
     | EffectRestSmith
@@ -374,6 +376,7 @@ PendingEffect = (
     | EffectCardDiscard
     | EffectCardDiscoverPick
     | EffectCardDuplicate
+    | EffectCardEventRollPick
     | EffectCardExhaust
     | EffectCardMove
     | EffectCardNightmarePick
@@ -596,6 +599,7 @@ __all__ = [
     "EffectEventConsume",
     "EffectEventClose",
     "EffectCardDiscoverPick",
+    "EffectCardEventRollPick",
     "EffectCardPurge",
     "EffectCardUpgrade",
     "EffectRestSmith",

@@ -83,6 +83,7 @@ flat_variants!(PyEffect {
     EventConsume => PyEffectEventConsume as "EffectEventConsume",
     EventClose => PyEffectEventClose as "EffectEventClose",
     CardDiscoverPick => PyEffectCardDiscoverPick as "EffectCardDiscoverPick" { cost_zero: Option<PyCostScope>, card_pile: PyCardPile, copies: u8, target: PyTarget },
+    CardEventRollPick => PyEffectCardEventRollPick as "EffectCardEventRollPick" { target: PyTarget },
     CardPurge => PyEffectCardPurge as "EffectCardPurge" { target: PyTarget },
     CardUpgrade => PyEffectCardUpgrade as "EffectCardUpgrade" { target: PyTarget },
     RestSmith => PyEffectRestSmith as "EffectRestSmith" { target: PyTarget },
@@ -126,6 +127,7 @@ flat_variants!(@enum PyEffectPending {
     CardDiscard => PyEffectCardDiscard,
     CardDiscoverPick => PyEffectCardDiscoverPick,
     CardDuplicate => PyEffectCardDuplicate,
+    CardEventRollPick => PyEffectCardEventRollPick,
     CardExhaust => PyEffectCardExhaust,
     CardMove => PyEffectCardMove,
     CardNightmarePick => PyEffectCardNightmarePick,
@@ -147,6 +149,7 @@ pub(crate) fn snapshot_effect_pending(effect: &Effect) -> PyEffectPending {
         PyEffect::CardDiscard(v) => PyEffectPending::CardDiscard(v),
         PyEffect::CardDiscoverPick(v) => PyEffectPending::CardDiscoverPick(v),
         PyEffect::CardDuplicate(v) => PyEffectPending::CardDuplicate(v),
+        PyEffect::CardEventRollPick(v) => PyEffectPending::CardEventRollPick(v),
         PyEffect::CardExhaust(v) => PyEffectPending::CardExhaust(v),
         PyEffect::CardMove(v) => PyEffectPending::CardMove(v),
         PyEffect::CardNightmarePick(v) => PyEffectPending::CardNightmarePick(v),
@@ -470,6 +473,9 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
             card_pile: card_pile.into(),
             copies,
             cost_zero: cost_zero.map(|cost_scope| cost_scope.into()),
+            target: require_target(target),
+        }),
+        EffectKind::CardEventRollPick => PyEffect::CardEventRollPick(PyEffectCardEventRollPick {
             target: require_target(target),
         }),
         EffectKind::CardAddRandom {

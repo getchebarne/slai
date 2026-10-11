@@ -269,6 +269,8 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEffectCardDuplicate;
     #[pymodule_export]
+    use super::ffi::PyEffectCardEventRollPick;
+    #[pymodule_export]
     use super::ffi::PyEffectCardExhaust;
     #[pymodule_export]
     use super::ffi::PyEffectCardMove;

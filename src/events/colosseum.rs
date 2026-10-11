@@ -4,7 +4,7 @@ use crate::effect::EffectKind;
 use crate::effect::RelicPick;
 use crate::effect::Target;
 use crate::events::EFFECT_EVENT_ADVANCE;
-use crate::events::EFFECT_EVENT_CONSUME;
+use crate::events::EFFECT_EVENT_CLOSE;
 use crate::events::EventLoot;
 use crate::events::EventOptionTemplate;
 use crate::events::bake_options;
@@ -65,7 +65,8 @@ pub const FIGHT_LOOT_NOBS: EventLoot = EventLoot {
 // After the first bout the exit is listed before the Nobs
 pub static EOTS_BASE: &[EventOptionTemplate] = &[
     make_event_option_template(OPTION_FIGHT),
-    make_event_option_template(&[EFFECT_EVENT_CONSUME]),
+    // Cowardice leaves for the map at once
+    make_event_option_template(&[EFFECT_EVENT_CLOSE]),
     make_event_option_template(OPTION_FIGHT_NOBS),
 ];
 
