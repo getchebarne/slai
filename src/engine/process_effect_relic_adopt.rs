@@ -149,6 +149,13 @@ fn queue_pickup_effects(state: &mut GameState, id_relic: usize) {
             }
         }
 
+        // Bloody Idol: replaces Golden Idol and takes its pickup stamp
+        RelicName::BloodyIdol => {
+            if let Some(id_golden) = state.id_relics[RelicName::GoldenIdol as usize] {
+                state.entities[id_relic].relic_seq = state.entities[id_golden].relic_seq;
+            }
+        }
+
         _ => {}
     }
 }

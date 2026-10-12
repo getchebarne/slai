@@ -1,5 +1,4 @@
 use crate::consts::LIBRARY_CARD_COUNT;
-use crate::consts::NEOW_CARD_COUNT;
 use crate::effect::RewardRollTrigger;
 use crate::game::GameState;
 use crate::types::reward_ensure;
@@ -13,13 +12,9 @@ pub fn process_effect_reward_roll_cards(
     bundles: u8,
     trigger: RewardRollTrigger,
 ) {
-    // Busted Crown and Question Card resize every offer but the Library's and Neow's
+    // Busted Crown and Question Card resize every offer but the Library's
     let cards_per_bundle = match trigger {
         RewardRollTrigger::Library => LIBRARY_CARD_COUNT,
-        RewardRollTrigger::Neow
-        | RewardRollTrigger::NeowRare
-        | RewardRollTrigger::NeowColorless
-        | RewardRollTrigger::NeowColorlessRare => NEOW_CARD_COUNT,
         _ => card_reward_count(&state.id_relics),
     };
     let mut id_card_bundles: Vec<Vec<usize>> = Vec::with_capacity(bundles as usize);
@@ -51,15 +46,10 @@ pub fn process_effect_reward_roll_cards(
         state.reward.cards_forced = true;
     }
 
-    // Dream Catcher's, the Library's and Neow's offers are pick screens of their own
+    // Dream Catcher's and the Library's offers are pick screens of their own
     if matches!(
         trigger,
-        RewardRollTrigger::DreamCatcher
-            | RewardRollTrigger::Library
-            | RewardRollTrigger::Neow
-            | RewardRollTrigger::NeowRare
-            | RewardRollTrigger::NeowColorless
-            | RewardRollTrigger::NeowColorlessRare
+        RewardRollTrigger::DreamCatcher | RewardRollTrigger::Library
     ) {
         state.reward.closes_on_pick = true;
     }

@@ -253,6 +253,8 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEffectCardAddRandom;
     #[pymodule_export]
+    use super::ffi::PyEffectCardAdopt;
+    #[pymodule_export]
     use super::ffi::PyEffectCardBottle;
     #[pymodule_export]
     use super::ffi::PyEffectCardDiscard;
@@ -274,6 +276,8 @@ mod slai {
     use super::ffi::PyEffectCardMove;
     #[pymodule_export]
     use super::ffi::PyEffectCardNightmarePick;
+    #[pymodule_export]
+    use super::ffi::PyEffectCardPileEventRollClear;
     #[pymodule_export]
     use super::ffi::PyEffectCardPlayFromCardPileDrawTop;
     #[pymodule_export]
@@ -362,6 +366,8 @@ mod slai {
     use super::ffi::PyEffectMonsterSpawn;
     #[pymodule_export]
     use super::ffi::PyEffectMonsterSplit;
+    #[pymodule_export]
+    use super::ffi::PyEffectNeowCardsRoll;
     #[pymodule_export]
     use super::ffi::PyEffectPotionAddRandom;
     #[pymodule_export]

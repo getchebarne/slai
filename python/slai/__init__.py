@@ -250,6 +250,8 @@ EffectScrapOozeReach = _rs.EffectScrapOozeReach
 EffectEventConsume = _rs.EffectEventConsume
 EffectEventClose = _rs.EffectEventClose
 EffectCardDiscoverPick = _rs.EffectCardDiscoverPick
+EffectCardAdopt = _rs.EffectCardAdopt
+EffectCardPileEventRollClear = _rs.EffectCardPileEventRollClear
 EffectCardPurge = _rs.EffectCardPurge
 EffectCardUpgrade = _rs.EffectCardUpgrade
 EffectRestSmith = _rs.EffectRestSmith
@@ -274,6 +276,7 @@ EffectMonsterRemove = _rs.EffectMonsterRemove
 EffectMonsterSplit = _rs.EffectMonsterSplit
 EffectCardStasisSteal = _rs.EffectCardStasisSteal
 EffectRewardRollCards = _rs.EffectRewardRollCards
+EffectNeowCardsRoll = _rs.EffectNeowCardsRoll
 EffectRewardRollRelic = _rs.EffectRewardRollRelic
 EffectDamageDeal = _rs.EffectDamageDeal
 EffectMatchFlipSeen = _rs.EffectMatchFlipSeen
@@ -334,6 +337,8 @@ Effect = (
     | EffectEventConsume
     | EffectEventClose
     | EffectCardDiscoverPick
+    | EffectCardAdopt
+    | EffectCardPileEventRollClear
     | EffectCardPurge
     | EffectCardUpgrade
     | EffectRestSmith
@@ -358,6 +363,7 @@ Effect = (
     | EffectMonsterSplit
     | EffectCardStasisSteal
     | EffectRewardRollCards
+    | EffectNeowCardsRoll
     | EffectRewardRollRelic
     | EffectDamageDeal
     | EffectMatchFlipSeen
@@ -370,6 +376,7 @@ Effect = (
 # actually returns.
 PendingEffect = (
     EffectBonfireOffer
+    | EffectCardAdopt
     | EffectCardBottle
     | EffectCardDiscard
     | EffectCardDiscoverPick
@@ -596,6 +603,8 @@ __all__ = [
     "EffectEventConsume",
     "EffectEventClose",
     "EffectCardDiscoverPick",
+    "EffectCardAdopt",
+    "EffectCardPileEventRollClear",
     "EffectCardPurge",
     "EffectCardUpgrade",
     "EffectRestSmith",
@@ -620,6 +629,7 @@ __all__ = [
     "EffectMonsterSplit",
     "EffectCardStasisSteal",
     "EffectRewardRollCards",
+    "EffectNeowCardsRoll",
     "EffectRewardRollRelic",
     "EffectDamageDeal",
     "EffectMatchFlipSeen",
