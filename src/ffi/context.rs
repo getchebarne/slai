@@ -64,10 +64,12 @@ pub struct PyCombat {
     pub panache_countdown: u8,            // Plays left until Panache's hit
     pub this_turn_discards: u16, // Cards discarded this turn (Sneaky Strike's refund, Eviscerate's discount)
     pub this_turn_attacks: u16,  // Attacks played this turn (Finisher's hits, Art of War's energy)
-    pub this_turn_cards_played: u8, // Cards played this turn (Normality's cap)
+    pub this_turn_cards_played: u16, // Cards played this turn (Normality's cap)
     pub orange_pellets_played_attack: bool, // Card kinds played since Orange Pellets last fired this turn
     pub orange_pellets_played_skill: bool,
     pub orange_pellets_played_power: bool,
+    pub turn_end_started: bool, // From the Character's TurnEnd to its next turn start
+    pub turn_ended: bool, // From the first Monster turn start to the Character's next turn start
     pub this_combat_thief_escaped: bool, // A Smoke Bomb then still keeps the reward
     pub this_combat_monster_died: bool, // Monsters escaping afterwards no longer cost a normal fight its gold and Potion roll
     pub gold_stolen: u16, // The killed thieves' purse, claimed apart from the room's gold
@@ -271,6 +273,8 @@ pub(crate) fn snapshot_combat(state: &GameState) -> PyCombat {
         orange_pellets_played_attack: combat.orange_pellets_played_attack,
         orange_pellets_played_skill: combat.orange_pellets_played_skill,
         orange_pellets_played_power: combat.orange_pellets_played_power,
+        turn_end_started: combat.turn_end_started,
+        turn_ended: combat.turn_ended,
         this_combat_thief_escaped: combat.this_combat_thief_escaped,
         this_combat_monster_died: combat.this_combat_monster_died,
         gold_stolen: combat.gold_stolen,

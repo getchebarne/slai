@@ -54,6 +54,7 @@ pub struct PyGameState {
     pub potions: Vec<PyPotion>,
     pub potion_slots_max: u8,
     pub potion_drop_mod: i32, // A combat's potion drop chance is 40 plus this, within 0..=100; a drop lowers it by 10, a miss raises it by 10
+    pub shop_purge_cost_run: u16, // A Shop's Card removal price before Relic discounts: 75 plus 25 per shop purge
     pub unknown_chance_monster: f32, // A "?" Room's odds; the event chance is what the three leave
     pub unknown_chance_shop: f32,
     pub unknown_chance_treasure: f32,
@@ -96,6 +97,7 @@ pub fn snapshot_state(state: &GameState) -> PyGameState {
             .collect(),
         potion_slots_max: state.potion_slots_max,
         potion_drop_mod: state.potion_drop_mod,
+        shop_purge_cost_run: state.shop_purge_cost_run,
         unknown_chance_monster: state.unknown_chance_monster,
         unknown_chance_shop: state.unknown_chance_shop,
         unknown_chance_treasure: state.unknown_chance_treasure,

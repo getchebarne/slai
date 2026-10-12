@@ -180,7 +180,7 @@ pub fn play_cap_reached(
     id_card_pile_hand: &[usize],
     entities: &[Entity],
     id_relics: &[Option<usize>; RelicName::COUNT],
-    this_turn_cards_played: u8,
+    this_turn_cards_played: u16,
 ) -> bool {
     let normality = this_turn_cards_played >= 3
         && id_card_pile_hand
