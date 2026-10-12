@@ -29,8 +29,7 @@ use crate::effect::RewardRollTrigger;
 
 mirror_enum!(PyRewardRollTrigger from RewardRollTrigger, "RewardRollTrigger", {
     CombatMonster, CombatElite, CombatBoss, EventFight, EventFightUnpaid, SmokeBomb, DreamCatcher,
-    Orrery, Library, Neow, NeowRare, NeowColorless, NeowColorlessRare, NeowPotions, Cauldron,
-    WomanInBlue, Lab, TinyHouse, CallingBell,
+    Orrery, Library, NeowPotions, Cauldron, WomanInBlue, Lab, TinyHouse, CallingBell,
 });
 
 // Mirrors only EffectKind variants reachable from static Card/Monster defs or a halted pick; snapshot_effect panics on runtime-only variants
@@ -83,7 +82,8 @@ flat_variants!(PyEffect {
     EventConsume => PyEffectEventConsume as "EffectEventConsume",
     EventClose => PyEffectEventClose as "EffectEventClose",
     CardDiscoverPick => PyEffectCardDiscoverPick as "EffectCardDiscoverPick" { cost_zero: Option<PyCostScope>, card_pile: PyCardPile, copies: u8, target: PyTarget },
-    CardEventRollPick => PyEffectCardEventRollPick as "EffectCardEventRollPick" { target: PyTarget },
+    CardAdopt => PyEffectCardAdopt as "EffectCardAdopt" { target: PyTarget },
+    CardPileEventRollClear => PyEffectCardPileEventRollClear as "EffectCardPileEventRollClear",
     CardPurge => PyEffectCardPurge as "EffectCardPurge" { target: PyTarget },
     CardUpgrade => PyEffectCardUpgrade as "EffectCardUpgrade" { target: PyTarget },
     RestSmith => PyEffectRestSmith as "EffectRestSmith" { target: PyTarget },
@@ -114,6 +114,7 @@ flat_variants!(PyEffect {
     MonsterSplit => PyEffectMonsterSplit as "EffectMonsterSplit" { name: PyMonsterName, target: PyTarget },
     CardStasisSteal => PyEffectCardStasisSteal as "EffectCardStasisSteal",
     RewardRollCards => PyEffectRewardRollCards as "EffectRewardRollCards" { bundles: u8, trigger: PyRewardRollTrigger },
+    NeowCardsRoll => PyEffectNeowCardsRoll as "EffectNeowCardsRoll" { colorless: bool, rare_only: bool },
     RewardRollRelic => PyEffectRewardRollRelic as "EffectRewardRollRelic" { pool: Vec<PyRelicName> },
     DamageDeal => PyEffectDamageDeal as "EffectDamageDeal" { amount: u16, lifesteal: bool, target: PyTarget },
     MatchFlipSeen => PyEffectMatchFlipSeen as "EffectMatchFlipSeen" { target: PyTarget },
@@ -123,11 +124,11 @@ flat_variants!(PyEffect {
 // The kinds that can park in `state.effect_pending`
 flat_variants!(@enum PyEffectPending {
     BonfireOffer => PyEffectBonfireOffer,
+    CardAdopt => PyEffectCardAdopt,
     CardBottle => PyEffectCardBottle,
     CardDiscard => PyEffectCardDiscard,
     CardDiscoverPick => PyEffectCardDiscoverPick,
     CardDuplicate => PyEffectCardDuplicate,
-    CardEventRollPick => PyEffectCardEventRollPick,
     CardExhaust => PyEffectCardExhaust,
     CardMove => PyEffectCardMove,
     CardNightmarePick => PyEffectCardNightmarePick,
@@ -145,11 +146,11 @@ flat_variants!(@enum PyEffectPending {
 pub(crate) fn snapshot_effect_pending(effect: &Effect) -> PyEffectPending {
     match snapshot_effect(effect) {
         PyEffect::BonfireOffer(v) => PyEffectPending::BonfireOffer(v),
+        PyEffect::CardAdopt(v) => PyEffectPending::CardAdopt(v),
         PyEffect::CardBottle(v) => PyEffectPending::CardBottle(v),
         PyEffect::CardDiscard(v) => PyEffectPending::CardDiscard(v),
         PyEffect::CardDiscoverPick(v) => PyEffectPending::CardDiscoverPick(v),
         PyEffect::CardDuplicate(v) => PyEffectPending::CardDuplicate(v),
-        PyEffect::CardEventRollPick(v) => PyEffectPending::CardEventRollPick(v),
         PyEffect::CardExhaust(v) => PyEffectPending::CardExhaust(v),
         PyEffect::CardMove(v) => PyEffectPending::CardMove(v),
         PyEffect::CardNightmarePick(v) => PyEffectPending::CardNightmarePick(v),
@@ -200,6 +201,7 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
                     | EffectKind::CardDraw { .. }
                     | EffectKind::CardDrawIfNoAttacks { .. }
                     | EffectKind::CardDrawUpTo { .. }
+                    | EffectKind::CardPileEventRollClear
                     | EffectKind::CardPlayFromCardPileDrawTop
                     | EffectKind::CardStasisSteal
                     | EffectKind::CombatEnd { .. }
@@ -217,6 +219,7 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
                     | EffectKind::KnowingSkullCostBump
                     | EffectKind::MausoleumOpen
                     | EffectKind::MonsterSpawn { .. }
+                    | EffectKind::NeowCardsRoll { .. }
                     | EffectKind::PotionAddRandom { .. }
                     | EffectKind::RelicGrantPool { .. }
                     | EffectKind::RelicGrantRandom { .. }
@@ -475,9 +478,13 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
             cost_zero: cost_zero.map(|cost_scope| cost_scope.into()),
             target: require_target(target),
         }),
-        EffectKind::CardEventRollPick => PyEffect::CardEventRollPick(PyEffectCardEventRollPick {
+        // Rows and picks hold only the first pass; the landing pass is queued at runtime
+        EffectKind::CardAdopt { landing: false } => PyEffect::CardAdopt(PyEffectCardAdopt {
             target: require_target(target),
         }),
+        EffectKind::CardPileEventRollClear => {
+            PyEffect::CardPileEventRollClear(PyEffectCardPileEventRollClear)
+        }
         EffectKind::CardAddRandom {
             color,
             kind,
@@ -572,6 +579,13 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
                 trigger: trigger.into(),
             })
         }
+        EffectKind::NeowCardsRoll {
+            colorless,
+            rare_only,
+        } => PyEffect::NeowCardsRoll(PyEffectNeowCardsRoll {
+            colorless,
+            rare_only,
+        }),
         // Static defs stage only pool picks (Cursed Tome's book)
         EffectKind::RewardRollRelic {
             pick: RelicPick::Pool(pool),

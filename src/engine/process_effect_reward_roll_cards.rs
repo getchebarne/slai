@@ -1,5 +1,4 @@
 use crate::consts::LIBRARY_CARD_COUNT;
-use crate::consts::NEOW_CARD_COUNT;
 use crate::effect::RewardRollTrigger;
 use crate::game::GameState;
 use crate::types::reward_ensure;
@@ -7,19 +6,15 @@ use crate::utils::card_reward_count;
 use crate::utils::roll_card_rewards;
 use crate::utils::roll_policy;
 
-// Roll `bundles` Card bundles; the trigger sets the rules, the size, whether and where they are kept, and whether the pick is forced or closes the Reward
+// Roll `bundles` Card bundles; the trigger sets the rules, the size, whether they are kept and whether the pick is forced or closes the Reward
 pub fn process_effect_reward_roll_cards(
     state: &mut GameState,
     bundles: u8,
     trigger: RewardRollTrigger,
 ) {
-    // Busted Crown and Question Card resize every offer but the Library's and Neow's
+    // Busted Crown and Question Card resize every offer but the Library's
     let cards_per_bundle = match trigger {
         RewardRollTrigger::Library => LIBRARY_CARD_COUNT,
-        RewardRollTrigger::Neow
-        | RewardRollTrigger::NeowRare
-        | RewardRollTrigger::NeowColorless
-        | RewardRollTrigger::NeowColorlessRare => NEOW_CARD_COUNT,
         _ => card_reward_count(&state.id_relics),
     };
     let mut id_card_bundles: Vec<Vec<usize>> = Vec::with_capacity(bundles as usize);
@@ -41,21 +36,6 @@ pub fn process_effect_reward_roll_cards(
 
     // A discarded roll still moved the pity offset
     if !roll_policy(trigger).staged {
-        return;
-    }
-
-    // Neow's offers wait in the event's roll for its pick
-    if matches!(
-        trigger,
-        RewardRollTrigger::Neow
-            | RewardRollTrigger::NeowRare
-            | RewardRollTrigger::NeowColorless
-            | RewardRollTrigger::NeowColorlessRare
-    ) {
-        state
-            .event
-            .id_card_pile_event_roll
-            .extend(id_card_bundles.into_iter().flatten());
         return;
     }
     reward_ensure(&mut state.reward);

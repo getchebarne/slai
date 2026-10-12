@@ -27,7 +27,6 @@ use crate::consts::GOLD_BOSS_MAX;
 use crate::consts::GOLD_BOSS_MIN;
 use crate::consts::MAX_CARD_REWARD_ROLL;
 use crate::consts::MAX_SIZE_CARD_PILE_HAND;
-use crate::consts::NEOW_UNCOMMON_CHANCE;
 use crate::consts::SHOP_CARD_CUT_RARE;
 use crate::consts::SHOP_CARD_CUT_UNCOMMON;
 use crate::effect::Amount;
@@ -715,7 +714,7 @@ pub fn card_reward_count(id_relics: &[Option<usize>; RelicName::COUNT]) -> usize
 }
 
 // Colorless offers never roll Common, so there is no Common colorless pool
-const fn card_pool(rarity: CardRarity, colorless: bool) -> &'static [CardName] {
+pub const fn card_pool(rarity: CardRarity, colorless: bool) -> &'static [CardName] {
     match (rarity, colorless) {
         (CardRarity::Rare, false) => POOL_RARE_GREEN_CARD,
         (CardRarity::Uncommon, false) => POOL_UNCOMMON_GREEN_CARD,
@@ -729,8 +728,6 @@ const fn card_pool(rarity: CardRarity, colorless: bool) -> &'static [CardName] {
 // Shop stock is not a reward, so it sits outside `RewardRollTrigger`
 pub const SHOP_STOCK_POLICY: RollPolicy = RollPolicy {
     cuts: Some((SHOP_CARD_CUT_RARE, SHOP_CARD_CUT_UNCOMMON)), // Own bands
-    colorless: false,
-    read_pity: true,
     alternation: false,
     write_pity: false,         // Reads the pity without writing it
     dupe_rerolls_rarity: true, // make_card_colored's loop re-rolls rarity and Card together
@@ -755,9 +752,8 @@ pub fn roll_card_rarity(
         base_rare
     };
 
-    // Roll; the pity offset only shifts it for consumers that read pity
-    let offset = if policy.read_pity { offset as i32 } else { 0 };
-    let roll = rng.random_range(0i32..=99) + offset;
+    // Roll
+    let roll = rng.random_range(0i32..=99) + offset as i32;
     if roll < chance_rare {
         CardRarity::Rare
     } else if roll < chance_rare + (base_uncommon - base_rare) {
@@ -770,8 +766,6 @@ pub fn roll_card_rarity(
 // Cumulative Rare / Uncommon cuts; None skips the roll and every Card is Rare
 pub struct RollPolicy {
     pub cuts: Option<(i32, i32)>,
-    pub colorless: bool,
-    pub read_pity: bool,
     pub alternation: bool,
     pub write_pity: bool,
     pub dupe_rerolls_rarity: bool,
@@ -788,8 +782,6 @@ pub const fn roll_policy(trigger: RewardRollTrigger) -> RollPolicy {
     match trigger {
         RewardRollTrigger::CombatMonster | RewardRollTrigger::EventFight => RollPolicy {
             cuts: CUTS_MONSTER,
-            colorless: false,
-            read_pity: true,
             alternation: true,
             write_pity: true,
             dupe_rerolls_rarity: false,
@@ -801,8 +793,6 @@ pub const fn roll_policy(trigger: RewardRollTrigger) -> RollPolicy {
                 CARD_REWARD_ROLL_CHANCE_RARE_ELITE,
                 CARD_REWARD_ROLL_CHANCE_UNCOMMON_ELITE,
             )),
-            colorless: false,
-            read_pity: true,
             alternation: true,
             write_pity: true,
             dupe_rerolls_rarity: false,
@@ -811,8 +801,6 @@ pub const fn roll_policy(trigger: RewardRollTrigger) -> RollPolicy {
         },
         RewardRollTrigger::CombatBoss => RollPolicy {
             cuts: None,
-            colorless: false,
-            read_pity: true,
             alternation: false,
             write_pity: true,
             dupe_rerolls_rarity: false,
@@ -822,8 +810,6 @@ pub const fn roll_policy(trigger: RewardRollTrigger) -> RollPolicy {
         // Rest sites keep the default bands, but relics never widen them
         RewardRollTrigger::DreamCatcher => RollPolicy {
             cuts: CUTS_MONSTER,
-            colorless: false,
-            read_pity: true,
             alternation: false,
             write_pity: true,
             dupe_rerolls_rarity: false,
@@ -833,8 +819,6 @@ pub const fn roll_policy(trigger: RewardRollTrigger) -> RollPolicy {
         // Bought in a Shop, so the offer rolls the shop bands and relics never widen them
         RewardRollTrigger::Orrery => RollPolicy {
             cuts: Some((SHOP_CARD_CUT_RARE, SHOP_CARD_CUT_UNCOMMON)),
-            colorless: false,
-            read_pity: true,
             alternation: false,
             write_pity: true,
             dupe_rerolls_rarity: false,
@@ -843,61 +827,15 @@ pub const fn roll_policy(trigger: RewardRollTrigger) -> RollPolicy {
         },
         RewardRollTrigger::Library => RollPolicy {
             cuts: CUTS_MONSTER,
-            colorless: false,
-            read_pity: true,
             alternation: true,
             write_pity: false,
             dupe_rerolls_rarity: true,
             upgrade_roll: false,
             staged: true,
         },
-        // Neow: Uncommon or Common, never Rare unless the offer says so; no pity, never upgraded
-        RewardRollTrigger::Neow => RollPolicy {
-            cuts: Some((0, NEOW_UNCOMMON_CHANCE)),
-            colorless: false,
-            read_pity: false,
-            alternation: false,
-            write_pity: false,
-            dupe_rerolls_rarity: false,
-            upgrade_roll: false,
-            staged: true,
-        },
-        RewardRollTrigger::NeowRare => RollPolicy {
-            cuts: None,
-            colorless: false,
-            read_pity: false,
-            alternation: false,
-            write_pity: false,
-            dupe_rerolls_rarity: false,
-            upgrade_roll: false,
-            staged: true,
-        },
-        // Neow's colorless offer is always Uncommon
-        RewardRollTrigger::NeowColorless => RollPolicy {
-            cuts: Some((0, 100)),
-            colorless: true,
-            read_pity: false,
-            alternation: false,
-            write_pity: false,
-            dupe_rerolls_rarity: false,
-            upgrade_roll: false,
-            staged: true,
-        },
-        RewardRollTrigger::NeowColorlessRare => RollPolicy {
-            cuts: None,
-            colorless: true,
-            read_pity: false,
-            alternation: false,
-            write_pity: false,
-            dupe_rerolls_rarity: false,
-            upgrade_roll: false,
-            staged: true,
-        },
         // The reward screens of Neow's Potions and Calling Bell roll a Card reward and discard it
         RewardRollTrigger::NeowPotions | RewardRollTrigger::CallingBell => RollPolicy {
             cuts: CUTS_MONSTER,
-            colorless: false,
-            read_pity: true,
             alternation: true,
             write_pity: true,
             dupe_rerolls_rarity: false,
@@ -907,8 +845,6 @@ pub const fn roll_policy(trigger: RewardRollTrigger) -> RollPolicy {
         // Cauldron's screen does the same over a Shop, so its discarded roll uses the shop bands
         RewardRollTrigger::Cauldron => RollPolicy {
             cuts: Some((SHOP_CARD_CUT_RARE, SHOP_CARD_CUT_UNCOMMON)),
-            colorless: false,
-            read_pity: true,
             alternation: false,
             write_pity: true,
             dupe_rerolls_rarity: false,
@@ -961,10 +897,6 @@ pub const fn potion_roll_policy(trigger: RewardRollTrigger) -> PotionRollPolicy 
         RewardRollTrigger::DreamCatcher
         | RewardRollTrigger::Orrery
         | RewardRollTrigger::Library
-        | RewardRollTrigger::Neow
-        | RewardRollTrigger::NeowRare
-        | RewardRollTrigger::NeowColorless
-        | RewardRollTrigger::NeowColorlessRare
         | RewardRollTrigger::CallingBell => panic!("no Potion roll for this trigger"),
     }
 }
@@ -1000,13 +932,10 @@ pub fn roll_card_rewards(
     for _ in 0..count {
         // Roll rarity
         let (mut pool, rarity) = if policy.cuts.is_none() {
-            (
-                card_pool(CardRarity::Rare, policy.colorless),
-                CardRarity::Rare,
-            )
+            (card_pool(CardRarity::Rare, false), CardRarity::Rare)
         } else {
             let rarity = roll_card_rarity(rng, character_reward_roll_offset, &policy, id_relics);
-            (card_pool(rarity, policy.colorless), rarity)
+            (card_pool(rarity, false), rarity)
         };
 
         // Pity: reset offset on Rare hit; decrement on Common (toward more rares)
@@ -1027,7 +956,7 @@ pub fn roll_card_rewards(
             if policy.dupe_rerolls_rarity {
                 pool = card_pool(
                     roll_card_rarity(rng, character_reward_roll_offset, &policy, id_relics),
-                    policy.colorless,
+                    false,
                 );
             }
             name = pool[rng.random_range(0..pool.len())];

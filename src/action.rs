@@ -307,11 +307,8 @@ fn handle_pick_skip(state: &mut GameState) {
         .take()
         .expect("PickSkip requires a pending effect");
 
-    // A skipped discover or event roll pick still runs, with no Card, so its rolled Cards are cleared
-    if matches!(
-        effect_pending.kind,
-        EffectKind::CardDiscoverPick { .. } | EffectKind::CardEventRollPick
-    ) {
+    // A skipped discover pick still runs, with no Card, so its rolled Cards are cleared
+    if matches!(effect_pending.kind, EffectKind::CardDiscoverPick { .. }) {
         state.effect_buf.push(Effect {
             target: Target::Direct(None),
             ..effect_pending
