@@ -19,12 +19,12 @@ pub mod process_effect_card_draw;
 pub mod process_effect_card_draw_if_no_attacks;
 pub mod process_effect_card_draw_up_to;
 pub mod process_effect_card_duplicate;
-pub mod process_effect_card_event_roll_pick;
 pub mod process_effect_card_exhaust;
 pub mod process_effect_card_free_play_spend;
 pub mod process_effect_card_move;
 pub mod process_effect_card_nightmare_pick;
 pub mod process_effect_card_nightmare_spawn;
+pub mod process_effect_card_pile_event_roll_clear;
 pub mod process_effect_card_place;
 pub mod process_effect_card_play_from_card_pile_draw_top;
 pub mod process_effect_card_play_relocate;
@@ -84,6 +84,7 @@ pub mod process_effect_monster_spawn;
 pub mod process_effect_monster_split;
 pub mod process_effect_move_execute;
 pub mod process_effect_move_update;
+pub mod process_effect_neow_cards_roll;
 pub mod process_effect_poison_tick;
 pub mod process_effect_potion_add_random;
 pub mod process_effect_potion_adopt;
@@ -148,12 +149,12 @@ use self::process_effect_card_draw::process_effect_card_draw;
 use self::process_effect_card_draw_if_no_attacks::process_effect_card_draw_if_no_attacks;
 use self::process_effect_card_draw_up_to::process_effect_card_draw_up_to;
 use self::process_effect_card_duplicate::process_effect_card_duplicate;
-use self::process_effect_card_event_roll_pick::process_effect_card_event_roll_pick;
 use self::process_effect_card_exhaust::process_effect_card_exhaust;
 use self::process_effect_card_free_play_spend::process_effect_card_free_play_spend;
 use self::process_effect_card_move::process_effect_card_move;
 use self::process_effect_card_nightmare_pick::process_effect_card_nightmare_pick;
 use self::process_effect_card_nightmare_spawn::process_effect_card_nightmare_spawn;
+use self::process_effect_card_pile_event_roll_clear::process_effect_card_pile_event_roll_clear;
 use self::process_effect_card_place::process_effect_card_place;
 use self::process_effect_card_play_from_card_pile_draw_top::process_effect_card_play_from_card_pile_draw_top;
 use self::process_effect_card_play_relocate::process_effect_card_play_relocate;
@@ -213,6 +214,7 @@ use self::process_effect_monster_spawn::process_effect_monster_spawn;
 use self::process_effect_monster_split::process_effect_monster_split;
 use self::process_effect_move_execute::process_effect_move_execute;
 use self::process_effect_move_update::process_effect_move_update;
+use self::process_effect_neow_cards_roll::process_effect_neow_cards_roll;
 use self::process_effect_poison_tick::process_effect_poison_tick;
 use self::process_effect_potion_add_random::process_effect_potion_add_random;
 use self::process_effect_potion_adopt::process_effect_potion_adopt;
@@ -759,7 +761,11 @@ fn dispatch_by_kind(
             card_pile,
             copies,
         } => process_effect_card_discover_pick(id_target, state, cost_zero, card_pile, copies),
-        EffectKind::CardEventRollPick => process_effect_card_event_roll_pick(id_target, state),
+        EffectKind::CardPileEventRollClear => process_effect_card_pile_event_roll_clear(state),
+        EffectKind::NeowCardsRoll {
+            colorless,
+            rare_only,
+        } => process_effect_neow_cards_roll(state, colorless, rare_only),
         EffectKind::NoOp => panic!("NoOp effect should never be dispatched"),
     }
 }

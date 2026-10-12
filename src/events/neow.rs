@@ -97,14 +97,21 @@ const EFFECT_POTIONS_CARD_ROLL: Effect = Effect {
 };
 
 // A card offer's Cards wait in the event's roll; the pick takes one of them or none
-const EFFECT_CARD_EVENT_ROLL_PICK: Effect = Effect {
-    kind: EffectKind::CardEventRollPick,
+const EFFECT_CARD_ADOPT_EVENT_ROLL: Effect = Effect {
+    kind: EffectKind::CardAdopt { landing: false },
     id_source: None,
     target: Target::Resolve {
         candidate_pool: CandidatePool::CardPileEventRoll,
         filters: &[],
         selection_kind: SelectionKind::InputUpTo { count: 1 },
     },
+};
+
+// The offer's Cards leave the event's roll once the pick is taken or skipped
+const EFFECT_CARD_PILE_EVENT_ROLL_CLEAR: Effect = Effect {
+    kind: EffectKind::CardPileEventRollClear,
+    id_source: None,
+    target: Target::Direct(None),
 };
 
 const fn effect_relic_grant_random(tier: RelicTier) -> Effect {
@@ -135,14 +142,9 @@ const fn effect_bonus(bonus: NeowBonus, health_bonus: u16) -> Effect {
             colorless,
             rare_only,
         } => Effect {
-            kind: EffectKind::RewardRollCards {
-                bundles: 1,
-                trigger: match (colorless, rare_only) {
-                    (false, false) => RewardRollTrigger::Neow,
-                    (false, true) => RewardRollTrigger::NeowRare,
-                    (true, false) => RewardRollTrigger::NeowColorless,
-                    (true, true) => RewardRollTrigger::NeowColorlessRare,
-                },
+            kind: EffectKind::NeowCardsRoll {
+                colorless,
+                rare_only,
             },
             id_source: None,
             target: Target::Direct(None),
@@ -392,7 +394,8 @@ const fn eots_for_asc(ascension: u8) -> [EventOptionTemplate; CATALOG_LEN] {
             make_event_option_template(&[
                 EFFECT_EVENT_CONSUME,
                 effect_bonus(bonus, health_bonus),
-                EFFECT_CARD_EVENT_ROLL_PICK,
+                EFFECT_CARD_ADOPT_EVENT_ROLL,
+                EFFECT_CARD_PILE_EVENT_ROLL_CLEAR,
             ])
         } else {
             make_event_option_template(&[EFFECT_EVENT_CONSUME, effect_bonus(bonus, health_bonus)])
@@ -418,7 +421,8 @@ const fn eots_for_asc(ascension: u8) -> [EventOptionTemplate; CATALOG_LEN] {
                 NeowDrawback::Curse if card_offer => make_event_option_template(&[
                     EFFECT_EVENT_CONSUME,
                     effect_bonus(bonus, health_bonus),
-                    EFFECT_CARD_EVENT_ROLL_PICK,
+                    EFFECT_CARD_ADOPT_EVENT_ROLL,
+                    EFFECT_CARD_PILE_EVENT_ROLL_CLEAR,
                     effect_drawback(drawback, health_bonus, damage),
                 ]),
                 NeowDrawback::Curse => make_event_option_template(&[
@@ -430,7 +434,8 @@ const fn eots_for_asc(ascension: u8) -> [EventOptionTemplate; CATALOG_LEN] {
                     EFFECT_EVENT_CONSUME,
                     effect_drawback(drawback, health_bonus, damage),
                     effect_bonus(bonus, health_bonus),
-                    EFFECT_CARD_EVENT_ROLL_PICK,
+                    EFFECT_CARD_ADOPT_EVENT_ROLL,
+                    EFFECT_CARD_PILE_EVENT_ROLL_CLEAR,
                 ]),
                 _ => make_event_option_template(&[
                     EFFECT_EVENT_CONSUME,

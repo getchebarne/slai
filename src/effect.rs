@@ -72,7 +72,6 @@ pub enum EffectKind {
     CardDuplicate {
         card_pile: CardPile,
     },
-    CardEventRollPick,
     CardExhaust,
     CardFreePlaySpend,
     CardMove {
@@ -81,6 +80,7 @@ pub enum EffectKind {
     },
     CardNightmarePick,
     CardNightmareSpawn,
+    CardPileEventRollClear,
     CardPlace {
         pile: CardPile,
     },
@@ -226,6 +226,10 @@ pub enum EffectKind {
     MoveUpdate {
         move_override: Option<usize>,
     },
+    NeowCardsRoll {
+        colorless: bool,
+        rare_only: bool,
+    }, // Neow's card offer: 3 Cards into the event's roll, for its pick
     NoOp,
     PoisonTick {
         amount: u16,
@@ -354,10 +358,6 @@ pub enum RewardRollTrigger {
     DreamCatcher,
     Orrery,
     Library,
-    Neow,
-    NeowRare,
-    NeowColorless,
-    NeowColorlessRare,
     NeowPotions,
     Cauldron,
     WomanInBlue,
