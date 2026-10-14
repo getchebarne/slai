@@ -155,6 +155,8 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEnergy;
     #[pymodule_export]
+    use super::ffi::PyEventOption;
+    #[pymodule_export]
     use super::ffi::PyGameState;
     #[pymodule_export]
     use super::ffi::PyIntent;

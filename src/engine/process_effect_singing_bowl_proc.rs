@@ -5,14 +5,21 @@ use crate::effect::Target;
 use crate::game::GameState;
 use crate::types::DeltaSign;
 
-pub fn process_effect_singing_bowl_proc(state: &mut GameState, idx_bundle: u8) {
+pub fn process_effect_singing_bowl_proc(id_target: Option<usize>, state: &mut GameState) {
+    let id_card = id_target.expect("SingingBowlProc requires id_target");
     assert!(
         state.reward.active,
         "SingingBowlProc outside the Reward context"
     );
 
     // Remove bundle
-    state.reward.id_cards.remove(idx_bundle as usize);
+    let idx = state
+        .reward
+        .id_cards
+        .iter()
+        .position(|bundle| bundle.contains(&id_card))
+        .expect("Forfeited Card is in a staged bundle");
+    state.reward.id_cards.remove(idx);
 
     // A pick screen closes on Singing Bowl as on a take
     if state.reward.closes_on_pick {

@@ -8,9 +8,9 @@ use super::card::PyCard;
 use super::card::snapshot_card;
 use super::card::snapshot_card_combat;
 use super::card::snapshot_card_combat_at_cost;
-use super::effect::PyEffect;
-use super::effect::snapshot_effect;
 use super::event::PyEventName;
+use super::event::PyEventOption;
+use super::event::snapshot_event_option;
 use super::macros::mirror_enum;
 use super::monster::PyMonster;
 use super::monster::PyMonsterEncounter;
@@ -130,7 +130,7 @@ pub struct PyEvent {
     pub name: PyEventName,
     pub consumed: bool,
     pub stage: u8,
-    pub options: Vec<Vec<PyEffect>>,
+    pub options: Vec<PyEventOption>,
     pub health_max_at_open: u16,
     pub card_pile_event_roll: Vec<PyCard>,
     pub relic_event_roll: Vec<PyRelic>,
@@ -355,13 +355,7 @@ pub(crate) fn snapshot_event(state: &GameState) -> PyEvent {
         options: event
             .id_event_options
             .iter()
-            .map(|&id| {
-                let option = &state.entities[id];
-                option.event_option_effects[..option.event_option_effects_len as usize]
-                    .iter()
-                    .map(snapshot_effect)
-                    .collect()
-            })
+            .map(|&id| snapshot_event_option(id, &state.entities[id]))
             .collect(),
         health_max_at_open: event.health_max_at_open,
         consumed: event.consumed,

@@ -303,9 +303,7 @@ pub enum EffectKind {
     },
     ShopPurge,
     ShuffleCardPileDiscardIntoCardPileDraw,
-    SingingBowlProc {
-        idx_bundle: u8,
-    },
+    SingingBowlProc,
     SneakyStrikeProc {
         energy: u8,
     },

@@ -86,7 +86,7 @@ pub struct GameState {
 
     // Halt overlay; cleared by the action handler that supplies the pick
     pub effect_pending: Option<Effect>,
-    pub effect_pending_selected: Vec<usize>,
+    pub id_card_pile_selected: Vec<usize>,
 
     // Location
     pub location: Location,
@@ -251,7 +251,7 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
         effect_buf: Vec::with_capacity(MAX_EFFECTS_PER_HANDLER),
         effect_candidate_buf: Vec::with_capacity(MAX_CANDIDATES),
         effect_pending: None,
-        effect_pending_selected: Vec::with_capacity(MAX_SIZE_CARD_PILE_HAND),
+        id_card_pile_selected: Vec::with_capacity(MAX_SIZE_CARD_PILE_HAND),
         unknown_chance_monster: UNKNOWN_CHANCE_BASE_MONSTER,
         unknown_chance_shop: UNKNOWN_CHANCE_BASE_SHOP,
         unknown_chance_treasure: UNKNOWN_CHANCE_BASE_TREASURE,

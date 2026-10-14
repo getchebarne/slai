@@ -301,7 +301,7 @@ pub(crate) fn enqueue_direct_targets(
     }
 }
 
-fn fill_buf_candidates(
+pub(crate) fn fill_buf_candidates(
     effect_candidate_buf: &mut Vec<usize>,
     candidate_pool: CandidatePool,
     id_source: Option<usize>,
@@ -562,9 +562,7 @@ fn dispatch_by_kind(
         }
         EffectKind::CardFreePlaySpend => process_effect_card_free_play_spend(id_target, state),
         EffectKind::GiryaLift => process_effect_girya_lift(state),
-        EffectKind::SingingBowlProc { idx_bundle } => {
-            process_effect_singing_bowl_proc(state, idx_bundle)
-        }
+        EffectKind::SingingBowlProc => process_effect_singing_bowl_proc(id_target, state),
         EffectKind::WheelSpin => process_effect_wheel_spin(state),
         EffectKind::CardUpgrade => process_effect_card_upgrade(id_target, state),
         EffectKind::AccuracyResync => process_effect_accuracy_resync(id_target, state),
@@ -808,7 +806,7 @@ pub fn process_effect_queue(state: &mut GameState) {
 // with world facts. Every active context is checked against the Room directly
 fn ensure_context_validity(state: &GameState) {
     assert!(
-        state.effect_pending.is_some() || state.effect_pending_selected.is_empty(),
+        state.effect_pending.is_some() || state.id_card_pile_selected.is_empty(),
         "staged picks outlived their halt"
     );
     if state.game_over {

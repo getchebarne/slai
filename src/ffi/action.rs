@@ -37,8 +37,23 @@ pub enum PyActionType {
     RestToke,
     RestSmith,
     RewardSingingBowl,
-    EffectPendingResolve,
     RewardTakeGoldStolen,
+    BonfireOffer,
+    CardAdopt,
+    CardBottle,
+    CardDiscard,
+    CardDiscoverPick,
+    CardDuplicate,
+    CardExhaust,
+    CardMove,
+    CardNightmarePick,
+    CardPurge,
+    CardRetain,
+    CardSetupPick,
+    CardTransform,
+    CardUpgrade,
+    MatchFlipSeen,
+    RelicLose,
 }
 
 #[pymethods]
@@ -74,67 +89,78 @@ pub struct PyAction {
     #[pyo3(get)]
     pub action_type: PyActionType,
     #[pyo3(get)]
-    pub idxs: Vec<usize>,
+    pub ids: Vec<usize>,
 }
 
 #[pymethods]
 impl PyAction {
     #[new]
-    #[pyo3(signature = (action_type, idxs))]
-    fn new(action_type: PyActionType, idxs: Vec<usize>) -> Self {
-        Self { action_type, idxs }
+    #[pyo3(signature = (action_type, ids))]
+    fn new(action_type: PyActionType, ids: Vec<usize>) -> Self {
+        Self { action_type, ids }
     }
 
     fn __repr__(&self) -> String {
-        format!("PyAction({:?}, {:?})", self.action_type, self.idxs)
+        format!("Action({:?}, {:?})", self.action_type, self.ids)
     }
 }
 
 pub fn to_internal_action(action: PyAction) -> Result<Action, String> {
-    let idxs = &action.idxs;
-    let i0 = idxs.first().copied().unwrap_or(0);
-    let i1 = idxs.get(1).copied().unwrap_or(0);
+    let ids = &action.ids;
+    let i0 = ids.first().copied().unwrap_or(0);
     let internal = match action.action_type {
         PyActionType::CardPlay => Action::CardPlay {
-            idx_card: i0,
-            idx_monster: idxs.get(1).copied(),
+            id_card: i0,
+            id_monster: ids.get(1).copied(),
         },
         PyActionType::TurnEnd => Action::TurnEnd,
         PyActionType::PickSkip => Action::PickSkip,
-        PyActionType::EffectPendingResolve => Action::EffectPendingResolve { idx: i0 },
-        PyActionType::RoomSelect => Action::RoomSelect { idx: i0 },
-        PyActionType::ShopBuyCard => Action::ShopBuyCard { idx: i0 },
-        PyActionType::ShopBuyPotion => Action::ShopBuyPotion { idx: i0 },
-        PyActionType::ShopBuyRelic => Action::ShopBuyRelic { idx: i0 },
+        PyActionType::RoomSelect => Action::RoomSelect { id_room: i0 },
+        PyActionType::ShopBuyCard => Action::ShopBuyCard { id_card: i0 },
+        PyActionType::ShopBuyPotion => Action::ShopBuyPotion { id_potion: i0 },
+        PyActionType::ShopBuyRelic => Action::ShopBuyRelic { id_relic: i0 },
         PyActionType::ShopPurge => Action::ShopPurge,
         PyActionType::Rest => Action::Rest,
         PyActionType::RestDig => Action::RestDig,
         PyActionType::RestLift => Action::RestLift,
         PyActionType::RestToke => Action::RestToke,
         PyActionType::RestSmith => Action::RestSmith,
-        PyActionType::RewardSingingBowl => Action::RewardSingingBowl { idx_bundle: i0 },
+        PyActionType::RewardSingingBowl => Action::RewardSingingBowl { id_card: i0 },
         PyActionType::RoomExit => Action::RoomExit,
         PyActionType::ChestOpen => Action::ChestOpen,
         PyActionType::PotionUse => Action::PotionUse {
-            idx_potion: i0,
-            idx_monster: idxs.get(1).copied(),
+            id_potion: i0,
+            id_monster: ids.get(1).copied(),
         },
-        PyActionType::PotionDiscard => Action::PotionDiscard { idx: i0 },
-        PyActionType::RewardTakeCard => Action::RewardTakeCard {
-            idx_bundle: i0,
-            idx_card: i1,
-        },
-        PyActionType::RewardTakeRelic => Action::RewardTakeRelic { idx: i0 },
-        PyActionType::RewardTakePotion => Action::RewardTakePotion { idx: i0 },
+        PyActionType::PotionDiscard => Action::PotionDiscard { id_potion: i0 },
+        PyActionType::RewardTakeCard => Action::RewardTakeCard { id_card: i0 },
+        PyActionType::RewardTakeRelic => Action::RewardTakeRelic { id_relic: i0 },
+        PyActionType::RewardTakePotion => Action::RewardTakePotion { id_potion: i0 },
         PyActionType::RewardTakeGold => Action::RewardTakeGold,
         PyActionType::RewardTakeGoldStolen => Action::RewardTakeGoldStolen,
-        PyActionType::EventOptionSelect => Action::EventOptionSelect { idx: i0 },
+        PyActionType::EventOptionSelect => Action::EventOptionSelect { id_option: i0 },
+        PyActionType::BonfireOffer => Action::BonfireOffer { id_card: i0 },
+        PyActionType::CardAdopt => Action::CardAdopt { id_card: i0 },
+        PyActionType::CardBottle => Action::CardBottle { id_card: i0 },
+        PyActionType::CardDiscard => Action::CardDiscard { id_card: i0 },
+        PyActionType::CardDiscoverPick => Action::CardDiscoverPick { id_card: i0 },
+        PyActionType::CardDuplicate => Action::CardDuplicate { id_card: i0 },
+        PyActionType::CardExhaust => Action::CardExhaust { id_card: i0 },
+        PyActionType::CardMove => Action::CardMove { id_card: i0 },
+        PyActionType::CardNightmarePick => Action::CardNightmarePick { id_card: i0 },
+        PyActionType::CardPurge => Action::CardPurge { id_card: i0 },
+        PyActionType::CardRetain => Action::CardRetain { id_card: i0 },
+        PyActionType::CardSetupPick => Action::CardSetupPick { id_card: i0 },
+        PyActionType::CardTransform => Action::CardTransform { id_card: i0 },
+        PyActionType::CardUpgrade => Action::CardUpgrade { id_card: i0 },
+        PyActionType::MatchFlipSeen => Action::MatchFlipSeen { id_card: i0 },
+        PyActionType::RelicLose => Action::RelicLose { id_relic: i0 },
     };
 
-    // Round-trip is the arity gate: a wrong-length idxs list cannot rebuild itself
-    if from_internal_action(internal.clone()).idxs != *idxs {
+    // Round-trip is the arity gate: a wrong-length ids list cannot rebuild itself
+    if from_internal_action(internal.clone()).ids != *ids {
         return Err(format!(
-            "{:?} got malformed idxs {idxs:?}",
+            "{:?} got malformed ids {ids:?}",
             action.action_type
         ));
     }
@@ -142,51 +168,63 @@ pub fn to_internal_action(action: PyAction) -> Result<Action, String> {
 }
 
 pub fn from_internal_action(action: Action) -> PyAction {
-    let (action_type, idxs) = match action {
+    let (action_type, ids) = match action {
         Action::CardPlay {
-            idx_card,
-            idx_monster: None,
-        } => (PyActionType::CardPlay, vec![idx_card]),
+            id_card,
+            id_monster: None,
+        } => (PyActionType::CardPlay, vec![id_card]),
         Action::CardPlay {
-            idx_card,
-            idx_monster: Some(m),
-        } => (PyActionType::CardPlay, vec![idx_card, m]),
+            id_card,
+            id_monster: Some(id_monster),
+        } => (PyActionType::CardPlay, vec![id_card, id_monster]),
         Action::TurnEnd => (PyActionType::TurnEnd, vec![]),
         Action::PickSkip => (PyActionType::PickSkip, vec![]),
-        Action::EffectPendingResolve { idx } => (PyActionType::EffectPendingResolve, vec![idx]),
-        Action::RoomSelect { idx } => (PyActionType::RoomSelect, vec![idx]),
+        Action::RoomSelect { id_room } => (PyActionType::RoomSelect, vec![id_room]),
         Action::Rest => (PyActionType::Rest, vec![]),
         Action::RestDig => (PyActionType::RestDig, vec![]),
         Action::RestLift => (PyActionType::RestLift, vec![]),
         Action::RestToke => (PyActionType::RestToke, vec![]),
         Action::RestSmith => (PyActionType::RestSmith, vec![]),
-        Action::RewardSingingBowl { idx_bundle } => {
-            (PyActionType::RewardSingingBowl, vec![idx_bundle])
-        }
+        Action::RewardSingingBowl { id_card } => (PyActionType::RewardSingingBowl, vec![id_card]),
         Action::RoomExit => (PyActionType::RoomExit, vec![]),
-        Action::ShopBuyCard { idx } => (PyActionType::ShopBuyCard, vec![idx]),
-        Action::ShopBuyPotion { idx } => (PyActionType::ShopBuyPotion, vec![idx]),
-        Action::ShopBuyRelic { idx } => (PyActionType::ShopBuyRelic, vec![idx]),
+        Action::ShopBuyCard { id_card } => (PyActionType::ShopBuyCard, vec![id_card]),
+        Action::ShopBuyPotion { id_potion } => (PyActionType::ShopBuyPotion, vec![id_potion]),
+        Action::ShopBuyRelic { id_relic } => (PyActionType::ShopBuyRelic, vec![id_relic]),
         Action::ShopPurge => (PyActionType::ShopPurge, vec![]),
         Action::ChestOpen => (PyActionType::ChestOpen, vec![]),
         Action::PotionUse {
-            idx_potion,
-            idx_monster: None,
-        } => (PyActionType::PotionUse, vec![idx_potion]),
+            id_potion,
+            id_monster: None,
+        } => (PyActionType::PotionUse, vec![id_potion]),
         Action::PotionUse {
-            idx_potion,
-            idx_monster: Some(m),
-        } => (PyActionType::PotionUse, vec![idx_potion, m]),
-        Action::PotionDiscard { idx } => (PyActionType::PotionDiscard, vec![idx]),
-        Action::RewardTakeCard {
-            idx_bundle,
-            idx_card,
-        } => (PyActionType::RewardTakeCard, vec![idx_bundle, idx_card]),
-        Action::RewardTakeRelic { idx } => (PyActionType::RewardTakeRelic, vec![idx]),
-        Action::RewardTakePotion { idx } => (PyActionType::RewardTakePotion, vec![idx]),
+            id_potion,
+            id_monster: Some(id_monster),
+        } => (PyActionType::PotionUse, vec![id_potion, id_monster]),
+        Action::PotionDiscard { id_potion } => (PyActionType::PotionDiscard, vec![id_potion]),
+        Action::RewardTakeCard { id_card } => (PyActionType::RewardTakeCard, vec![id_card]),
+        Action::RewardTakeRelic { id_relic } => (PyActionType::RewardTakeRelic, vec![id_relic]),
+        Action::RewardTakePotion { id_potion } => (PyActionType::RewardTakePotion, vec![id_potion]),
         Action::RewardTakeGold => (PyActionType::RewardTakeGold, vec![]),
         Action::RewardTakeGoldStolen => (PyActionType::RewardTakeGoldStolen, vec![]),
-        Action::EventOptionSelect { idx } => (PyActionType::EventOptionSelect, vec![idx]),
+        Action::EventOptionSelect { id_option } => {
+            (PyActionType::EventOptionSelect, vec![id_option])
+        }
+        Action::BonfireOffer { id_card } => (PyActionType::BonfireOffer, vec![id_card]),
+        Action::CardAdopt { id_card } => (PyActionType::CardAdopt, vec![id_card]),
+        Action::CardBottle { id_card } => (PyActionType::CardBottle, vec![id_card]),
+        Action::CardDiscard { id_card } => (PyActionType::CardDiscard, vec![id_card]),
+        Action::CardDiscoverPick { id_card } => (PyActionType::CardDiscoverPick, vec![id_card]),
+        Action::CardDuplicate { id_card } => (PyActionType::CardDuplicate, vec![id_card]),
+        Action::CardExhaust { id_card } => (PyActionType::CardExhaust, vec![id_card]),
+        Action::CardMove { id_card } => (PyActionType::CardMove, vec![id_card]),
+        Action::CardNightmarePick { id_card } => (PyActionType::CardNightmarePick, vec![id_card]),
+        Action::CardPurge { id_card } => (PyActionType::CardPurge, vec![id_card]),
+        Action::CardRetain { id_card } => (PyActionType::CardRetain, vec![id_card]),
+        Action::CardSetupPick { id_card } => (PyActionType::CardSetupPick, vec![id_card]),
+        Action::CardTransform { id_card } => (PyActionType::CardTransform, vec![id_card]),
+        Action::CardUpgrade { id_card } => (PyActionType::CardUpgrade, vec![id_card]),
+        Action::MatchFlipSeen { id_card } => (PyActionType::MatchFlipSeen, vec![id_card]),
+        Action::RelicLose { id_relic } => (PyActionType::RelicLose, vec![id_relic]),
     };
-    PyAction { action_type, idxs }
+    PyAction { action_type, ids }
 }

@@ -29,13 +29,12 @@ EventName = _rs.EventName
 # Action schema types
 class ArgSpec(NamedTuple):
     name: str
-    description: str
     optional: bool = False
     variable: bool = False
 
 
 class ActionSpec(NamedTuple):
-    id: ActionType
+    action_type: ActionType
     name: str
     args: tuple[ArgSpec, ...]
     arity: tuple[int, Optional[int]]
@@ -45,7 +44,9 @@ class ActionSpecRegistry:
     def __init__(self, specs: list[ActionSpec]) -> None:
         self._list: list[ActionSpec] = specs
         self._by_name: dict[str, ActionSpec] = {s.name: s for s in specs}
-        self._by_id: dict[ActionType, ActionSpec] = {s.id: s for s in specs}
+        self._by_action_type: dict[ActionType, ActionSpec] = {
+            s.action_type: s for s in specs
+        }
 
     def __getattr__(self, name: str) -> ActionSpec:
         try:
@@ -56,7 +57,7 @@ class ActionSpecRegistry:
     def __getitem__(self, key: Union[ActionType, str]) -> ActionSpec:
         if isinstance(key, str):
             return self._by_name[key]
-        return self._by_id[key]
+        return self._by_action_type[key]
 
     def __iter__(self) -> Iterator[ActionSpec]:
         return iter(self._list)
@@ -65,7 +66,7 @@ class ActionSpecRegistry:
         return len(self._list)
 
     def __contains__(self, key: object) -> bool:
-        return key in self._by_name or key in self._by_id
+        return key in self._by_name or key in self._by_action_type
 
 
 def _arity_from_args(args: tuple[ArgSpec, ...]) -> tuple[int, Optional[int]]:
@@ -80,22 +81,11 @@ def _arity_from_args(args: tuple[ArgSpec, ...]) -> tuple[int, Optional[int]]:
 
 def create_action_spec(action_type: ActionType, *args: ArgSpec) -> ActionSpec:
     return ActionSpec(
-        id=action_type, name=action_type.name, args=args, arity=_arity_from_args(args)
+        action_type=action_type,
+        name=action_type.name,
+        args=args,
+        arity=_arity_from_args(args),
     )
-
-
-# Per-slot description strings
-_HAND_POS = "position in state.combat.card_pile_hand"
-_MONSTER_POS = "position in the alive-monster list at dispatch time"
-_REWARD_BUNDLE_POS = "bundle in state.reward.cards"
-_REWARD_POS = "card within the bundle"
-_REWARD_RELIC_POS = "slot in state.reward.relics"
-_MAP_COL = "column on the next map row (0..MAP_WIDTH)"
-_POTION_POS = "position in state.potions"
-_REWARD_POTION_POS = "slot in state.reward.potions"
-_SHOP_CARD_POS = "position in state.shop.cards"
-_SHOP_RELIC_POS = "position in state.shop.relics"
-_SHOP_POTION_POS = "position in state.shop.potions"
 
 
 # Action spec registry
@@ -103,27 +93,34 @@ ACTION_SPEC_REGISTRY = ActionSpecRegistry(
     [
         create_action_spec(
             ActionType.CardPlay,
-            ArgSpec("idx_card", _HAND_POS),
-            ArgSpec("idx_monster", _MONSTER_POS, optional=True),
+            ArgSpec("id_card"),
+            ArgSpec("id_monster", optional=True),
         ),
         create_action_spec(ActionType.ChestOpen),
-        create_action_spec(
-            ActionType.EffectPendingResolve,
-            ArgSpec(
-                "idx",
-                "position in the collection named by state.effect_pending.target.candidate_pool "
-                "(a card_pile_* list, relic_event_roll or potion_event_roll)",
-            ),
-        ),
+        # Halting operations: a pending halt's selection, one per operation
+        create_action_spec(ActionType.BonfireOffer, ArgSpec("id_card")),
+        create_action_spec(ActionType.CardAdopt, ArgSpec("id_card")),
+        create_action_spec(ActionType.CardBottle, ArgSpec("id_card")),
+        create_action_spec(ActionType.CardDiscard, ArgSpec("id_card")),
+        create_action_spec(ActionType.CardDiscoverPick, ArgSpec("id_card")),
+        create_action_spec(ActionType.CardDuplicate, ArgSpec("id_card")),
+        create_action_spec(ActionType.CardExhaust, ArgSpec("id_card")),
+        create_action_spec(ActionType.CardMove, ArgSpec("id_card")),
+        create_action_spec(ActionType.CardNightmarePick, ArgSpec("id_card")),
+        create_action_spec(ActionType.CardPurge, ArgSpec("id_card")),
+        create_action_spec(ActionType.CardRetain, ArgSpec("id_card")),
+        create_action_spec(ActionType.CardSetupPick, ArgSpec("id_card")),
+        create_action_spec(ActionType.CardTransform, ArgSpec("id_card")),
+        create_action_spec(ActionType.CardUpgrade, ArgSpec("id_card")),
+        create_action_spec(ActionType.MatchFlipSeen, ArgSpec("id_card")),
+        create_action_spec(ActionType.RelicLose, ArgSpec("id_relic")),
         create_action_spec(ActionType.PickSkip),
-        create_action_spec(
-            ActionType.EventOptionSelect, ArgSpec("idx", "position in state.event.options")
-        ),
-        create_action_spec(ActionType.PotionDiscard, ArgSpec("idx_potion", _POTION_POS)),
+        create_action_spec(ActionType.EventOptionSelect, ArgSpec("id_option")),
+        create_action_spec(ActionType.PotionDiscard, ArgSpec("id_potion")),
         create_action_spec(
             ActionType.PotionUse,
-            ArgSpec("idx_potion", _POTION_POS),
-            ArgSpec("idx_monster", _MONSTER_POS, optional=True),
+            ArgSpec("id_potion"),
+            ArgSpec("id_monster", optional=True),
         ),
         create_action_spec(ActionType.Rest),
         create_action_spec(ActionType.RestDig),
@@ -131,26 +128,18 @@ ACTION_SPEC_REGISTRY = ActionSpecRegistry(
         create_action_spec(ActionType.RestSmith),
         create_action_spec(ActionType.RestToke),
         # Reward pickup family
-        create_action_spec(
-            ActionType.RewardSingingBowl, ArgSpec("idx_bundle", _REWARD_BUNDLE_POS)
-        ),
-        create_action_spec(
-            ActionType.RewardTakeCard,
-            ArgSpec("idx_bundle", _REWARD_BUNDLE_POS),
-            ArgSpec("idx_card", _REWARD_POS),
-        ),
+        create_action_spec(ActionType.RewardSingingBowl, ArgSpec("id_card")),
+        create_action_spec(ActionType.RewardTakeCard, ArgSpec("id_card")),
         create_action_spec(ActionType.RewardTakeGold),
         create_action_spec(ActionType.RewardTakeGoldStolen),
-        create_action_spec(
-            ActionType.RewardTakePotion, ArgSpec("idx", _REWARD_POTION_POS)
-        ),
-        create_action_spec(ActionType.RewardTakeRelic, ArgSpec("idx", _REWARD_RELIC_POS)),
-        create_action_spec(ActionType.RoomSelect, ArgSpec("idx", _MAP_COL)),
+        create_action_spec(ActionType.RewardTakePotion, ArgSpec("id_potion")),
+        create_action_spec(ActionType.RewardTakeRelic, ArgSpec("id_relic")),
+        create_action_spec(ActionType.RoomSelect, ArgSpec("id_room")),
         create_action_spec(ActionType.RoomExit),
         # Shop
-        create_action_spec(ActionType.ShopBuyCard, ArgSpec("idx", _SHOP_CARD_POS)),
-        create_action_spec(ActionType.ShopBuyRelic, ArgSpec("idx", _SHOP_RELIC_POS)),
-        create_action_spec(ActionType.ShopBuyPotion, ArgSpec("idx", _SHOP_POTION_POS)),
+        create_action_spec(ActionType.ShopBuyCard, ArgSpec("id_card")),
+        create_action_spec(ActionType.ShopBuyRelic, ArgSpec("id_relic")),
+        create_action_spec(ActionType.ShopBuyPotion, ArgSpec("id_potion")),
         create_action_spec(ActionType.ShopPurge),
         create_action_spec(ActionType.TurnEnd),
     ]
@@ -165,6 +154,7 @@ Action = _rs.Action
 Card = _rs.Card
 Character = _rs.Character
 Energy = _rs.Energy
+EventOption = _rs.EventOption
 GameState = _rs.GameState
 Intent = _rs.Intent
 Map = _rs.Map
@@ -507,6 +497,7 @@ __all__ = [
     "Card",
     "Character",
     "Energy",
+    "EventOption",
     "GameState",
     "Intent",
     "Map",
