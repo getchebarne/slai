@@ -1,7 +1,7 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::RelicExclusion;
-use crate::effect::RelicPick;
+use crate::effect::RelicRoll;
 use crate::effect::Target;
 use crate::events::EFFECT_EVENT_ADVANCE;
 use crate::events::EFFECT_EVENT_CONSUME;
@@ -39,7 +39,7 @@ const fn take_book(damage: u16) -> [Effect; 3] {
         EFFECT_EVENT_CONSUME,
         Effect {
             kind: EffectKind::RewardRollRelic {
-                pick: RelicPick::Pool(BOOK_POOL),
+                roll: RelicRoll::Pool(BOOK_POOL),
                 exclusion: RelicExclusion::Unfiltered,
             },
             id_source: None,

@@ -213,7 +213,7 @@ pub fn get_random_potion_name(rng: &mut impl Rng, limited: bool) -> PotionName {
     } else {
         POOL_RARE_POTION
     };
-    // The rarity is fixed; only the pick within it re-rolls past Fruit Juice
+    // The rarity is fixed; only the Potion within it re-rolls past Fruit Juice
     loop {
         let name = pool[rng.random_range(0..pool.len())];
         if !(limited && name == PotionName::FruitJuice) {

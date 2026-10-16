@@ -107,7 +107,7 @@ fn queue_pickup_effects(state: &mut GameState, id_relic: usize) {
 
         // Calling Bell: gain Curse of the Bell plus a Common, an Uncommon, and a Rare Relic
         RelicName::CallingBell => {
-            // The bell arrives from the boss chest's closed pick or Neow's consumed blessing
+            // The bell arrives from the boss chest's closed selection or Neow's consumed blessing
             assert!(
                 !state.reward.active
                     && ((state.chest.active && state.chest.chest_kind == ChestKind::Boss)

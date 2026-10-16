@@ -10,7 +10,7 @@ use crate::action::recompute_legal_actions;
 use crate::character::get_silent_starter_deck;
 use crate::character::spawn_silent;
 use crate::consts::BOSS_RELIC_REWARD_COUNT;
-use crate::consts::DISCOVER_PICK_COUNT;
+use crate::consts::DISCOVER_ROLL_COUNT;
 use crate::consts::ENCOUNTER_POOL_CAPACITY_ELITE;
 use crate::consts::ENCOUNTER_POOL_CAPACITY_NORMAL;
 use crate::consts::MAP_HEIGHT;
@@ -40,7 +40,7 @@ use crate::events::pools_for_act;
 use crate::events::spawn_event;
 use crate::map::generate_map;
 use crate::monsters::encounters::generate_act_monsters;
-use crate::monsters::encounters::pick_boss;
+use crate::monsters::encounters::roll_boss;
 use crate::relics::POOL_BOSS_RELIC;
 use crate::relics::POOL_COMMON_RELIC;
 use crate::relics::POOL_RARE_RELIC;
@@ -84,7 +84,7 @@ pub struct GameState {
     // Per-resolve candidate buffer; cleared before each use
     pub effect_candidate_buf: Vec<usize>,
 
-    // Halt overlay; cleared by the action handler that supplies the pick
+    // Halt overlay; cleared by the action handler that supplies the selection
     pub effect_pending: Option<Effect>,
     pub id_card_pile_selected: Vec<usize>,
 
@@ -154,7 +154,7 @@ pub struct GameState {
     // When set, step auto-applies any forced move (exactly one legal action) until a real choice appears
     pub fast_mode: bool,
 
-    // When set, the run opens on Neow's blessing before the first map pick
+    // When set, the run opens on Neow's blessing before the first Room selection
     pub neow: bool,
 }
 
@@ -204,7 +204,7 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
         &mut encounter_pool_elite,
         &mut rng,
     );
-    let encounter_boss = pick_boss(1, &mut rng);
+    let encounter_boss = roll_boss(1, &mut rng);
 
     // Act-1 event pools
     let (pool_events, pool_event_special) = pools_for_act(1);
@@ -225,7 +225,7 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
         shuffle(pool, &mut rng);
     }
 
-    // Start unhalted on Focus::Map; the empty queue drains and legal_actions_map enumerates row-0 picks
+    // Start unhalted on Focus::Map; the empty queue drains and fill_legal_actions_map enumerates the row-0 Room selections
     let effect_queue = VecDeque::with_capacity(64);
 
     let mut state = GameState {
@@ -273,10 +273,10 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
             id_card_pile_exhaust: Vec::with_capacity(MAX_SIZE_DECK),
             id_monsters: [None; MAX_MONSTERS],
             id_card_pile_stasis: [None; MAX_MONSTERS],
-            id_monster_picked: None,
+            id_monster_selected: None,
             id_card_last_drawn: None,
             id_card_pile_nightmare: Vec::new(),
-            id_card_pile_discover: Vec::with_capacity(DISCOVER_PICK_COUNT as usize),
+            id_card_pile_discover: Vec::with_capacity(DISCOVER_ROLL_COUNT as usize),
             id_card_origins: Vec::new(),
             energy: Energy {
                 energy_current: 0,
@@ -309,7 +309,7 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
             gold_stolen: None,
             relics_exclusive: false,
             cards_forced: false,
-            closes_on_pick: false,
+            closes_on_selection: false,
         },
         event: Event {
             active: false,
@@ -346,7 +346,6 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
             active: false,
             chest_kind: ChestKind::Small,
             chest_opened: false,
-            chest_relics_seen: false,
             id_relics: Vec::with_capacity(BOSS_RELIC_REWARD_COUNT),
         },
         game_over: false,
@@ -364,7 +363,7 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
         state.event.active = true;
     }
 
-    // Settle on the resting focus — Neow's options, or the initial row-0 Room picks
+    // Settle on the resting focus — Neow's options, or the initial row-0 Room selections
     recompute_legal_actions(&mut state);
     state
 }

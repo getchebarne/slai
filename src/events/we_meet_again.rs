@@ -116,7 +116,7 @@ pub fn catalog(_ascension: u8) -> &'static [EventOptionTemplate] {
     &EOTS_BASE
 }
 
-// Spawn rolls the picks and the ask, then bakes them into the options
+// Spawn rolls the offers and the ask, then bakes them into the options
 pub fn spawn(state: &mut GameState) -> Vec<usize> {
     // Card offer: uniform among non-Basic, non-Curse deck Cards
     let id_card_eligible: Vec<usize> = state

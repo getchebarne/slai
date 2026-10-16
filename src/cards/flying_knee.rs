@@ -3,7 +3,7 @@ use crate::cards::make_card_template;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::TARGET_CHARACTER;
-use crate::effect::TARGET_MONSTER_PICKED;
+use crate::effect::TARGET_MONSTER_SELECTED;
 use crate::entity::CardCostKind;
 use crate::entity::PlayRestriction;
 use crate::modifier::ModifierKind;
@@ -31,7 +31,7 @@ pub static FLYING_KNEE: CardTemplate = make_card_template(
                 lifesteal: false,
             },
             id_source: None,
-            target: TARGET_MONSTER_PICKED,
+            target: TARGET_MONSTER_SELECTED,
         },
         Effect {
             kind: EffectKind::ModifierDelta {

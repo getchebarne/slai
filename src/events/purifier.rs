@@ -1,5 +1,5 @@
 use crate::effect::Effect;
-use crate::events::EFFECT_DECK_PURGE_PICK_1;
+use crate::events::EFFECT_DECK_PURGE_SELECT_1;
 use crate::events::EFFECT_EVENT_CONSUME;
 use crate::events::EOT_LEAVE;
 use crate::events::EventOptionTemplate;
@@ -7,14 +7,14 @@ use crate::events::bake_options;
 use crate::events::make_event_option_template;
 use crate::game::GameState;
 
-// Pray; consume first, so the pick lands over the spent event
-const OPTION_PRAY: &[Effect] = &[EFFECT_EVENT_CONSUME, EFFECT_DECK_PURGE_PICK_1];
+// Pray; consume first, so the selection lands over the spent event
+const OPTION_PRAY: &[Effect] = &[EFFECT_EVENT_CONSUME, EFFECT_DECK_PURGE_SELECT_1];
 
 // Leave
 pub static EOTS_BASE: &[EventOptionTemplate] =
     &[make_event_option_template(OPTION_PRAY), EOT_LEAVE];
 
-// Pray stays open with nothing to purge; its empty pick resolves to nothing
+// Pray stays open with nothing to purge; its empty selection resolves to nothing
 pub fn option_available(_state: &GameState, idx: usize) -> bool {
     match idx {
         0 | 1 => true,

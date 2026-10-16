@@ -10,7 +10,7 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::ReadAt;
 use crate::effect::RelicExclusion;
-use crate::effect::RelicPick;
+use crate::effect::RelicRoll;
 use crate::effect::Rounding;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
@@ -35,7 +35,7 @@ pub fn process_effect_wheel_spin(state: &mut GameState) {
         // The Relic is staged as a reward the player may leave
         1 => Effect {
             kind: EffectKind::RewardRollRelic {
-                pick: RelicPick::Thresholds {
+                roll: RelicRoll::Thresholds {
                     th_common: RELIC_TIER_TH_COMMON,
                     th_uncommon: RELIC_TIER_TH_UNCOMMON,
                 },

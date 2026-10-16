@@ -1,7 +1,7 @@
 use crate::effect::Effect;
-use crate::events::EFFECT_DECK_PURGE_PICK_1;
-use crate::events::EFFECT_DECK_TRANSFORM_PICK_1;
-use crate::events::EFFECT_DECK_UPGRADE_PICK_1;
+use crate::events::EFFECT_DECK_PURGE_SELECT_1;
+use crate::events::EFFECT_DECK_TRANSFORM_SELECT_1;
+use crate::events::EFFECT_DECK_UPGRADE_SELECT_1;
 use crate::events::EFFECT_EVENT_CONSUME;
 use crate::events::EOT_LEAVE;
 use crate::events::EventOptionTemplate;
@@ -11,14 +11,14 @@ use crate::events::deck_has_upgradable;
 use crate::events::make_event_option_template;
 use crate::game::GameState;
 
-// Forget; each option consumes first, so its pick lands over the spent event
-const OPTION_FORGET: &[Effect] = &[EFFECT_EVENT_CONSUME, EFFECT_DECK_PURGE_PICK_1];
+// Forget; each option consumes first, so its selection lands over the spent event
+const OPTION_FORGET: &[Effect] = &[EFFECT_EVENT_CONSUME, EFFECT_DECK_PURGE_SELECT_1];
 
 // Change
-const OPTION_CHANGE: &[Effect] = &[EFFECT_EVENT_CONSUME, EFFECT_DECK_TRANSFORM_PICK_1];
+const OPTION_CHANGE: &[Effect] = &[EFFECT_EVENT_CONSUME, EFFECT_DECK_TRANSFORM_SELECT_1];
 
 // Grow
-const OPTION_GROW: &[Effect] = &[EFFECT_EVENT_CONSUME, EFFECT_DECK_UPGRADE_PICK_1];
+const OPTION_GROW: &[Effect] = &[EFFECT_EVENT_CONSUME, EFFECT_DECK_UPGRADE_SELECT_1];
 
 // The last row is Grow's stand-in when nothing is purgeable
 pub static EOTS_BASE: &[EventOptionTemplate] = &[
@@ -28,7 +28,7 @@ pub static EOTS_BASE: &[EventOptionTemplate] = &[
     EOT_LEAVE,
 ];
 
-// Forget and Change stay open with nothing to purge; their empty picks resolve to nothing
+// Forget and Change stay open with nothing to purge; their empty selections resolve to nothing
 pub fn option_available(state: &GameState, idx: usize) -> bool {
     match idx {
         0 | 1 => true,

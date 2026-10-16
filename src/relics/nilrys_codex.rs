@@ -1,8 +1,8 @@
-use crate::consts::DISCOVER_PICK_COUNT;
+use crate::consts::DISCOVER_ROLL_COUNT;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::effect::effect_discover_pick;
+use crate::effect::effect_discover_select;
 use crate::relics::RelicTemplate;
 use crate::types::CardColor;
 use crate::types::CardPile;
@@ -25,12 +25,12 @@ pub static NILRYS_CODEX: RelicTemplate = RelicTemplate {
                 kind: None,
                 color: CardColor::Green,
                 exclude: &[],
-                count: DISCOVER_PICK_COUNT,
+                count: DISCOVER_ROLL_COUNT,
             },
             id_source: None,
             target: Target::Direct(None),
         },
-        effect_discover_pick(None, CardPile::Draw, 1, true),
+        effect_discover_select(None, CardPile::Draw, 1, true),
     ],
     effects_combat_end: &[],
     effects_pickup: &[],

@@ -54,7 +54,7 @@ pub enum Action {
     EventOptionSelect {
         id_option: usize,
     },
-    PickSkip,
+    SelectionSkip,
     PotionDiscard {
         id_potion: usize,
     },
@@ -110,7 +110,7 @@ pub enum Action {
     CardDiscard {
         id_card: usize,
     },
-    CardDiscoverPick {
+    CardDiscoverSelect {
         id_card: usize,
     },
     CardDuplicate {
@@ -122,7 +122,7 @@ pub enum Action {
     CardMove {
         id_card: usize,
     },
-    CardNightmarePick {
+    CardNightmareSelect {
         id_card: usize,
     },
     CardPurge {
@@ -131,7 +131,7 @@ pub enum Action {
     CardRetain {
         id_card: usize,
     },
-    CardSetupPick {
+    CardSetupSelect {
         id_card: usize,
     },
     CardTransform {
@@ -165,7 +165,7 @@ pub fn handle_action(state: &mut GameState, action: Action) -> Result<(), String
         } => handle_card_play(state, id_card, id_monster),
         Action::ChestOpen => handle_chest_open(state),
         Action::EventOptionSelect { id_option } => handle_event_option_select(state, id_option),
-        Action::PickSkip => handle_pick_skip(state),
+        Action::SelectionSkip => handle_selection_skip(state),
         Action::PotionDiscard { id_potion } => handle_potion_discard(state, id_potion),
         Action::PotionUse {
             id_potion,
@@ -199,14 +199,14 @@ pub fn handle_action(state: &mut GameState, action: Action) -> Result<(), String
         | Action::CardAdopt { id_card: id }
         | Action::CardBottle { id_card: id }
         | Action::CardDiscard { id_card: id }
-        | Action::CardDiscoverPick { id_card: id }
+        | Action::CardDiscoverSelect { id_card: id }
         | Action::CardDuplicate { id_card: id }
         | Action::CardExhaust { id_card: id }
         | Action::CardMove { id_card: id }
-        | Action::CardNightmarePick { id_card: id }
+        | Action::CardNightmareSelect { id_card: id }
         | Action::CardPurge { id_card: id }
         | Action::CardRetain { id_card: id }
-        | Action::CardSetupPick { id_card: id }
+        | Action::CardSetupSelect { id_card: id }
         | Action::CardTransform { id_card: id }
         | Action::CardUpgrade { id_card: id }
         | Action::MatchFlipSeen { id_card: id }
@@ -235,10 +235,10 @@ pub fn recompute_legal_actions(state: &mut GameState) {
         };
         fill_legal_actions_effect_pending(state, effect_pending.kind, filters, candidate_pool);
         if matches!(selection_kind, SelectionKind::InputUpTo { .. }) {
-            state.legal_actions.push(Action::PickSkip);
+            state.legal_actions.push(Action::SelectionSkip);
         }
 
-        // A pick leaves the belt usable: any discard, and a drink that needs no target
+        // A selection leaves the belt usable: any discard, and a drink that needs no target
         push_potion_actions(state);
         return;
     }
@@ -260,14 +260,14 @@ fn selection_action(kind: EffectKind, id: usize) -> Action {
         EffectKind::CardAdopt { .. } => Action::CardAdopt { id_card: id },
         EffectKind::CardBottle => Action::CardBottle { id_card: id },
         EffectKind::CardDiscard { .. } => Action::CardDiscard { id_card: id },
-        EffectKind::CardDiscoverPick { .. } => Action::CardDiscoverPick { id_card: id },
+        EffectKind::CardDiscoverSelect { .. } => Action::CardDiscoverSelect { id_card: id },
         EffectKind::CardDuplicate { .. } => Action::CardDuplicate { id_card: id },
         EffectKind::CardExhaust => Action::CardExhaust { id_card: id },
         EffectKind::CardMove { .. } => Action::CardMove { id_card: id },
-        EffectKind::CardNightmarePick => Action::CardNightmarePick { id_card: id },
+        EffectKind::CardNightmareSelect => Action::CardNightmareSelect { id_card: id },
         EffectKind::CardPurge | EffectKind::RestToke => Action::CardPurge { id_card: id },
         EffectKind::CardRetain => Action::CardRetain { id_card: id },
-        EffectKind::CardSetupPick { .. } => Action::CardSetupPick { id_card: id },
+        EffectKind::CardSetupSelect { .. } => Action::CardSetupSelect { id_card: id },
         EffectKind::CardTransform { .. } => Action::CardTransform { id_card: id },
         EffectKind::CardUpgrade | EffectKind::RestSmith => Action::CardUpgrade { id_card: id },
         EffectKind::MatchFlipSeen => Action::MatchFlipSeen { id_card: id },
@@ -276,7 +276,7 @@ fn selection_action(kind: EffectKind, id: usize) -> Action {
     }
 }
 
-// Stages the selected id; the last selection flushes every staged id
+// Stages the selected id while selections remain; the last one applies right after the staged ids
 fn handle_selection(state: &mut GameState, id_selected: usize) {
     // Validate there's a pending `Effect` and, if so, take it
     let effect_pending = state
@@ -294,21 +294,25 @@ fn handle_selection(state: &mut GameState, id_selected: usize) {
         unreachable!("effect_pending carries a Resolve target")
     };
 
-    // Stage the selected `Entity` ID; nothing applies until the selection closes
-    state.id_card_pile_selected.push(id_selected);
-
     let remaining = match selection_kind {
         SelectionKind::Input { count } | SelectionKind::InputUpTo { count } => {
             count.saturating_sub(1)
         }
-        _ => panic!("Pending pick carries an Input halt"),
+        _ => panic!("A pending selection carries an Input halt"),
     };
     if remaining == 0 {
-        flush_pending_picks(state, effect_pending.kind, effect_pending.id_source);
+        flush_card_pile_selected(state, effect_pending.kind, effect_pending.id_source);
+        state.effect_buf.push(Effect {
+            target: Target::Direct(Some(id_selected)),
+            ..effect_pending
+        });
         return;
     }
 
-    // Re-park with the remaining count; staged picks stay out of the pool
+    // Stage the selected `Entity` ID; nothing applies until the selection closes
+    state.id_card_pile_selected.push(id_selected);
+
+    // Re-park with the remaining count; staged selections stay out of the pool
     let selection_kind = match selection_kind {
         SelectionKind::Input { .. } => SelectionKind::Input { count: remaining },
         _ => SelectionKind::InputUpTo { count: remaining },
@@ -324,8 +328,8 @@ fn handle_selection(state: &mut GameState, id_selected: usize) {
     });
 }
 
-// One Direct effect per staged pick, in pick order
-fn flush_pending_picks(state: &mut GameState, kind: EffectKind, id_source: Option<usize>) {
+// One Direct effect per staged selection, in selection order
+fn flush_card_pile_selected(state: &mut GameState, kind: EffectKind, id_source: Option<usize>) {
     for &id in &state.id_card_pile_selected {
         state.effect_buf.push(Effect {
             kind,
@@ -336,28 +340,28 @@ fn flush_pending_picks(state: &mut GameState, kind: EffectKind, id_source: Optio
     state.id_card_pile_selected.clear();
 }
 
-// Ends an InputUpTo halt early; staged picks apply, the remainder is forfeited
-fn handle_pick_skip(state: &mut GameState) {
+// Ends an InputUpTo halt early; staged selections apply, the remainder is forfeited
+fn handle_selection_skip(state: &mut GameState) {
     let effect_pending = state
         .effect_pending
         .take()
-        .expect("PickSkip requires a pending effect");
+        .expect("SelectionSkip requires a pending effect");
 
-    // A skipped discover pick still runs, with no Card, so its rolled Cards are cleared
-    if matches!(effect_pending.kind, EffectKind::CardDiscoverPick { .. }) {
+    // A skipped discover selection still runs, with no Card, so its rolled Cards are cleared
+    if matches!(effect_pending.kind, EffectKind::CardDiscoverSelect { .. }) {
         state.effect_buf.push(Effect {
             target: Target::Direct(None),
             ..effect_pending
         });
     }
-    flush_pending_picks(state, effect_pending.kind, effect_pending.id_source);
+    flush_card_pile_selected(state, effect_pending.kind, effect_pending.id_source);
 }
 
 fn handle_card_play(state: &mut GameState, id_card: usize, id_monster: Option<usize>) {
     assert!(state.combat.active, "handle_card_play outside combat");
     let energy = state.combat.energy.energy_current;
 
-    // The play carries its own target: the picked Monster, if the Card needs one
+    // The play carries its own target: the selected Monster, if the Card needs one
     state.card_play_queue.push_back(CardPlay {
         id_card,
         id_target: id_monster,
@@ -398,23 +402,23 @@ fn handle_potion_discard(state: &mut GameState, id_potion: usize) {
         target: Target::Direct(Some(id_potion)),
     });
 
-    // At a pick, the pick halts again behind the Potion
+    // At a selection, the selection halts again behind the Potion
     if let Some(effect_pending) = state.effect_pending.take() {
         state.effect_buf.push(effect_pending);
     }
 }
 
 fn handle_potion_use(state: &mut GameState, id_potion: usize, id_monster: Option<usize>) {
-    // The use carries its own target: the picked Monster, if the Potion needs one
+    // The use carries its own target: the selected Monster, if the Potion needs one
     state.effect_buf.push(Effect {
         kind: EffectKind::PotionUse {
-            at_pick: state.effect_pending.is_some(),
+            at_selection: state.effect_pending.is_some(),
         },
         id_source: Some(id_potion),
         target: Target::Direct(id_monster),
     });
 
-    // At a pick, the pick halts again behind the Potion
+    // At a selection, the selection halts again behind the Potion
     if let Some(effect_pending) = state.effect_pending.take() {
         state.effect_buf.push(effect_pending);
     }
@@ -469,7 +473,7 @@ fn handle_rest_lift(state: &mut GameState) {
     push_rest_site_consume(state);
 }
 
-// Peace Pipe: spend the rest on purging a Card; skipping the deck pick cancels back to the site
+// Peace Pipe: spend the rest on purging a Card; the deck selection can't be skipped
 fn handle_rest_toke(state: &mut GameState) {
     state.effect_buf.push(Effect {
         kind: EffectKind::RestToke,
@@ -477,12 +481,12 @@ fn handle_rest_toke(state: &mut GameState) {
         target: Target::Resolve {
             candidate_pool: CandidatePool::CardPileDeck,
             filters: &[CandidateFilter::NotBottled, CandidateFilter::NotBoundCurse],
-            selection_kind: SelectionKind::InputUpTo { count: 1 },
+            selection_kind: SelectionKind::Input { count: 1 },
         },
     });
 }
 
-// Smith mirrors Toke: the picked Card is upgraded, and a skip cancels back to the site
+// Smith: the selected Card is upgraded; the deck selection can't be skipped
 fn handle_rest_smith(state: &mut GameState) {
     state.effect_buf.push(Effect {
         kind: EffectKind::RestSmith,
@@ -490,7 +494,7 @@ fn handle_rest_smith(state: &mut GameState) {
         target: Target::Resolve {
             candidate_pool: CandidatePool::CardPileDeck,
             filters: &[CandidateFilter::Upgradeable],
-            selection_kind: SelectionKind::InputUpTo { count: 1 },
+            selection_kind: SelectionKind::Input { count: 1 },
         },
     });
 }
@@ -576,9 +580,9 @@ fn fill_legal_actions_effect_pending(
     pool: CandidatePool,
 ) {
     // Get `CandidatePool`'s instanced IDs
-    let mut survivors = Vec::new();
+    let mut id_candidates = Vec::new();
     fill_buf_candidates(
-        &mut survivors,
+        &mut id_candidates,
         pool,
         None,
         state.id_character,
@@ -587,9 +591,9 @@ fn fill_legal_actions_effect_pending(
         &state.id_card_pile_deck,
     );
 
-    // Apply the filters over the whole set; staged picks are out of the running
-    filter_candidates(filters, &mut survivors, &state.entities, None);
-    for id in survivors {
+    // Apply the filters over the whole set; staged selections are out of the running
+    filter_candidates(filters, &mut id_candidates, &state.entities, None);
+    for id in id_candidates {
         if !state.id_card_pile_selected.contains(&id) {
             state.legal_actions.push(selection_action(kind, id));
         }
@@ -767,7 +771,7 @@ fn fill_legal_actions_shop(state: &mut GameState) {
         }
     }
 
-    // Purge: pay-then-pick, so one gated entry; the halt lists the candidates
+    // Purge: pay-then-select, so one gated entry; the halt lists the candidates
     if !*purged
         && gold >= *purge_cost
         && state
@@ -841,7 +845,7 @@ fn fill_legal_actions_rest_site(state: &mut GameState) {
     push_potion_actions(state);
 }
 
-// An opened chest cannot be opened again (the boss chest after its pick)
+// An opened chest cannot be opened again (the boss chest after its selection)
 fn fill_legal_actions_chest(state: &mut GameState) {
     if !state.chest.chest_opened {
         state.legal_actions.push(Action::ChestOpen);
@@ -887,8 +891,8 @@ fn push_potion_actions(state: &mut GameState) {
     } else {
         (false, 0)
     };
-    // A pick takes no aimed drink
-    let at_pick = state.effect_pending.is_some();
+    // A selection takes no aimed drink
+    let at_selection = state.effect_pending.is_some();
     let turn_ended = in_combat && state.combat.turn_ended;
 
     // A Room's event holds until the next Room is entered, even after its screen closes
@@ -940,7 +944,7 @@ fn push_potion_actions(state: &mut GameState) {
 
         // Target-requiring Potions
         if entity_requires_target(potion) {
-            if in_combat && !at_pick {
+            if in_combat && !at_selection {
                 for &id_monster in state.combat.id_monsters.iter().flatten() {
                     state.legal_actions.push(Action::PotionUse {
                         id_potion,

@@ -11,7 +11,7 @@ use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::RelicExclusion;
-use crate::effect::RelicPick;
+use crate::effect::RelicRoll;
 use crate::effect::RewardRollTrigger;
 use crate::effect::Target;
 use crate::events::fight_loot;
@@ -56,18 +56,18 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
     // Smoke Bomb: no rewards, unless a thief got away first
     if escaped_character && !thief_escaped {
         // The Relics the fight drops are still drawn, and lost for the run
-        for (pick, exclusion) in relic_drops(state) {
-            let tier = match pick {
-                RelicPick::Thresholds {
+        for (roll, exclusion) in relic_drops(state) {
+            let tier = match roll {
+                RelicRoll::Thresholds {
                     th_common,
                     th_uncommon,
                 } => {
                     relic_tier_by_roll(state.rng.random_range(0..100) as u8, th_common, th_uncommon)
                 }
-                RelicPick::Tier(tier) => tier,
+                RelicRoll::Tier(tier) => tier,
 
-                // A named or pool pick takes nothing from the tier pools
-                RelicPick::Pool(_) | RelicPick::Name(_) => continue,
+                // A named or pool roll takes nothing from the tier pools
+                RelicRoll::Pool(_) | RelicRoll::Name(_) => continue,
             };
             draw_relic_excluding(state, tier, exclusion);
         }
@@ -111,8 +111,8 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
                     trigger: RewardRollTrigger::EventFight,
                 },
             );
-            for (pick, exclusion) in relic_drops(state) {
-                queue_effect_untargeted(state, EffectKind::RewardRollRelic { pick, exclusion });
+            for (roll, exclusion) in relic_drops(state) {
+                queue_effect_untargeted(state, EffectKind::RewardRollRelic { roll, exclusion });
             }
             queue_effect_untargeted(
                 state,
@@ -182,8 +182,8 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
                 _ => RewardRollTrigger::CombatMonster,
             };
             queue_effect_untargeted(state, EffectKind::RewardRollCards { bundles, trigger });
-            for (pick, exclusion) in relic_drops(state) {
-                queue_effect_untargeted(state, EffectKind::RewardRollRelic { pick, exclusion });
+            for (roll, exclusion) in relic_drops(state) {
+                queue_effect_untargeted(state, EffectKind::RewardRollRelic { roll, exclusion });
             }
             queue_effect_untargeted(state, EffectKind::RewardRollPotions { count: 1, trigger });
 
@@ -202,7 +202,7 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
 }
 
 // The Relics a fight drops: its event's staked loot, or an Elite's
-fn relic_drops(state: &GameState) -> Vec<(RelicPick, RelicExclusion)> {
+fn relic_drops(state: &GameState) -> Vec<(RelicRoll, RelicExclusion)> {
     if state.event.active {
         let Some(loot) = fight_loot(&state.event) else {
             return Vec::new();
@@ -211,7 +211,7 @@ fn relic_drops(state: &GameState) -> Vec<(RelicPick, RelicExclusion)> {
             .relics
             .into_iter()
             .flatten()
-            .map(|pick| (pick, RelicExclusion::Unfiltered))
+            .map(|roll| (roll, RelicExclusion::Unfiltered))
             .collect();
     }
     if get_active_room_kind(&state.id_rooms, state.location, &state.entities)
@@ -219,15 +219,15 @@ fn relic_drops(state: &GameState) -> Vec<(RelicPick, RelicExclusion)> {
     {
         return Vec::new();
     }
-    let pick = RelicPick::Thresholds {
+    let roll = RelicRoll::Thresholds {
         th_common: RELIC_TIER_TH_COMMON,
         th_uncommon: RELIC_TIER_TH_UNCOMMON,
     };
-    let mut drops = vec![(pick, RelicExclusion::Unfiltered)];
+    let mut drops = vec![(roll, RelicExclusion::Unfiltered)];
 
     // Black Star: a second drop with an independent tier roll
     if has_relic(&state.id_relics, RelicName::BlackStar) {
-        drops.push((pick, RelicExclusion::NonCampfire));
+        drops.push((roll, RelicExclusion::NonCampfire));
     }
     drops
 }

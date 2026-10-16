@@ -51,7 +51,7 @@ use crate::effect::CandidatePool;
 use crate::effect::EFFECT_ZERO;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::RelicPick;
+use crate::effect::RelicRoll;
 use crate::effect::SelectionKind;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
@@ -75,7 +75,7 @@ pub use the_joust::JOUST_PAYOUT_MURDERER;
 pub use the_joust::JOUST_PAYOUT_OWNER;
 pub use the_joust::JOUST_STAKE;
 
-pub const EFFECT_DECK_PURGE_PICK_1: Effect = Effect {
+pub const EFFECT_DECK_PURGE_SELECT_1: Effect = Effect {
     kind: EffectKind::CardPurge,
     id_source: None,
     target: Target::Resolve {
@@ -85,7 +85,7 @@ pub const EFFECT_DECK_PURGE_PICK_1: Effect = Effect {
     },
 };
 
-pub const EFFECT_DECK_UPGRADE_PICK_1: Effect = Effect {
+pub const EFFECT_DECK_UPGRADE_SELECT_1: Effect = Effect {
     kind: EffectKind::CardUpgrade,
     id_source: None,
     target: Target::Resolve {
@@ -95,7 +95,7 @@ pub const EFFECT_DECK_UPGRADE_PICK_1: Effect = Effect {
     },
 };
 
-pub const EFFECT_DECK_TRANSFORM_PICK_1: Effect = Effect {
+pub const EFFECT_DECK_TRANSFORM_SELECT_1: Effect = Effect {
     kind: EffectKind::CardTransform { upgraded: false },
     id_source: None,
     target: Target::Resolve {
@@ -154,12 +154,12 @@ pub const fn make_event_option_template(effects: &[Effect]) -> EventOptionTempla
     }
 }
 
-// The leave option and the three deck-pick effects every shrine-shaped event repeats
+// The leave option and the three deck-selection effects every shrine-shaped event repeats
 pub const EOT_LEAVE: EventOptionTemplate = make_event_option_template(&[EFFECT_EVENT_CONSUME]);
 
 // Bakes the options into the arena; processors may mutate baked amounts mid-event
 pub fn spawn_event(state: &mut GameState, name: EventName) -> Vec<usize> {
-    // Clear last visit's staged picks before this spawn stakes its own
+    // Clear last visit's staged offers before this spawn stakes its own
     event_reset(&mut state.event);
     state.event.health_max_at_open = state.entities[state.id_character].vitals.health_max;
 
@@ -274,7 +274,7 @@ fn bake_options(state: &mut GameState, options: &[EventOptionTemplate]) -> Vec<u
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct EventLoot {
     pub gold: Option<Amount>,
-    pub relics: [Option<RelicPick>; 2],
+    pub relics: [Option<RelicRoll>; 2],
 }
 
 pub fn fight_loot(event: &Event) -> Option<EventLoot> {
@@ -293,7 +293,7 @@ pub fn fight_loot(event: &Event) -> Option<EventLoot> {
                     max: 35 + gold_extra,
                 }),
                 relics: [
-                    (!event.found_relic).then_some(RelicPick::Thresholds {
+                    (!event.found_relic).then_some(RelicRoll::Thresholds {
                         th_common: RELIC_TIER_TH_COMMON,
                         th_uncommon: RELIC_TIER_TH_UNCOMMON,
                     }),

@@ -5,7 +5,7 @@ use crate::effect::ReadAt;
 use crate::effect::Rounding;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
-use crate::events::EFFECT_DECK_PURGE_PICK_1;
+use crate::events::EFFECT_DECK_PURGE_SELECT_1;
 use crate::events::EFFECT_EVENT_CONSUME;
 use crate::events::EOT_LEAVE;
 use crate::events::EventOptionTemplate;
@@ -45,7 +45,7 @@ const OPTION_HEAL: &[Effect] = &[
     EFFECT_EVENT_CONSUME,
 ];
 
-// Purify: +25 gold cost at A15; consume after the cost, so the pick lands over the spent event
+// Purify: +25 gold cost at A15; consume after the cost, so the selection lands over the spent event
 const fn purify(cost: u16) -> [Effect; 3] {
     [
         Effect {
@@ -57,7 +57,7 @@ const fn purify(cost: u16) -> [Effect; 3] {
             target: Target::Direct(None),
         },
         EFFECT_EVENT_CONSUME,
-        EFFECT_DECK_PURGE_PICK_1,
+        EFFECT_DECK_PURGE_SELECT_1,
     ]
 }
 

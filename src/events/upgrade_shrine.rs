@@ -1,5 +1,5 @@
 use crate::effect::Effect;
-use crate::events::EFFECT_DECK_UPGRADE_PICK_1;
+use crate::events::EFFECT_DECK_UPGRADE_SELECT_1;
 use crate::events::EFFECT_EVENT_CONSUME;
 use crate::events::EOT_LEAVE;
 use crate::events::EventOptionTemplate;
@@ -8,8 +8,8 @@ use crate::events::deck_has_upgradable;
 use crate::events::make_event_option_template;
 use crate::game::GameState;
 
-// Pray; consume first, so the pick lands over the spent event
-const OPTION_PRAY: &[Effect] = &[EFFECT_EVENT_CONSUME, EFFECT_DECK_UPGRADE_PICK_1];
+// Pray; consume first, so the selection lands over the spent event
+const OPTION_PRAY: &[Effect] = &[EFFECT_EVENT_CONSUME, EFFECT_DECK_UPGRADE_SELECT_1];
 
 // Leave
 pub static EOTS_BASE: &[EventOptionTemplate] =

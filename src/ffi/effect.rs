@@ -5,7 +5,7 @@ use pyo3::type_object::PyTypeInfo;
 
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::RelicPick;
+use crate::effect::RelicRoll;
 use crate::effect::Target;
 
 use super::amount::PyAmount;
@@ -32,15 +32,15 @@ mirror_enum!(PyRewardRollTrigger from RewardRollTrigger, "RewardRollTrigger", {
     Orrery, Library, NeowPotions, Cauldron, WomanInBlue, Lab, TinyHouse, CallingBell,
 });
 
-// Mirrors only EffectKind variants reachable from static Card/Monster defs or a halted pick; snapshot_effect panics on runtime-only variants
+// Mirrors only EffectKind variants reachable from static Card/Monster defs or a halted selection; snapshot_effect panics on runtime-only variants
 flat_variants!(PyEffect {
     DamagePhysical => PyEffectDamagePhysical as "EffectDamagePhysical" { amount: u16, instances: u16, lifesteal: bool, target: PyTarget },
     DamagePhysicalIfPoisoned => PyEffectDamagePhysicalIfPoisoned as "EffectDamagePhysicalIfPoisoned" { amount: u16, target: PyTarget },
     HeelHookProc => PyEffectHeelHookProc as "EffectHeelHookProc" { target: PyTarget },
     EscapePlanCheck => PyEffectEscapePlanCheck as "EffectEscapePlanCheck" { block: u16, target: PyTarget },
     GlassKnifeDecay => PyEffectGlassKnifeDecay as "EffectGlassKnifeDecay" { delta: i16, target: PyTarget },
-    CardSetupPick => PyEffectCardSetupPick as "EffectCardSetupPick" { free: bool, bottom: bool, target: PyTarget },
-    CardNightmarePick => PyEffectCardNightmarePick as "EffectCardNightmarePick" { target: PyTarget },
+    CardSetupSelect => PyEffectCardSetupSelect as "EffectCardSetupSelect" { free: bool, bottom: bool, target: PyTarget },
+    CardNightmareSelect => PyEffectCardNightmareSelect as "EffectCardNightmareSelect" { target: PyTarget },
     DistractionAdd => PyEffectDistractionAdd as "EffectDistractionAdd",
     SetCostOverride => PyEffectSetCostOverride as "EffectSetCostOverride" { amount: u16, only_reduce: bool, random: bool, scope: PyCostScope, target: PyTarget },
     DamageFinisher => PyEffectDamageFinisher as "EffectDamageFinisher" { damage: u16, target: PyTarget },
@@ -81,7 +81,7 @@ flat_variants!(PyEffect {
     ScrapOozeReach => PyEffectScrapOozeReach as "EffectScrapOozeReach" { chance: u8, advance_on_miss: bool },
     EventConsume => PyEffectEventConsume as "EffectEventConsume",
     EventClose => PyEffectEventClose as "EffectEventClose",
-    CardDiscoverPick => PyEffectCardDiscoverPick as "EffectCardDiscoverPick" { cost_zero: Option<PyCostScope>, card_pile: PyCardPile, copies: u8, target: PyTarget },
+    CardDiscoverSelect => PyEffectCardDiscoverSelect as "EffectCardDiscoverSelect" { cost_zero: Option<PyCostScope>, card_pile: PyCardPile, copies: u8, target: PyTarget },
     CardAdopt => PyEffectCardAdopt as "EffectCardAdopt" { target: PyTarget },
     CardPileEventRollClear => PyEffectCardPileEventRollClear as "EffectCardPileEventRollClear",
     CardPurge => PyEffectCardPurge as "EffectCardPurge" { target: PyTarget },
@@ -127,14 +127,14 @@ flat_variants!(@enum PyEffectPending {
     CardAdopt => PyEffectCardAdopt,
     CardBottle => PyEffectCardBottle,
     CardDiscard => PyEffectCardDiscard,
-    CardDiscoverPick => PyEffectCardDiscoverPick,
+    CardDiscoverSelect => PyEffectCardDiscoverSelect,
     CardDuplicate => PyEffectCardDuplicate,
     CardExhaust => PyEffectCardExhaust,
     CardMove => PyEffectCardMove,
-    CardNightmarePick => PyEffectCardNightmarePick,
+    CardNightmareSelect => PyEffectCardNightmareSelect,
     CardPurge => PyEffectCardPurge,
     CardRetain => PyEffectCardRetain,
-    CardSetupPick => PyEffectCardSetupPick,
+    CardSetupSelect => PyEffectCardSetupSelect,
     CardTransform => PyEffectCardTransform,
     CardUpgrade => PyEffectCardUpgrade,
     MatchFlipSeen => PyEffectMatchFlipSeen,
@@ -149,14 +149,14 @@ pub(crate) fn snapshot_effect_pending(effect: &Effect) -> PyEffectPending {
         PyEffect::CardAdopt(v) => PyEffectPending::CardAdopt(v),
         PyEffect::CardBottle(v) => PyEffectPending::CardBottle(v),
         PyEffect::CardDiscard(v) => PyEffectPending::CardDiscard(v),
-        PyEffect::CardDiscoverPick(v) => PyEffectPending::CardDiscoverPick(v),
+        PyEffect::CardDiscoverSelect(v) => PyEffectPending::CardDiscoverSelect(v),
         PyEffect::CardDuplicate(v) => PyEffectPending::CardDuplicate(v),
         PyEffect::CardExhaust(v) => PyEffectPending::CardExhaust(v),
         PyEffect::CardMove(v) => PyEffectPending::CardMove(v),
-        PyEffect::CardNightmarePick(v) => PyEffectPending::CardNightmarePick(v),
+        PyEffect::CardNightmareSelect(v) => PyEffectPending::CardNightmareSelect(v),
         PyEffect::CardPurge(v) => PyEffectPending::CardPurge(v),
         PyEffect::CardRetain(v) => PyEffectPending::CardRetain(v),
-        PyEffect::CardSetupPick(v) => PyEffectPending::CardSetupPick(v),
+        PyEffect::CardSetupSelect(v) => PyEffectPending::CardSetupSelect(v),
         PyEffect::CardTransform(v) => PyEffectPending::CardTransform(v),
         PyEffect::CardUpgrade(v) => PyEffectPending::CardUpgrade(v),
         PyEffect::MatchFlipSeen(v) => PyEffectPending::MatchFlipSeen(v),
@@ -271,16 +271,18 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
                 target: require_target(target),
             })
         }
-        EffectKind::CardSetupPick { free, bottom } => {
-            PyEffect::CardSetupPick(PyEffectCardSetupPick {
+        EffectKind::CardSetupSelect { free, bottom } => {
+            PyEffect::CardSetupSelect(PyEffectCardSetupSelect {
                 free,
                 bottom,
                 target: require_target(target),
             })
         }
-        EffectKind::CardNightmarePick => PyEffect::CardNightmarePick(PyEffectCardNightmarePick {
-            target: require_target(target),
-        }),
+        EffectKind::CardNightmareSelect => {
+            PyEffect::CardNightmareSelect(PyEffectCardNightmareSelect {
+                target: require_target(target),
+            })
+        }
         EffectKind::DistractionAdd => PyEffect::DistractionAdd(PyEffectDistractionAdd),
         EffectKind::SetCostOverride {
             amount,
@@ -468,17 +470,17 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
         EffectKind::RestToke => PyEffect::RestToke(PyEffectRestToke {
             target: require_target(target),
         }),
-        EffectKind::CardDiscoverPick {
+        EffectKind::CardDiscoverSelect {
             cost_zero,
             card_pile,
             copies,
-        } => PyEffect::CardDiscoverPick(PyEffectCardDiscoverPick {
+        } => PyEffect::CardDiscoverSelect(PyEffectCardDiscoverSelect {
             card_pile: card_pile.into(),
             copies,
             cost_zero: cost_zero.map(|cost_scope| cost_scope.into()),
             target: require_target(target),
         }),
-        // Rows and picks hold only the first pass; the landing pass is queued at runtime
+        // Rows and halted selections hold only the first pass; the landing pass is queued at runtime
         EffectKind::CardAdopt { landing: false } => PyEffect::CardAdopt(PyEffectCardAdopt {
             target: require_target(target),
         }),
@@ -586,9 +588,9 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
             colorless,
             rare_only,
         }),
-        // Static defs stage only pool picks (Cursed Tome's book)
+        // Static defs stage only pool rolls (Cursed Tome's book)
         EffectKind::RewardRollRelic {
-            pick: RelicPick::Pool(pool),
+            roll: RelicRoll::Pool(pool),
             ..
         } => PyEffect::RewardRollRelic(PyEffectRewardRollRelic {
             pool: pool.iter().map(|&relic_name| relic_name.into()).collect(),

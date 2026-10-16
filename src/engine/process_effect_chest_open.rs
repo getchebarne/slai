@@ -19,7 +19,7 @@ use crate::consts::MATRYOSHKA_TH_UNCOMMON;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::RelicExclusion;
-use crate::effect::RelicPick;
+use crate::effect::RelicRoll;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::types::CardColor;
@@ -59,9 +59,8 @@ pub fn process_effect_chest_open(state: &mut GameState) {
                 .id_relics
                 .extend_from_slice(&state.chest.id_relics);
             state.reward.relics_exclusive = true;
-            state.reward.closes_on_pick = true;
+            state.reward.closes_on_selection = true;
             state.reward.active = true;
-            state.chest.chest_relics_seen = true;
             return;
         }
         ChestKind::Small => ChestParams {
@@ -102,9 +101,9 @@ pub fn process_effect_chest_open(state: &mut GameState) {
     }
 
     // One d100 serves the gold chance and the Relic tier, keeping them correlated
-    let roll = state.rng.random_range(0..100) as u8;
+    let d100 = state.rng.random_range(0..100) as u8;
     let gold =
-        (roll < chest_params.gold_chance).then(|| roll_gold_amount(&mut state.rng, chest_params));
+        (d100 < chest_params.gold_chance).then(|| roll_gold_amount(&mut state.rng, chest_params));
 
     // Chest gold skips Golden Idol (a combat-gold rule), so it rides the reset
     reward_reset(&mut state.reward);
@@ -128,7 +127,7 @@ pub fn process_effect_chest_open(state: &mut GameState) {
         queue_effect_untargeted(
             state,
             EffectKind::RewardRollRelic {
-                pick: RelicPick::Thresholds {
+                roll: RelicRoll::Thresholds {
                     th_common: MATRYOSHKA_TH_COMMON,
                     th_uncommon: MATRYOSHKA_TH_UNCOMMON,
                 },
@@ -138,9 +137,9 @@ pub fn process_effect_chest_open(state: &mut GameState) {
     }
 
     // The chest's own Relic, at the tier the shared roll already decided
-    let tier = if roll < chest_params.th_common {
+    let tier = if d100 < chest_params.th_common {
         RelicTier::Common
-    } else if roll < chest_params.th_uncommon {
+    } else if d100 < chest_params.th_uncommon {
         RelicTier::Uncommon
     } else {
         RelicTier::Rare
@@ -148,7 +147,7 @@ pub fn process_effect_chest_open(state: &mut GameState) {
     queue_effect_untargeted(
         state,
         EffectKind::RewardRollRelic {
-            pick: RelicPick::Tier(tier),
+            roll: RelicRoll::Tier(tier),
             exclusion: RelicExclusion::Unfiltered,
         },
     );

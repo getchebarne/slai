@@ -176,7 +176,7 @@ pub const POTION_TH_COMMON: u8 = 65;
 pub const POTION_TH_UNCOMMON: u8 = 90;
 
 // Discovery: number of Card options offered
-pub const DISCOVER_PICK_COUNT: u8 = 3;
+pub const DISCOVER_ROLL_COUNT: u8 = 3;
 
 // Neow: Cards per offer, 33% Uncommon-else-Common roll, gold amounts, Lament charge count
 pub const NEOW_CARD_COUNT: usize = 3;

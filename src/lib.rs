@@ -70,7 +70,7 @@ impl GameEnv {
     #[classattr]
     const SHOP_SLOTS_POTION: usize = consts::SHOP_SLOTS_POTION;
     #[classattr]
-    const DISCOVER_PICK_COUNT: u8 = consts::DISCOVER_PICK_COUNT;
+    const DISCOVER_ROLL_COUNT: u8 = consts::DISCOVER_ROLL_COUNT;
     #[classattr]
     const REWARD_GOLD_MAX: u16 = consts::REWARD_GOLD_MAX;
     #[classattr]
@@ -261,9 +261,9 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEffectCardDiscard;
     #[pymodule_export]
-    use super::ffi::PyEffectCardDiscoverPick;
-    #[pymodule_export]
     use super::ffi::PyEffectCardDiscoverRoll;
+    #[pymodule_export]
+    use super::ffi::PyEffectCardDiscoverSelect;
     #[pymodule_export]
     use super::ffi::PyEffectCardDraw;
     #[pymodule_export]
@@ -277,7 +277,7 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEffectCardMove;
     #[pymodule_export]
-    use super::ffi::PyEffectCardNightmarePick;
+    use super::ffi::PyEffectCardNightmareSelect;
     #[pymodule_export]
     use super::ffi::PyEffectCardPileEventRollClear;
     #[pymodule_export]
@@ -287,7 +287,7 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEffectCardRetain;
     #[pymodule_export]
-    use super::ffi::PyEffectCardSetupPick;
+    use super::ffi::PyEffectCardSetupSelect;
     #[pymodule_export]
     use super::ffi::PyEffectCardStasisSteal;
     #[pymodule_export]

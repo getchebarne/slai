@@ -24,7 +24,7 @@ pub static NIGHTMARE: CardTemplate = make_card_template(
     false,
     false,
     &[Effect {
-        kind: EffectKind::CardNightmarePick,
+        kind: EffectKind::CardNightmareSelect,
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::CardPileHand,

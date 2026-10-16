@@ -102,19 +102,19 @@ ACTION_SPEC_REGISTRY = ActionSpecRegistry(
         create_action_spec(ActionType.CardAdopt, ArgSpec("id_card")),
         create_action_spec(ActionType.CardBottle, ArgSpec("id_card")),
         create_action_spec(ActionType.CardDiscard, ArgSpec("id_card")),
-        create_action_spec(ActionType.CardDiscoverPick, ArgSpec("id_card")),
+        create_action_spec(ActionType.CardDiscoverSelect, ArgSpec("id_card")),
         create_action_spec(ActionType.CardDuplicate, ArgSpec("id_card")),
         create_action_spec(ActionType.CardExhaust, ArgSpec("id_card")),
         create_action_spec(ActionType.CardMove, ArgSpec("id_card")),
-        create_action_spec(ActionType.CardNightmarePick, ArgSpec("id_card")),
+        create_action_spec(ActionType.CardNightmareSelect, ArgSpec("id_card")),
         create_action_spec(ActionType.CardPurge, ArgSpec("id_card")),
         create_action_spec(ActionType.CardRetain, ArgSpec("id_card")),
-        create_action_spec(ActionType.CardSetupPick, ArgSpec("id_card")),
+        create_action_spec(ActionType.CardSetupSelect, ArgSpec("id_card")),
         create_action_spec(ActionType.CardTransform, ArgSpec("id_card")),
         create_action_spec(ActionType.CardUpgrade, ArgSpec("id_card")),
         create_action_spec(ActionType.MatchFlipSeen, ArgSpec("id_card")),
         create_action_spec(ActionType.RelicLose, ArgSpec("id_relic")),
-        create_action_spec(ActionType.PickSkip),
+        create_action_spec(ActionType.SelectionSkip),
         create_action_spec(ActionType.EventOptionSelect, ArgSpec("id_option")),
         create_action_spec(ActionType.PotionDiscard, ArgSpec("id_potion")),
         create_action_spec(
@@ -192,8 +192,8 @@ EffectHeelHookProc = _rs.EffectHeelHookProc
 EffectEscapePlanCheck = _rs.EffectEscapePlanCheck
 EffectCardBottle = _rs.EffectCardBottle
 EffectGlassKnifeDecay = _rs.EffectGlassKnifeDecay
-EffectCardSetupPick = _rs.EffectCardSetupPick
-EffectCardNightmarePick = _rs.EffectCardNightmarePick
+EffectCardSetupSelect = _rs.EffectCardSetupSelect
+EffectCardNightmareSelect = _rs.EffectCardNightmareSelect
 EffectDistractionAdd = _rs.EffectDistractionAdd
 EffectSetCostOverride = _rs.EffectSetCostOverride
 EffectDamageFinisher = _rs.EffectDamageFinisher
@@ -239,7 +239,7 @@ EffectEventAdvanceState = _rs.EffectEventAdvanceState
 EffectScrapOozeReach = _rs.EffectScrapOozeReach
 EffectEventConsume = _rs.EffectEventConsume
 EffectEventClose = _rs.EffectEventClose
-EffectCardDiscoverPick = _rs.EffectCardDiscoverPick
+EffectCardDiscoverSelect = _rs.EffectCardDiscoverSelect
 EffectCardAdopt = _rs.EffectCardAdopt
 EffectCardPileEventRollClear = _rs.EffectCardPileEventRollClear
 EffectCardPurge = _rs.EffectCardPurge
@@ -279,8 +279,8 @@ Effect = (
     | EffectEscapePlanCheck
     | EffectCardBottle
     | EffectGlassKnifeDecay
-    | EffectCardSetupPick
-    | EffectCardNightmarePick
+    | EffectCardSetupSelect
+    | EffectCardNightmareSelect
     | EffectDistractionAdd
     | EffectSetCostOverride
     | EffectDamageFinisher
@@ -326,7 +326,7 @@ Effect = (
     | EffectScrapOozeReach
     | EffectEventConsume
     | EffectEventClose
-    | EffectCardDiscoverPick
+    | EffectCardDiscoverSelect
     | EffectCardAdopt
     | EffectCardPileEventRollClear
     | EffectCardPurge
@@ -369,14 +369,14 @@ PendingEffect = (
     | EffectCardAdopt
     | EffectCardBottle
     | EffectCardDiscard
-    | EffectCardDiscoverPick
+    | EffectCardDiscoverSelect
     | EffectCardDuplicate
     | EffectCardExhaust
     | EffectCardMove
-    | EffectCardNightmarePick
+    | EffectCardNightmareSelect
     | EffectCardPurge
     | EffectCardRetain
-    | EffectCardSetupPick
+    | EffectCardSetupSelect
     | EffectCardTransform
     | EffectCardUpgrade
     | EffectMatchFlipSeen
@@ -546,8 +546,8 @@ __all__ = [
     "EffectEscapePlanCheck",
     "EffectCardBottle",
     "EffectGlassKnifeDecay",
-    "EffectCardSetupPick",
-    "EffectCardNightmarePick",
+    "EffectCardSetupSelect",
+    "EffectCardNightmareSelect",
     "EffectDistractionAdd",
     "EffectSetCostOverride",
     "EffectDamageFinisher",
@@ -593,7 +593,7 @@ __all__ = [
     "EffectScrapOozeReach",
     "EffectEventConsume",
     "EffectEventClose",
-    "EffectCardDiscoverPick",
+    "EffectCardDiscoverSelect",
     "EffectCardAdopt",
     "EffectCardPileEventRollClear",
     "EffectCardPurge",

@@ -19,7 +19,7 @@ pub fn process_effect_card_stasis_steal(id_source: Option<usize>, state: &mut Ga
     } = &mut state.combat;
     let id_source = id_source.expect("CardStasisSteal requires id_source");
 
-    // Pick pile to steal from. Prefers draw over discard
+    // Choose the pile to steal from. Prefers draw over discard
     let id_pile: &mut Vec<usize> = if !id_card_pile_draw.is_empty() {
         id_card_pile_draw
     } else if !id_card_pile_discard.is_empty() {
@@ -44,7 +44,7 @@ pub fn process_effect_card_stasis_steal(id_source: Option<usize>, state: &mut Ga
             best_idx = idx;
             ties = 1;
         } else if rank == best_rank {
-            // Reservoir-sample among equals for a uniform pick
+            // Reservoir-sample among equals for a uniform draw
             ties += 1;
             if state.rng.random_range(0..ties) == 0 {
                 best_idx = idx;

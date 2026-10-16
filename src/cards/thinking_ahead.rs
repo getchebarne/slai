@@ -30,7 +30,7 @@ pub static THINKING_AHEAD: CardTemplate = make_card_template(
             target: Target::Direct(None),
         },
         Effect {
-            kind: EffectKind::CardSetupPick {
+            kind: EffectKind::CardSetupSelect {
                 free: false,
                 bottom: false,
             },

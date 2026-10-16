@@ -31,7 +31,7 @@ const OPTION_JAX: [Effect; 2] = [
 
 // Transform: two chosen Cards; bottled Cards are offered, only the bound curses are not
 const OPTION_TRANSFORM: [Effect; 2] = [
-    // Consume first, so the pick lands over the spent event
+    // Consume first, so the selection lands over the spent event
     EFFECT_EVENT_CONSUME,
     Effect {
         kind: EffectKind::CardTransform { upgraded: false },
@@ -64,7 +64,7 @@ pub static EOTS_BASE: &[EventOptionTemplate] = &[
 
 pub fn option_available(state: &GameState, idx: usize) -> bool {
     match idx {
-        // Transforming two requires two Cards the pick offers
+        // Transforming two requires two Cards the selection offers
         1 => state
             .id_card_pile_deck
             .iter()

@@ -29,7 +29,7 @@ const OPTION_FLIP_UNSEEN: &[Effect] = &[Effect {
     target: Target::Direct(None),
 }];
 
-// Flip a face-down Card seen before, picked from the seen ones
+// Flip a face-down Card seen before, selected from the seen ones
 const OPTION_FLIP_SEEN: &[Effect] = &[Effect {
     kind: EffectKind::MatchFlipSeen,
     id_source: None,

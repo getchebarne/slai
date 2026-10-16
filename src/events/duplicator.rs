@@ -11,7 +11,7 @@ use crate::events::make_event_option_template;
 use crate::game::GameState;
 use crate::types::CardPile;
 
-// Pray; consume first, so the pick lands over the spent event
+// Pray; consume first, so the selection lands over the spent event
 const OPTION_PRAY: &[Effect] = &[
     EFFECT_EVENT_CONSUME,
     Effect {

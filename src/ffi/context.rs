@@ -174,7 +174,6 @@ pub struct PyRestSite {
 pub struct PyChest {
     pub kind: PyChestKind,
     pub opened: bool,
-    pub relics: Vec<PyRelic>, // A closed boss chest's Relics once seen; empty otherwise
 }
 
 pub(crate) fn snapshot_combat(state: &GameState) -> PyCombat {
@@ -397,20 +396,8 @@ pub(crate) fn snapshot_rest_site(state: &GameState) -> PyRestSite {
 
 pub(crate) fn snapshot_chest(state: &GameState) -> PyChest {
     let chest = &state.chest;
-
-    // A closed boss chest shows the Relics it was seen holding
-    let relics = if chest.chest_relics_seen && !chest.chest_opened {
-        chest
-            .id_relics
-            .iter()
-            .map(|&id| snapshot_relic(id, &state.entities[id]))
-            .collect()
-    } else {
-        Vec::new()
-    };
     PyChest {
         kind: chest.chest_kind.into(),
         opened: chest.chest_opened,
-        relics,
     }
 }

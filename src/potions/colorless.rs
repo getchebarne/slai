@@ -1,8 +1,8 @@
-use crate::consts::DISCOVER_PICK_COUNT;
+use crate::consts::DISCOVER_ROLL_COUNT;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::effect::effect_discover_pick;
+use crate::effect::effect_discover_select;
 use crate::potions::PotionTemplate;
 use crate::types::CardColor;
 use crate::types::CardPile;
@@ -21,12 +21,12 @@ pub static COLORLESS: PotionTemplate = PotionTemplate {
                 kind: None,
                 color: CardColor::Colorless,
                 exclude: &[],
-                count: DISCOVER_PICK_COUNT,
+                count: DISCOVER_ROLL_COUNT,
             },
             id_source: None,
             target: Target::Direct(None),
         },
-        effect_discover_pick(Some(CostScope::Turn), CardPile::Hand, 1, false),
+        effect_discover_select(Some(CostScope::Turn), CardPile::Hand, 1, false),
     ],
 };
 // Doubled
@@ -38,12 +38,12 @@ pub static COLORLESS_DOUBLED: PotionTemplate = PotionTemplate {
                 kind: None,
                 color: CardColor::Colorless,
                 exclude: &[],
-                count: DISCOVER_PICK_COUNT,
+                count: DISCOVER_ROLL_COUNT,
             },
             id_source: None,
             target: Target::Direct(None),
         },
-        effect_discover_pick(Some(CostScope::Turn), CardPile::Hand, 2, false),
+        effect_discover_select(Some(CostScope::Turn), CardPile::Hand, 2, false),
     ],
     ..COLORLESS
 };

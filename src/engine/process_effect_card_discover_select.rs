@@ -8,7 +8,7 @@ use crate::types::CostScope;
 use crate::utils::flush_effects_from_buf_to_queue_front;
 use crate::utils::push_entity;
 
-pub fn process_effect_card_discover_pick(
+pub fn process_effect_card_discover_select(
     id_target: Option<usize>,
     state: &mut GameState,
     cost_zero: Option<CostScope>,
@@ -17,7 +17,7 @@ pub fn process_effect_card_discover_pick(
 ) {
     assert!(
         state.combat.active,
-        "process_effect_card_discover_pick outside the Combat frame"
+        "process_effect_card_discover_select outside the Combat frame"
     );
     let Combat {
         id_card_pile_discover,
@@ -27,12 +27,12 @@ pub fn process_effect_card_discover_pick(
     // Clear discovered Cards
     id_card_pile_discover.clear();
 
-    // A skipped pick adds nothing
+    // A skipped selection adds nothing
     let Some(id_card) = id_target else {
         return;
     };
 
-    // The pick and its copies enter the pile in order; Discovery (Card) grants cost 0 this turn, Toolbox (Relic) keeps the printed cost
+    // The selected Card and its copies enter the pile in order; Discovery (Card) grants cost 0 this turn, Toolbox (Relic) keeps the printed cost
     state.effect_buf.clear();
     if let Some(scope) = cost_zero {
         state.effect_buf.push(Effect {

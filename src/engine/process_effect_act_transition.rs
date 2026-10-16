@@ -10,7 +10,7 @@ use crate::events::pools_for_act;
 use crate::game::GameState;
 use crate::map::generate_map;
 use crate::monsters::encounters::generate_act_monsters;
-use crate::monsters::encounters::pick_boss;
+use crate::monsters::encounters::roll_boss;
 use crate::types::DeltaSign;
 
 pub fn process_effect_act_transition(state: &mut GameState) {
@@ -51,7 +51,7 @@ pub fn process_effect_act_transition(state: &mut GameState) {
         &mut state.encounter_pool_elite,
         &mut state.rng,
     );
-    state.encounter_boss = pick_boss(state.act, &mut state.rng);
+    state.encounter_boss = roll_boss(state.act, &mut state.rng);
 
     // Events: the Act list replaces, shrines re-add fresh, run-scoped specials carry over
     let (pool_events, pool_special_additions) = pools_for_act(state.act);

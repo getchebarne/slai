@@ -17,7 +17,7 @@ use crate::effect::RewardRollTrigger;
 use crate::effect::SelectionKind;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
-use crate::events::EFFECT_DECK_UPGRADE_PICK_1;
+use crate::events::EFFECT_DECK_UPGRADE_SELECT_1;
 use crate::events::EFFECT_EVENT_CLOSE;
 use crate::events::EFFECT_EVENT_CONSUME;
 use crate::events::EventOptionTemplate;
@@ -96,7 +96,7 @@ const EFFECT_POTIONS_CARD_ROLL: Effect = Effect {
     target: Target::Direct(None),
 };
 
-// A card offer's Cards wait in the event's roll; the pick takes one of them or none
+// A card offer's Cards wait in the event's roll; the selection takes one of them or none
 const EFFECT_CARD_ADOPT_EVENT_ROLL: Effect = Effect {
     kind: EffectKind::CardAdopt { landing: false },
     id_source: None,
@@ -107,7 +107,7 @@ const EFFECT_CARD_ADOPT_EVENT_ROLL: Effect = Effect {
     },
 };
 
-// The offer's Cards leave the event's roll once the pick is taken or skipped
+// The offer's Cards leave the event's roll once the selection is made or skipped
 const EFFECT_CARD_PILE_EVENT_ROLL_CLEAR: Effect = Effect {
     kind: EffectKind::CardPileEventRollClear,
     id_source: None,
@@ -171,7 +171,7 @@ const fn effect_bonus(bonus: NeowBonus, health_bonus: u16) -> Effect {
                 selection_kind: SelectionKind::Input { count },
             },
         },
-        NeowBonus::UpgradeCard => EFFECT_DECK_UPGRADE_PICK_1,
+        NeowBonus::UpgradeCard => EFFECT_DECK_UPGRADE_SELECT_1,
         NeowBonus::Transform { count } => Effect {
             kind: EffectKind::CardTransform { upgraded: false },
             id_source: None,
@@ -417,7 +417,7 @@ const fn eots_for_asc(ascension: u8) -> [EventOptionTemplate; CATALOG_LEN] {
 
             // The Curse lands after the bonus; every other drawback lands up front
             eots[idx] = match drawback {
-                // Neow's offer is a pick; the Curse lands once it is taken or skipped
+                // Neow's offer is a selection; the Curse lands once it is made or skipped
                 NeowDrawback::Curse if card_offer => make_event_option_template(&[
                     EFFECT_EVENT_CONSUME,
                     effect_bonus(bonus, health_bonus),

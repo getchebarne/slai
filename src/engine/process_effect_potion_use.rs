@@ -17,24 +17,24 @@ pub fn process_effect_potion_use(
     id_source: Option<usize>,
     id_target: Option<usize>,
     state: &mut GameState,
-    at_pick: bool,
+    at_selection: bool,
 ) {
     let id_potion = id_source.expect("PotionUse requires id_source");
 
-    // The Potion's picked-Monster effects resolve against this use's target
+    // The Potion's selected-Monster effects resolve against this use's target
     if id_target.is_some() {
         assert!(
             state.combat.active,
             "Targeted Potion use outside the Combat frame"
         );
-        state.combat.id_monster_picked = id_target;
+        state.combat.id_monster_selected = id_target;
     }
 
     // Consume the Potion from its belt slot before its effects run
     remove_potion(&mut state.id_potions, id_potion);
     let potion = &state.entities[id_potion];
 
-    // Smoke Bomb drops at once the pick parked behind it, every queued effect, and the waiting Card plays and turn phases
+    // Smoke Bomb drops at once the selection parked behind it, every queued effect, and the waiting Card plays and turn phases
     if potion.potion_name == PotionName::SmokeBomb {
         state.effect_queue.clear();
         state.id_card_pile_selected.clear();
@@ -42,7 +42,7 @@ pub fn process_effect_potion_use(
         state.phase_queue.clear();
     }
 
-    // In combat a drink waits behind the work in progress, such as a pick's chain; out of combat, and Fruit Juice anywhere, it lands at once
+    // In combat a drink waits behind the work in progress, such as a selection's chain; out of combat, and Fruit Juice anywhere, it lands at once
     let at_once = !state.combat.active || potion.potion_name == PotionName::FruitJuice;
     for effect in potion.potion_effects.iter() {
         let mut effect = Effect {
@@ -57,7 +57,7 @@ pub fn process_effect_potion_use(
             effect.target = Target::Direct(Some(id_monster));
         }
 
-        // Gambler's Brew reads the hand as it is drunk; Cards picked at the open pick have left it
+        // Gambler's Brew reads the hand as it is drunk; Cards selected at the open selection have left it
         if matches!(effect.kind, EffectKind::Gamble { .. })
             && state
                 .combat
@@ -78,9 +78,9 @@ pub fn process_effect_potion_use(
     }
 
     // Toy Ornithopter: any Potion use heals 5; in combat behind everything queued, out of combat at once
-    // At a pick Smoke Bomb's escape preempts everything queued, Toy Ornithopter's heal included
+    // At a selection Smoke Bomb's escape preempts everything queued, Toy Ornithopter's heal included
     if has_relic(&state.id_relics, RelicName::ToyOrnithopter)
-        && !(at_pick && potion.potion_name == PotionName::SmokeBomb)
+        && !(at_selection && potion.potion_name == PotionName::SmokeBomb)
     {
         let heal = Effect {
             kind: EffectKind::HealthDelta {

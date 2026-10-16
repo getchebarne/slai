@@ -314,7 +314,7 @@ pub fn process_effect_turn_start_character(state: &mut GameState) {
         ));
     }
 
-    // Mayhem: each stack picks a living Monster before the draw; MayhemProc queues the play
+    // Mayhem: each stack rolls a living Monster before the draw; MayhemProc queues the play
     if has_modifier(&modifiers, ModifierKind::Mayhem) {
         let stacks = modifier_stacks(&modifiers, ModifierKind::Mayhem);
         for _ in 0..stacks.max(0) {

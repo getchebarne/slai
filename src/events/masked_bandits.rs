@@ -2,7 +2,7 @@ use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::ReadAt;
-use crate::effect::RelicPick;
+use crate::effect::RelicRoll;
 use crate::effect::Rounding;
 use crate::effect::Target;
 use crate::events::EFFECT_EVENT_CONSUME;
@@ -60,7 +60,7 @@ const OPTION_FIGHT: &[Effect] = &[
 // The gang's pocket gold and the Red Mask, paid out by `fight_loot`
 pub const FIGHT_LOOT: EventLoot = EventLoot {
     gold: Some(Amount::Range { min: 25, max: 35 }),
-    relics: [Some(RelicPick::Name(RelicName::RedMask)), None],
+    relics: [Some(RelicRoll::Name(RelicName::RedMask)), None],
 };
 
 pub static EOTS_BASE: &[EventOptionTemplate] = &[

@@ -7,7 +7,7 @@ use crate::events::bake_options;
 use crate::events::make_event_option_template;
 use crate::game::GameState;
 
-// Spin; consume first, so the result (a purge pick included) lands over the spent event
+// Spin; consume first, so the result (a purge selection included) lands over the spent event
 const OPTION_SPIN: &[Effect] = &[
     EFFECT_EVENT_CONSUME,
     Effect {

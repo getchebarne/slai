@@ -21,8 +21,8 @@ pub fn process_effect_singing_bowl_proc(id_target: Option<usize>, state: &mut Ga
         .expect("Forfeited Card is in a staged bundle");
     state.reward.id_cards.remove(idx);
 
-    // A pick screen closes on Singing Bowl as on a take
-    if state.reward.closes_on_pick {
+    // A selection screen closes on Singing Bowl as on a take
+    if state.reward.closes_on_selection {
         state.reward.active = false;
     }
 
