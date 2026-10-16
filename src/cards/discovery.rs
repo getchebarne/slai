@@ -3,7 +3,7 @@ use crate::cards::make_card_template;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::effect::effect_discover_pick;
+use crate::effect::effect_discover_select;
 use crate::entity::CardCostKind;
 use crate::entity::PlayRestriction;
 use crate::types::CardColor;
@@ -35,7 +35,7 @@ pub static DISCOVERY: CardTemplate = make_card_template(
             id_source: None,
             target: Target::Direct(None),
         },
-        effect_discover_pick(Some(CostScope::Turn), CardPile::Hand, 1, false),
+        effect_discover_select(Some(CostScope::Turn), CardPile::Hand, 1, false),
     ],
     &[],
     &[],

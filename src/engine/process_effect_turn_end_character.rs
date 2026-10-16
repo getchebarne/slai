@@ -194,7 +194,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
     // The other end-of-turn hooks fire by priority, then by stamp; each Bomb is its own hook
     let mut hooks: Vec<((u8, u32), Effect)> = Vec::new();
 
-    // Retain: pick up to `stacks` Cards to keep through the end-of-turn discard
+    // Retain: select up to `stacks` Cards to keep through the end-of-turn discard
     if has_modifier(mods_char, ModifierKind::Retain)
         && !id_card_pile_hand.is_empty()
         // Runic Pyramid: keeps the whole hand
@@ -296,7 +296,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
         }
     }
 
-    // Each Bomb counts down and detonates at its own stamp; one stamped after Retain still shows its old fuse at the pick
+    // Each Bomb counts down and detonates at its own stamp; one stamped after Retain still shows its old fuse at the selection
     for &(_, _, seq) in bombs.iter() {
         hooks.push((
             (PRIORITY_DEFAULT, seq),

@@ -428,7 +428,7 @@ pub fn generate_act_elites(act: u8, elite_list: &mut Vec<MonsterEncounter>, rng:
 
 // Boss arrays stay hand-ordered per act: deriving them from ALL_ENCOUNTERS would
 // reorder the draw and shift the RNG stream
-pub fn pick_boss(act: u8, rng: &mut impl Rng) -> MonsterEncounter {
+pub fn roll_boss(act: u8, rng: &mut impl Rng) -> MonsterEncounter {
     const BOSSES_ACT1: [MonsterEncounter; 3] = [
         MonsterEncounter::TheGuardian,
         MonsterEncounter::Hexaghost,
@@ -447,7 +447,7 @@ pub fn pick_boss(act: u8, rng: &mut impl Rng) -> MonsterEncounter {
     pool[rng.random_range(0..pool.len())]
 }
 
-fn pick_louse(rng: &mut impl Rng) -> MonsterName {
+fn roll_louse(rng: &mut impl Rng) -> MonsterName {
     if rng.random_bool(0.5) {
         MonsterName::LouseNormal
     } else {
@@ -455,7 +455,7 @@ fn pick_louse(rng: &mut impl Rng) -> MonsterName {
     }
 }
 
-fn pick_slaver(rng: &mut impl Rng) -> MonsterName {
+fn roll_slaver(rng: &mut impl Rng) -> MonsterName {
     if rng.random_bool(0.5) {
         MonsterName::SlaverRed
     } else {
@@ -463,16 +463,16 @@ fn pick_slaver(rng: &mut impl Rng) -> MonsterName {
     }
 }
 
-fn pick_wildlife_weak(rng: &mut impl Rng) -> MonsterName {
+fn roll_wildlife_weak(rng: &mut impl Rng) -> MonsterName {
     match rng.random_range(0..3) {
-        0 => pick_louse(rng),
+        0 => roll_louse(rng),
         1 => MonsterName::SlimeSpikeMedium,
         2 => MonsterName::SlimeAcidMedium,
         _ => unreachable!(),
     }
 }
 
-fn pick_wildlife_strong(rng: &mut impl Rng) -> MonsterName {
+fn roll_wildlife_strong(rng: &mut impl Rng) -> MonsterName {
     if rng.random_bool(0.5) {
         MonsterName::FungiBeast
     } else {
@@ -480,10 +480,10 @@ fn pick_wildlife_strong(rng: &mut impl Rng) -> MonsterName {
     }
 }
 
-fn pick_humanoid_strong(rng: &mut impl Rng) -> MonsterName {
+fn roll_humanoid_strong(rng: &mut impl Rng) -> MonsterName {
     match rng.random_range(0..3) {
         0 => MonsterName::Cultist,
-        1 => pick_slaver(rng),
+        1 => roll_slaver(rng),
         2 => MonsterName::Looter,
         _ => unreachable!(),
     }
@@ -511,7 +511,7 @@ pub fn spawn_encounter_monsters(state: &mut GameState, encounter: MonsterEncount
         MonsterEncounter::JawWorm => push_monster_spawn(effects, MonsterName::JawWorm, 0),
         MonsterEncounter::TwoLouse => {
             for slot in 0..2 {
-                push_monster_spawn(effects, pick_louse(rng), slot);
+                push_monster_spawn(effects, roll_louse(rng), slot);
             }
         }
         MonsterEncounter::SmallSlimes => {
@@ -532,7 +532,7 @@ pub fn spawn_encounter_monsters(state: &mut GameState, encounter: MonsterEncount
         }
         MonsterEncounter::ThreeLouse => {
             for slot in 0..3 {
-                push_monster_spawn(effects, pick_louse(rng), slot);
+                push_monster_spawn(effects, roll_louse(rng), slot);
             }
         }
         MonsterEncounter::LargeSlime => {
@@ -566,12 +566,12 @@ pub fn spawn_encounter_monsters(state: &mut GameState, encounter: MonsterEncount
             }
         }
         MonsterEncounter::ExordiumThugs => {
-            push_monster_spawn(effects, pick_wildlife_weak(rng), 0);
-            push_monster_spawn(effects, pick_humanoid_strong(rng), 1);
+            push_monster_spawn(effects, roll_wildlife_weak(rng), 0);
+            push_monster_spawn(effects, roll_humanoid_strong(rng), 1);
         }
         MonsterEncounter::ExordiumWildlife => {
-            push_monster_spawn(effects, pick_wildlife_strong(rng), 0);
-            push_monster_spawn(effects, pick_wildlife_weak(rng), 1);
+            push_monster_spawn(effects, roll_wildlife_strong(rng), 0);
+            push_monster_spawn(effects, roll_wildlife_weak(rng), 1);
         }
         MonsterEncounter::GremlinNob => push_monster_spawn(effects, MonsterName::GremlinNob, 0),
         MonsterEncounter::Lagavulin => push_monster_spawn(effects, MonsterName::Lagavulin, 0),

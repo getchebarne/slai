@@ -3,7 +3,7 @@ use crate::consts::RELIC_TIER_TH_UNCOMMON;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::RelicExclusion;
-use crate::effect::RelicPick;
+use crate::effect::RelicRoll;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::types::Focus;
@@ -18,7 +18,7 @@ pub fn process_effect_rest_dig(state: &mut GameState) {
     state.rest_site.active = false;
     state.effect_queue.push_front(Effect {
         kind: EffectKind::RewardRollRelic {
-            pick: RelicPick::Thresholds {
+            roll: RelicRoll::Thresholds {
                 th_common: RELIC_TIER_TH_COMMON,
                 th_uncommon: RELIC_TIER_TH_UNCOMMON,
             },

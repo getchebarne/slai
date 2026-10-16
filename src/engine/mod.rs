@@ -13,8 +13,8 @@ pub mod process_effect_card_adopt;
 pub mod process_effect_card_bottle;
 pub mod process_effect_card_cost_minus_discards;
 pub mod process_effect_card_discard;
-pub mod process_effect_card_discover_pick;
 pub mod process_effect_card_discover_roll;
+pub mod process_effect_card_discover_select;
 pub mod process_effect_card_draw;
 pub mod process_effect_card_draw_if_no_attacks;
 pub mod process_effect_card_draw_up_to;
@@ -22,7 +22,7 @@ pub mod process_effect_card_duplicate;
 pub mod process_effect_card_exhaust;
 pub mod process_effect_card_free_play_spend;
 pub mod process_effect_card_move;
-pub mod process_effect_card_nightmare_pick;
+pub mod process_effect_card_nightmare_select;
 pub mod process_effect_card_nightmare_spawn;
 pub mod process_effect_card_pile_event_roll_clear;
 pub mod process_effect_card_place;
@@ -31,7 +31,7 @@ pub mod process_effect_card_play_relocate;
 pub mod process_effect_card_purge;
 pub mod process_effect_card_remove;
 pub mod process_effect_card_retain;
-pub mod process_effect_card_setup_pick;
+pub mod process_effect_card_setup_select;
 pub mod process_effect_card_stasis_return;
 pub mod process_effect_card_stasis_steal;
 pub mod process_effect_card_transform;
@@ -143,8 +143,8 @@ use self::process_effect_card_adopt::process_effect_card_adopt;
 use self::process_effect_card_bottle::process_effect_card_bottle;
 use self::process_effect_card_cost_minus_discards::process_effect_card_cost_minus_discards;
 use self::process_effect_card_discard::process_effect_card_discard;
-use self::process_effect_card_discover_pick::process_effect_card_discover_pick;
 use self::process_effect_card_discover_roll::process_effect_card_discover_roll;
+use self::process_effect_card_discover_select::process_effect_card_discover_select;
 use self::process_effect_card_draw::process_effect_card_draw;
 use self::process_effect_card_draw_if_no_attacks::process_effect_card_draw_if_no_attacks;
 use self::process_effect_card_draw_up_to::process_effect_card_draw_up_to;
@@ -152,7 +152,7 @@ use self::process_effect_card_duplicate::process_effect_card_duplicate;
 use self::process_effect_card_exhaust::process_effect_card_exhaust;
 use self::process_effect_card_free_play_spend::process_effect_card_free_play_spend;
 use self::process_effect_card_move::process_effect_card_move;
-use self::process_effect_card_nightmare_pick::process_effect_card_nightmare_pick;
+use self::process_effect_card_nightmare_select::process_effect_card_nightmare_select;
 use self::process_effect_card_nightmare_spawn::process_effect_card_nightmare_spawn;
 use self::process_effect_card_pile_event_roll_clear::process_effect_card_pile_event_roll_clear;
 use self::process_effect_card_place::process_effect_card_place;
@@ -161,7 +161,7 @@ use self::process_effect_card_play_relocate::process_effect_card_play_relocate;
 use self::process_effect_card_purge::process_effect_card_purge;
 use self::process_effect_card_remove::process_effect_card_remove;
 use self::process_effect_card_retain::process_effect_card_retain;
-use self::process_effect_card_setup_pick::process_effect_card_setup_pick;
+use self::process_effect_card_setup_select::process_effect_card_setup_select;
 use self::process_effect_card_stasis_return::process_effect_card_stasis_return;
 use self::process_effect_card_stasis_steal::process_effect_card_stasis_steal;
 use self::process_effect_card_transform::process_effect_card_transform;
@@ -272,7 +272,7 @@ use crate::effect::EffectKind;
 use crate::effect::PlaySource;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
-use crate::effect::is_multi_pick;
+use crate::effect::is_multi_selection;
 use crate::effect::pool_is_cards;
 use crate::game::GameState;
 use crate::game::Location;
@@ -301,7 +301,7 @@ pub(crate) fn enqueue_direct_targets(
     }
 }
 
-fn fill_buf_candidates(
+pub(crate) fn fill_buf_candidates(
     effect_candidate_buf: &mut Vec<usize>,
     candidate_pool: CandidatePool,
     id_source: Option<usize>,
@@ -333,9 +333,9 @@ fn fill_buf_candidates(
             assert!(combat.active, "Monsters pool outside combat");
             effect_candidate_buf.extend(combat.id_monsters.iter().flatten().copied())
         }
-        CandidatePool::MonsterPicked => {
-            assert!(combat.active, "MonsterPicked pool outside combat");
-            effect_candidate_buf.extend(combat.id_monster_picked)
+        CandidatePool::MonsterSelected => {
+            assert!(combat.active, "MonsterSelected pool outside combat");
+            effect_candidate_buf.extend(combat.id_monster_selected)
         }
         CandidatePool::Source => {
             let id_source = id_source
@@ -418,7 +418,7 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> bool {
                     &mut state.effect_queue,
                 );
             } else {
-                // A hand pick drops the waiting plays of Cards still in the hand; a replay is kept wherever its Card lies
+                // A hand selection drops the waiting plays of Cards still in the hand; a replay is kept wherever its Card lies
                 if candidate_pool == CandidatePool::CardPileHand {
                     let id_card_pile_hand = &state.combat.id_card_pile_hand;
                     state.card_play_queue.retain(|card_play| {
@@ -448,8 +448,8 @@ fn resolve_or_halt(
     selection_kind: SelectionKind,
 ) -> bool {
     assert!(
-        !is_multi_pick(selection_kind) || pool_is_cards(candidate_pool),
-        "multi-pick halt over a non-card pool: {candidate_pool:?}"
+        !is_multi_selection(selection_kind) || pool_is_cards(candidate_pool),
+        "multi-selection halt over a non-card pool: {candidate_pool:?}"
     );
 
     // Stage 1: the pool enumerates
@@ -477,14 +477,14 @@ fn resolve_or_halt(
         return true;
     }
 
-    // Stage 3: the selection picks. Returns `true` if the targets were resolved
+    // Stage 3: the selection kind resolves. Returns `true` if the targets were resolved
     let resolved = resolve_selection_kind(
         &mut state.effect_candidate_buf,
         selection_kind,
         &mut state.rng,
     );
 
-    // A Hand pick that takes every Card takes them from the right
+    // A Hand selection that takes every Card takes them from the right
     if resolved
         && candidate_pool == CandidatePool::CardPileHand
         && matches!(selection_kind, SelectionKind::Input { .. })
@@ -538,10 +538,10 @@ fn dispatch_by_kind(
             process_effect_shuffle_card_pile_discard_into_card_pile_draw(state)
         }
         EffectKind::CardRetain => process_effect_card_retain(id_target, state),
-        EffectKind::CardSetupPick { free, bottom } => {
-            process_effect_card_setup_pick(id_target, state, free, bottom)
+        EffectKind::CardSetupSelect { free, bottom } => {
+            process_effect_card_setup_select(id_target, state, free, bottom)
         }
-        EffectKind::CardNightmarePick => process_effect_card_nightmare_pick(id_target, state),
+        EffectKind::CardNightmareSelect => process_effect_card_nightmare_select(id_target, state),
         EffectKind::CardNightmareSpawn => process_effect_card_nightmare_spawn(id_target, state),
         EffectKind::CardPlace { pile } => process_effect_card_place(id_target, state, pile),
         EffectKind::CardExhaust => process_effect_card_exhaust(id_target, state),
@@ -562,9 +562,7 @@ fn dispatch_by_kind(
         }
         EffectKind::CardFreePlaySpend => process_effect_card_free_play_spend(id_target, state),
         EffectKind::GiryaLift => process_effect_girya_lift(state),
-        EffectKind::SingingBowlProc { idx_bundle } => {
-            process_effect_singing_bowl_proc(state, idx_bundle)
-        }
+        EffectKind::SingingBowlProc => process_effect_singing_bowl_proc(id_target, state),
         EffectKind::WheelSpin => process_effect_wheel_spin(state),
         EffectKind::CardUpgrade => process_effect_card_upgrade(id_target, state),
         EffectKind::AccuracyResync => process_effect_accuracy_resync(id_target, state),
@@ -576,8 +574,8 @@ fn dispatch_by_kind(
             process_effect_reward_roll_potions(state, count, trigger)
         }
         EffectKind::RelicRewardRemoveOne => process_effect_relic_reward_remove_one(state),
-        EffectKind::RewardRollRelic { pick, exclusion } => {
-            process_effect_reward_roll_relic(state, pick, exclusion)
+        EffectKind::RewardRollRelic { roll, exclusion } => {
+            process_effect_reward_roll_relic(state, roll, exclusion)
         }
         EffectKind::RitualDaggerProc { bump } => {
             process_effect_ritual_dagger_proc(id_source, id_target, state, bump)
@@ -723,8 +721,8 @@ fn dispatch_by_kind(
         EffectKind::ShopBuild => process_effect_shop_build(state),
         EffectKind::ShopBuy { slot } => process_effect_shop_buy(id_target, state, slot),
         EffectKind::ShopPurge => process_effect_shop_purge(state),
-        EffectKind::PotionUse { at_pick } => {
-            process_effect_potion_use(id_source, id_target, state, at_pick)
+        EffectKind::PotionUse { at_selection } => {
+            process_effect_potion_use(id_source, id_target, state, at_selection)
         }
         EffectKind::PotionAddRandom { limited, uniform } => {
             process_effect_potion_add_random(state, limited, uniform)
@@ -756,11 +754,11 @@ fn dispatch_by_kind(
         } => process_effect_scrap_ooze_reach(state, chance, advance_on_miss),
         EffectKind::EventClose => process_effect_event_close(state),
         EffectKind::EventConsume => process_effect_event_consume(state),
-        EffectKind::CardDiscoverPick {
+        EffectKind::CardDiscoverSelect {
             cost_zero,
             card_pile,
             copies,
-        } => process_effect_card_discover_pick(id_target, state, cost_zero, card_pile, copies),
+        } => process_effect_card_discover_select(id_target, state, cost_zero, card_pile, copies),
         EffectKind::CardPileEventRollClear => process_effect_card_pile_event_roll_clear(state),
         EffectKind::NeowCardsRoll {
             colorless,
@@ -808,8 +806,8 @@ pub fn process_effect_queue(state: &mut GameState) {
 // with world facts. Every active context is checked against the Room directly
 fn ensure_context_validity(state: &GameState) {
     assert!(
-        state.effect_pending.is_some() || state.effect_pending_selected.is_empty(),
-        "staged picks outlived their halt"
+        state.effect_pending.is_some() || state.id_card_pile_selected.is_empty(),
+        "staged selections outlived their halt"
     );
     if state.game_over {
         return;

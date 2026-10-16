@@ -7,7 +7,7 @@ use crate::cards::get_card_template;
 use crate::entity::Intent;
 use crate::events::options_catalog;
 use crate::monsters::monster_template;
-use crate::monsters::pick_tier;
+use crate::monsters::tier_at;
 use crate::potions::PotionTemplate;
 use crate::potions::get_potion_template;
 use crate::potions::instance_potion_from_template;
@@ -302,7 +302,7 @@ pub fn get_monster_templates(ascension: u8) -> Vec<PyMonsterTemplate> {
         .map(|name| {
             let template = monster_template(name);
             let moveset =
-                pick_tier(template.move_tiers, ascension).expect("`move_tiers` is never empty");
+                tier_at(template.move_tiers, ascension).expect("`move_tiers` is never empty");
             let moves = moveset
                 .iter()
                 .flat_map(|moveset| moveset.iter())
@@ -331,11 +331,11 @@ pub fn get_monster_templates(ascension: u8) -> Vec<PyMonsterTemplate> {
             PyMonsterTemplate {
                 name: name.into(),
                 kind: template.kind.into(),
-                hp_range: pick_tier(template.health_tiers, ascension)
+                hp_range: tier_at(template.health_tiers, ascension)
                     .expect("health_tiers is never empty"),
                 block_start: template.block_start,
                 moves,
-                modifier_spawns: pick_tier(template.modifier_tiers, ascension)
+                modifier_spawns: tier_at(template.modifier_tiers, ascension)
                     .unwrap_or(&[])
                     .iter()
                     .map(|spawn| PyModifierSpawnTemplate {

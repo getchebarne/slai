@@ -9,10 +9,10 @@ use crate::types::Combat;
 use crate::types::CostScope;
 use crate::utils::push_entity;
 
-pub fn process_effect_card_nightmare_pick(id_target: Option<usize>, state: &mut GameState) {
+pub fn process_effect_card_nightmare_select(id_target: Option<usize>, state: &mut GameState) {
     assert!(
         state.combat.active,
-        "process_effect_card_nightmare_pick outside the Combat frame"
+        "process_effect_card_nightmare_select outside the Combat frame"
     );
     let Combat {
         id_card_pile_hand,
@@ -20,7 +20,7 @@ pub fn process_effect_card_nightmare_pick(id_target: Option<usize>, state: &mut 
         modifier_seq_next,
         ..
     } = &mut state.combat;
-    let id_target = id_target.expect("CardNightmarePick requires id_target");
+    let id_target = id_target.expect("CardNightmareSelect requires id_target");
     let mut card = state.entities[id_target];
 
     // Reset attributes on the copy: the per-turn cut is dropped, free-to-play-once survives
@@ -42,7 +42,7 @@ pub fn process_effect_card_nightmare_pick(id_target: Option<usize>, state: &mut 
     id_card_pile_nightmare.push((id, *modifier_seq_next));
     *modifier_seq_next += 1;
 
-    // The picked Card rejoins the hand at the end
+    // The selected Card rejoins the hand at the end
     if let Some(pos) = id_card_pile_hand
         .iter()
         .position(|&id_card| id_card == id_target)

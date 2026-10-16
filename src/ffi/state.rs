@@ -62,7 +62,7 @@ pub struct PyGameState {
     pub pool_event_special: Vec<PyEventName>,
     pub map: PyMap,
     pub effect_pending: Option<PyEffectPending>,
-    pub effect_pending_selected: Vec<PyCard>,
+    pub card_pile_selected: Vec<PyCard>,
 }
 
 // Snapshot builders
@@ -109,9 +109,9 @@ pub fn snapshot_state(state: &GameState) -> PyGameState {
             .collect(),
         map: snapshot_map(state),
         effect_pending: state.effect_pending.as_ref().map(snapshot_effect_pending),
-        // A fight's picks stage its own Cards
-        effect_pending_selected: state
-            .effect_pending_selected
+        // A fight's selections stage its own Cards
+        card_pile_selected: state
+            .id_card_pile_selected
             .iter()
             .map(|&id| {
                 if state.combat.active {

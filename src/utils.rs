@@ -262,13 +262,13 @@ pub fn is_play_restriction_satisfied(
     }
 }
 
-// A play needs a picked Monster iff any effect resolves against the pick
+// A play needs a selected Monster iff any effect resolves against the selection
 pub fn effects_require_target(effects: &[Effect]) -> bool {
     effects.iter().any(|effect| {
         matches!(
             effect.target,
             Target::Resolve {
-                candidate_pool: CandidatePool::MonsterPicked,
+                candidate_pool: CandidatePool::MonsterSelected,
                 ..
             }
         )
@@ -280,14 +280,14 @@ pub fn entity_requires_target(entity: &Entity) -> bool {
         || effects_require_target(entity.potion_effects)
 }
 
-// Availability checks admit what the purge and transform picks' [NotBottled, NotBoundCurse] admit
+// Availability checks admit what the purge and transform selections' [NotBottled, NotBoundCurse] admit
 pub fn card_is_purgeable(entity: &Entity) -> bool {
     entity_matches(CandidateFilter::NotBottled, entity)
         && entity_matches(CandidateFilter::NotBoundCurse, entity)
 }
 
 // Single source of truth for which candidates a Resolve admits, whatever the
-// pool. Entity predicates are total over the fat Entity; Picked / NotSource
+// pool. Entity predicates are total over the fat Entity; NotSource and NotSourceUnlessAlone
 // compare `id` against the resolve context instead
 // One pass per filter, left to right; Costed and NotSourceUnlessAlone fall back on what survives
 pub fn filter_candidates(
@@ -563,7 +563,7 @@ pub fn relic_can_spawn(
 }
 
 // Pop the run pool for `tier`, cascading Common -> Uncommon -> Rare -> Circlet and
-// Shop -> Uncommon; a pick that fails its spawn gate is burned, the redraw from the back
+// Shop -> Uncommon; a draw that fails its spawn gate is burned, the redraw from the back
 pub fn draw_relic(
     state: &mut GameState,
     id_relics: &[Option<usize>; RelicName::COUNT],
@@ -600,7 +600,7 @@ pub fn draw_relic(
     }
 }
 
-// Front draws until the pick is outside the excluded set; rejected picks stay consumed
+// Front draws until the draw is outside the excluded set; rejected draws stay consumed
 pub fn draw_relic_excluding(
     state: &mut GameState,
     tier: RelicTier,
@@ -667,7 +667,7 @@ pub fn resolve_health_fraction(health_max: u16, health_max_at_open: u16, amount:
     }
 }
 
-pub fn pick_relic_from_pool(
+pub fn roll_relic_from_pool(
     pool: &[RelicName],
     id_relics: &[Option<usize>; RelicName::COUNT],
     rng: &mut impl Rng,
@@ -742,7 +742,7 @@ pub fn roll_card_rarity(
     policy: &RollPolicy,
     id_relics: &[Option<usize>; RelicName::COUNT],
 ) -> CardRarity {
-    let (base_rare, base_uncommon) = policy.cuts.expect("an all-Rare roll never picks a rarity");
+    let (base_rare, base_uncommon) = policy.cuts.expect("an all-Rare roll never rolls a rarity");
     let alternation = policy.alternation;
 
     // N'loths Gift: Triple the chance of receiving rare Cards

@@ -201,7 +201,7 @@ const _: () = {
 };
 
 // None iff `tiers` is empty (the modifier tables most Monsters leave blank)
-pub fn pick_tier<T: Copy>(tiers: &'static [(u8, T)], ascension_level: u8) -> Option<T> {
+pub fn tier_at<T: Copy>(tiers: &'static [(u8, T)], ascension_level: u8) -> Option<T> {
     tiers
         .iter()
         .rev()
@@ -216,7 +216,7 @@ fn instance_monster_from_template(
 ) -> Entity {
     // Health
     let (health_min, health_max) =
-        pick_tier(template.health_tiers, ascension_level).expect("health_tiers is never empty");
+        tier_at(template.health_tiers, ascension_level).expect("health_tiers is never empty");
     let health_max = if health_min == health_max {
         health_min
     } else {
@@ -225,7 +225,7 @@ fn instance_monster_from_template(
 
     // Moves before Modifiers: the rolled monsters draw their move set first
     let movesets =
-        pick_tier(template.move_tiers, ascension_level).expect("move_tiers is never empty");
+        tier_at(template.move_tiers, ascension_level).expect("move_tiers is never empty");
     let moves = if movesets.len() == 1 {
         movesets[0]
     } else {
@@ -234,7 +234,7 @@ fn instance_monster_from_template(
 
     // Modifiers
     let mut modifiers = MODIFIERS_ZERO;
-    for spawn in pick_tier(template.modifier_tiers, ascension_level).unwrap_or(&[]) {
+    for spawn in tier_at(template.modifier_tiers, ascension_level).unwrap_or(&[]) {
         let stacks = if spawn.stacks_min == spawn.stacks_max {
             spawn.stacks_min
         } else {
@@ -324,7 +324,7 @@ pub const GREMLIN_POOL: [MonsterName; 8] = [
     MonsterName::GremlinWizard,
 ];
 
-pub fn pick_gremlin(rng: &mut impl Rng) -> MonsterName {
+pub fn roll_gremlin(rng: &mut impl Rng) -> MonsterName {
     GREMLIN_POOL[rng.random_range(0..GREMLIN_POOL.len())]
 }
 

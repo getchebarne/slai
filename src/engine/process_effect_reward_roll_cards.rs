@@ -6,7 +6,7 @@ use crate::utils::card_reward_count;
 use crate::utils::roll_card_rewards;
 use crate::utils::roll_policy;
 
-// Roll `bundles` Card bundles; the trigger sets the rules, the size, whether they are kept and whether the pick is forced or closes the Reward
+// Roll `bundles` Card bundles; the trigger sets the rules, the size, whether they are kept and whether the selection is forced or closes the Reward
 pub fn process_effect_reward_roll_cards(
     state: &mut GameState,
     bundles: u8,
@@ -46,11 +46,11 @@ pub fn process_effect_reward_roll_cards(
         state.reward.cards_forced = true;
     }
 
-    // Dream Catcher's and the Library's offers are pick screens of their own
+    // Dream Catcher's and the Library's offers are selection screens of their own
     if matches!(
         trigger,
         RewardRollTrigger::DreamCatcher | RewardRollTrigger::Library
     ) {
-        state.reward.closes_on_pick = true;
+        state.reward.closes_on_selection = true;
     }
 }

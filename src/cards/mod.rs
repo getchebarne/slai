@@ -529,7 +529,7 @@ pub const POOL_RARE_COLORLESS_CARD: &[CardName] =
 pub const POOL_CURSE_CARD: &[CardName] =
     &build_pool::<NUM_CURSE>(CardRarity::Curse, CardColor::Curse);
 
-// Pick `count` distinct Card names from the full set, filtered by color and (when given) kind/rarity
+// Roll `count` distinct Card names from the full set, filtered by color and (when given) kind/rarity
 pub fn get_random_card_names(
     color: CardColor,
     kind: Option<CardKind>,
@@ -562,7 +562,7 @@ pub fn get_random_card_names(
     pool.iter().map(|card| card.name).collect()
 }
 
-// Same pick, instanced (base forms)
+// Same roll, instanced (base forms)
 pub fn get_random_cards(
     color: CardColor,
     kind: Option<CardKind>,

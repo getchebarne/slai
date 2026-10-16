@@ -3,7 +3,7 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
-use crate::events::EFFECT_DECK_PURGE_PICK_1;
+use crate::events::EFFECT_DECK_PURGE_SELECT_1;
 use crate::events::EFFECT_EVENT_CONSUME;
 use crate::events::EOT_LEAVE;
 use crate::events::EventOptionTemplate;
@@ -13,7 +13,7 @@ use crate::events::make_event_option_template;
 use crate::game::GameState;
 use crate::types::DeltaSign;
 
-// Pray; consume after the HP cost, so the pick lands over the spent event
+// Pray; consume after the HP cost, so the selection lands over the spent event
 const OPTION_PRAY: &[Effect] = &[
     Effect {
         kind: EffectKind::HealthDelta {
@@ -24,7 +24,7 @@ const OPTION_PRAY: &[Effect] = &[
         target: TARGET_CHARACTER,
     },
     EFFECT_EVENT_CONSUME,
-    EFFECT_DECK_PURGE_PICK_1,
+    EFFECT_DECK_PURGE_SELECT_1,
 ];
 
 // Attack

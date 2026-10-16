@@ -2,7 +2,7 @@ use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::ReadAt;
-use crate::effect::RelicPick;
+use crate::effect::RelicRoll;
 use crate::effect::Rounding;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
@@ -45,7 +45,7 @@ const OPTION_STOMP: &[Effect] = &[
 // Staked on the Stomp fight; paid out by `fight_loot` when the combat ends
 pub const FIGHT_LOOT: EventLoot = EventLoot {
     gold: Some(Amount::Range { min: 20, max: 30 }),
-    relics: [Some(RelicPick::Name(RelicName::OddMushroom)), None],
+    relics: [Some(RelicRoll::Name(RelicName::OddMushroom)), None],
 };
 
 // Eat: heal 25% of the max HP when chosen, not at the open, and become Cursed w/ Parasite

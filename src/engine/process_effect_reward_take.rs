@@ -37,7 +37,7 @@ pub fn process_effect_reward_take(
             (id_card, EffectKind::CardAdopt { landing: false })
         }
 
-        // Relic: unstage the pick; RelicAdopt owns registration and pickup effects
+        // Relic: unstage the selection; RelicAdopt owns registration and pickup effects
         RewardKind::Relic => {
             let id_relic = id_target.expect("RewardTake { Relic } requires id_target");
             let idx = id_relics
@@ -48,7 +48,7 @@ pub fn process_effect_reward_take(
             (id_relic, EffectKind::RelicAdopt)
         }
 
-        // Potion: unstage the pick; PotionAdopt owns the belt slot (and the Sozu guard)
+        // Potion: unstage the selection; PotionAdopt owns the belt slot (and the Sozu guard)
         RewardKind::Potion => {
             let id_potion = id_target.expect("RewardTake { Potion } requires id_target");
             let idx = id_potions
@@ -80,8 +80,8 @@ pub fn process_effect_reward_take(
         }
     };
 
-    // A pick screen closes on its pick
-    if state.reward.closes_on_pick {
+    // A selection screen closes on its selection
+    if state.reward.closes_on_selection {
         state.reward.active = false;
     }
 

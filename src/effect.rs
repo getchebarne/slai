@@ -49,7 +49,7 @@ pub enum EffectKind {
     CardDiscard {
         source: DiscardSource,
     },
-    CardDiscoverPick {
+    CardDiscoverSelect {
         cost_zero: Option<CostScope>,
         card_pile: CardPile,
         copies: u8,
@@ -78,7 +78,7 @@ pub enum EffectKind {
         card_pile: CardPile,
         cost_zero: Option<CostScope>,
     },
-    CardNightmarePick,
+    CardNightmareSelect,
     CardNightmareSpawn,
     CardPileEventRollClear,
     CardPlace {
@@ -97,7 +97,7 @@ pub enum EffectKind {
     CardPurge,
     CardRemove,
     CardRetain,
-    CardSetupPick {
+    CardSetupSelect {
         free: bool,
         bottom: bool,
     },
@@ -229,7 +229,7 @@ pub enum EffectKind {
     NeowCardsRoll {
         colorless: bool,
         rare_only: bool,
-    }, // Neow's card offer: 3 Cards into the event's roll, for its pick
+    }, // Neow's card offer: 3 Cards into the event's roll, for its selection
     NoOp,
     PoisonTick {
         amount: u16,
@@ -241,7 +241,7 @@ pub enum EffectKind {
     PotionAdopt,
     PotionDiscard,
     PotionUse {
-        at_pick: bool, // Drunk while a pick waits
+        at_selection: bool, // Drunk while a selection waits
     },
     RelicAdopt,
     RelicGrantPool {
@@ -275,7 +275,7 @@ pub enum EffectKind {
     },
     RelicRewardRemoveOne,
     RewardRollRelic {
-        pick: RelicPick,
+        roll: RelicRoll,
         exclusion: RelicExclusion,
     },
     RewardTake {
@@ -303,9 +303,7 @@ pub enum EffectKind {
     },
     ShopPurge,
     ShuffleCardPileDiscardIntoCardPileDraw,
-    SingingBowlProc {
-        idx_bundle: u8,
-    },
+    SingingBowlProc,
     SneakyStrikeProc {
         energy: u8,
     },
@@ -331,7 +329,7 @@ pub enum EffectKind {
 
 // How far the staged Relic is already resolved; each variant rolls only what remains
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub enum RelicPick {
+pub enum RelicRoll {
     Thresholds { th_common: u8, th_uncommon: u8 },
     Tier(RelicTier),
     Pool(&'static [RelicName]), // Uniform over the unowned entries; Circlet when all are owned
@@ -370,7 +368,7 @@ pub enum RewardRollTrigger {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum DiscardSource {
     Explicit,
-    ExplicitRelicsFirst, // Unload and the Gamble pick: the discard Relics fire before the Card's own discard effects
+    ExplicitRelicsFirst, // Unload and the Gamble selection: the discard Relics fire before the Card's own discard effects
     EndOfTurn,
 }
 
@@ -440,7 +438,7 @@ pub enum CandidatePool {
     CardPileHand,
     Character,
     Monsters,
-    MonsterPicked,
+    MonsterSelected,
     Source,
     CardPileDiscover,
     CardPileDeck,
@@ -452,7 +450,7 @@ pub enum CandidatePool {
     PotionEventRoll,
 }
 
-// Only Card pools are ever multi-pick
+// Only Card pools are ever multi-selection
 pub const fn pool_is_cards(pool: CandidatePool) -> bool {
     matches!(
         pool,
@@ -466,8 +464,8 @@ pub const fn pool_is_cards(pool: CandidatePool) -> bool {
     )
 }
 
-// Input picks above one stage before applying; every other kind resolves at once
-pub const fn is_multi_pick(selection_kind: SelectionKind) -> bool {
+// Input selections above one stage before applying; every other kind resolves at once
+pub const fn is_multi_selection(selection_kind: SelectionKind) -> bool {
     match selection_kind {
         SelectionKind::Input { count } | SelectionKind::InputUpTo { count } => count > 1,
         _ => false,
@@ -489,6 +487,8 @@ pub enum CandidateFilter {
     // Compare against the `Target::Resolve` context
     NotSource,
     NotSourceUnlessAlone,
+
+    // Compare against `Entity` modifiers
     NotMinion,
 
     // Starter-Card predicates (Vampires, Back to Basics)
@@ -563,8 +563,8 @@ pub const EFFECT_DU_VU_DOLL_RECOUNT: Effect = Effect {
     target: Target::Direct(None),
 };
 
-// Discover pick: choose 1 of the rolled Cards, or none if skippable; cost break, destination and copies vary by caller
-pub const fn effect_discover_pick(
+// Discover selection: choose 1 of the rolled Cards, or none if skippable; cost break, destination and copies vary by caller
+pub const fn effect_discover_select(
     cost_zero: Option<CostScope>,
     pile: CardPile,
     copies: u8,
@@ -576,7 +576,7 @@ pub const fn effect_discover_pick(
         SelectionKind::Input { count: 1 }
     };
     Effect {
-        kind: EffectKind::CardDiscoverPick {
+        kind: EffectKind::CardDiscoverSelect {
             cost_zero,
             card_pile: pile,
             copies,
@@ -590,9 +590,9 @@ pub const fn effect_discover_pick(
     }
 }
 
-// The pick outlives the roster slot, so a lethal hit still resolves a target
-pub const TARGET_MONSTER_PICKED: Target = Target::Resolve {
-    candidate_pool: CandidatePool::MonsterPicked,
+// The selection outlives the roster slot, so a lethal hit still resolves a target
+pub const TARGET_MONSTER_SELECTED: Target = Target::Resolve {
+    candidate_pool: CandidatePool::MonsterSelected,
     filters: &[],
     selection_kind: SelectionKind::Single,
 };

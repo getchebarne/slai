@@ -1,6 +1,6 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::TARGET_MONSTER_PICKED;
+use crate::effect::TARGET_MONSTER_SELECTED;
 use crate::modifier::ModifierKind;
 use crate::potions::PotionTemplate;
 use crate::types::PotionName;
@@ -17,7 +17,7 @@ pub static FEAR: PotionTemplate = PotionTemplate {
             stacks: 3,
         },
         id_source: None,
-        target: TARGET_MONSTER_PICKED,
+        target: TARGET_MONSTER_SELECTED,
     }],
 };
 // Doubled
@@ -29,7 +29,7 @@ pub static FEAR_DOUBLED: PotionTemplate = PotionTemplate {
             stacks: 6,
         },
         id_source: None,
-        target: TARGET_MONSTER_PICKED,
+        target: TARGET_MONSTER_SELECTED,
     }],
     ..FEAR
 };

@@ -91,7 +91,7 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
     }
 
     // Thinking Ahead puts back only if the hand held a Card as it was played, itself included;
-    // Setup and Forethought check at the pick, and nothing refills the hand before it: same result
+    // Setup and Forethought check at the selection, and nothing refills the hand before it: same result
     let hand_nonempty_at_start = !state.combat.id_card_pile_hand.is_empty();
 
     // A Card's reshuffle (Deep Breath) happens only if the discard pile held Cards as it was played
@@ -115,7 +115,7 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
         id_card_pile_hand,
         id_card_pile_draw,
         id_monsters,
-        id_monster_picked,
+        id_monster_selected,
         this_turn_attacks,
         this_turn_cards_played,
         orange_pellets_played_attack,
@@ -130,8 +130,8 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
     let id_character = state.id_character;
     let card = state.entities[id_card];
 
-    // The Card's picked-Monster effects resolve against this play's target
-    *id_monster_picked = id_target;
+    // The Card's selected-Monster effects resolve against this play's target
+    *id_monster_selected = id_target;
 
     // Draw-top plays and replays are re-gated when served; a Card needing a target needs it alive, and none plays once the turn has ended or every Monster is gone
     let target_gone = entity_requires_target(&card)
@@ -198,9 +198,9 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
         // Bird-Faced Urn: playing a Power heals 2
         urn_heal = has_relic(&state.id_relics, RelicName::BirdFacedUrn);
 
-        // Mummified Hand: pick a random still-costed hand Card to make free this turn
+        // Mummified Hand: roll a random still-costed hand Card to make free this turn
         if has_relic(&state.id_relics, RelicName::MummifiedHand) {
-            id_mummified = pick_random_costed_hand_card(
+            id_mummified = roll_costed_hand_card(
                 &*id_card_pile_hand,
                 &state.entities,
                 &mut state.rng,
@@ -213,7 +213,7 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
     // Clear effect buffer — prepare it to be filled
     state.effect_buf.clear();
 
-    // Mummified Hand's cut resolves first, so a replay of this play picks another Card
+    // Mummified Hand's cut resolves first, so a replay of this play rolls another Card
     if let Some(id_mummified) = id_mummified {
         state.effect_buf.push(Effect {
             kind: EffectKind::SetCostOverride {
@@ -399,7 +399,7 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
 
     // X-cost repeats the effects inside the one play
     for effect in card.card_effects_play[..card.card_effects_play_len as usize].iter() {
-        if matches!(effect.kind, EffectKind::CardSetupPick { .. }) && !hand_nonempty_at_start {
+        if matches!(effect.kind, EffectKind::CardSetupSelect { .. }) && !hand_nonempty_at_start {
             continue;
         }
         if matches!(
@@ -667,7 +667,7 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
 }
 
 // One random hand Card that still costs energy this turn
-fn pick_random_costed_hand_card(
+fn roll_costed_hand_card(
     id_card_pile_hand: &[usize],
     entities: &[Entity],
     rng: &mut impl Rng,

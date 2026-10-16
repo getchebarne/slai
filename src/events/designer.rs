@@ -8,8 +8,8 @@ use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
-use crate::events::EFFECT_DECK_PURGE_PICK_1;
-use crate::events::EFFECT_DECK_UPGRADE_PICK_1;
+use crate::events::EFFECT_DECK_PURGE_SELECT_1;
+use crate::events::EFFECT_DECK_UPGRADE_SELECT_1;
 use crate::events::EFFECT_EVENT_CONSUME;
 use crate::events::EventOptionTemplate;
 use crate::events::bake_options;
@@ -49,7 +49,7 @@ const fn upgrade_random(count: u8) -> Effect {
 }
 
 // Transform two chosen Cards
-const EFFECT_DECK_TRANSFORM_PICK_2: Effect = Effect {
+const EFFECT_DECK_TRANSFORM_SELECT_2: Effect = Effect {
     kind: EffectKind::CardTransform { upgraded: false },
     id_source: None,
     target: Target::Resolve {
@@ -73,32 +73,32 @@ const fn punch(damage: u16) -> [Effect; 2] {
     ]
 }
 
-// One paid shape covers four options; availability keys on the payload, and consuming first lands a pick over the spent event
+// One paid shape covers four options; availability keys on the payload, and consuming first lands a selection over the spent event
 const fn paid_option(cost: u16, middle: Effect) -> [Effect; 3] {
     [gold_delta(cost), EFFECT_EVENT_CONSUME, middle]
 }
 
-// Full Service: consume first, so the purge pick lands over the spent event
+// Full Service: consume first, so the purge selection lands over the spent event
 const fn full_service(cost: u16) -> [Effect; 4] {
     [
         gold_delta(cost),
         EFFECT_EVENT_CONSUME,
-        EFFECT_DECK_PURGE_PICK_1,
+        EFFECT_DECK_PURGE_SELECT_1,
         upgrade_random(1),
     ]
 }
 
 // Adjustments: upgrade a chosen Card
-const ADJUST_ONE_BASE: [Effect; 3] = paid_option(COST_ADJUST, EFFECT_DECK_UPGRADE_PICK_1);
+const ADJUST_ONE_BASE: [Effect; 3] = paid_option(COST_ADJUST, EFFECT_DECK_UPGRADE_SELECT_1);
 
 // Adjustments: upgrade two random Cards
 const ADJUST_TWO_BASE: [Effect; 3] = paid_option(COST_ADJUST, upgrade_random(2));
 
 // Clean Up: purge a chosen Card
-const CLEAN_REMOVE_BASE: [Effect; 3] = paid_option(COST_CLEANUP, EFFECT_DECK_PURGE_PICK_1);
+const CLEAN_REMOVE_BASE: [Effect; 3] = paid_option(COST_CLEANUP, EFFECT_DECK_PURGE_SELECT_1);
 
 // Clean Up: transform two chosen Cards
-const CLEAN_TRANSFORM_BASE: [Effect; 3] = paid_option(COST_CLEANUP, EFFECT_DECK_TRANSFORM_PICK_2);
+const CLEAN_TRANSFORM_BASE: [Effect; 3] = paid_option(COST_CLEANUP, EFFECT_DECK_TRANSFORM_SELECT_2);
 
 // Full Service: upgrade and purge
 const FULL_BASE: [Effect; 4] = full_service(COST_FULL);
@@ -107,17 +107,17 @@ const FULL_BASE: [Effect; 4] = full_service(COST_FULL);
 const PUNCH_BASE: [Effect; 2] = punch(3);
 
 // Adjustments at A15+: dearer
-const ADJUST_ONE_A15: [Effect; 3] = paid_option(COST_ADJUST_A15, EFFECT_DECK_UPGRADE_PICK_1);
+const ADJUST_ONE_A15: [Effect; 3] = paid_option(COST_ADJUST_A15, EFFECT_DECK_UPGRADE_SELECT_1);
 
 // Adjustments at A15+: dearer
 const ADJUST_TWO_A15: [Effect; 3] = paid_option(COST_ADJUST_A15, upgrade_random(2));
 
 // Clean Up at A15+: dearer
-const CLEAN_REMOVE_A15: [Effect; 3] = paid_option(COST_CLEANUP_A15, EFFECT_DECK_PURGE_PICK_1);
+const CLEAN_REMOVE_A15: [Effect; 3] = paid_option(COST_CLEANUP_A15, EFFECT_DECK_PURGE_SELECT_1);
 
 // Clean Up at A15+: dearer
 const CLEAN_TRANSFORM_A15: [Effect; 3] =
-    paid_option(COST_CLEANUP_A15, EFFECT_DECK_TRANSFORM_PICK_2);
+    paid_option(COST_CLEANUP_A15, EFFECT_DECK_TRANSFORM_SELECT_2);
 
 // Full Service at A15+: dearer
 const FULL_A15: [Effect; 4] = full_service(COST_FULL_A15);
@@ -169,7 +169,7 @@ pub fn catalog(ascension: u8) -> &'static [EventOptionTemplate] {
     }
 }
 
-// Two coin flips pick the adjust and cleanup variants; both index the catalog
+// Two coin flips choose the adjust and cleanup variants; both index the catalog
 pub fn spawn(state: &mut GameState) -> Vec<usize> {
     // Rolls
     let adjust_upgrades_one = state.rng.random_bool(0.5);

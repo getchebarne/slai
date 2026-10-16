@@ -12,6 +12,7 @@ use crate::effect::ReadAt;
 use crate::effect::Rounding;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
+use crate::engine::fill_buf_candidates;
 use crate::events::event_option_available;
 use crate::game::GameState;
 use crate::game::Location;
@@ -23,7 +24,6 @@ use crate::potions::belt_has_room;
 use crate::types::CardKind;
 use crate::types::Combat;
 use crate::types::DeltaSign;
-use crate::types::Event;
 use crate::types::EventName;
 use crate::types::Focus;
 use crate::types::PotionName;
@@ -47,23 +47,20 @@ use crate::utils::play_cap_reached;
 #[derive(Debug, Clone, PartialEq)]
 pub enum Action {
     CardPlay {
-        idx_card: usize,
-        idx_monster: Option<usize>,
+        id_card: usize,
+        id_monster: Option<usize>,
     },
     ChestOpen,
-    EffectPendingResolve {
-        idx: usize,
-    },
     EventOptionSelect {
-        idx: usize,
+        id_option: usize,
     },
-    PickSkip,
+    SelectionSkip,
     PotionDiscard {
-        idx: usize,
+        id_potion: usize,
     },
     PotionUse {
-        idx_potion: usize,
-        idx_monster: Option<usize>,
+        id_potion: usize,
+        id_monster: Option<usize>,
     },
     Rest,
     RestDig,
@@ -71,35 +68,84 @@ pub enum Action {
     RestSmith,
     RestToke,
     RewardSingingBowl {
-        idx_bundle: usize,
+        id_card: usize,
     },
     RewardTakeCard {
-        idx_bundle: usize,
-        idx_card: usize,
+        id_card: usize,
     },
     RewardTakeGold,
     RewardTakeGoldStolen,
     RewardTakePotion {
-        idx: usize,
+        id_potion: usize,
     },
     RewardTakeRelic {
-        idx: usize,
+        id_relic: usize,
     },
     RoomExit,
     RoomSelect {
-        idx: usize,
+        id_room: usize,
     },
     ShopBuyCard {
-        idx: usize,
+        id_card: usize,
     },
     ShopBuyPotion {
-        idx: usize,
+        id_potion: usize,
     },
     ShopBuyRelic {
-        idx: usize,
+        id_relic: usize,
     },
     ShopPurge,
     TurnEnd,
+
+    // A pending halt's selection: one variant per operation, naming the selected entity
+    BonfireOffer {
+        id_card: usize,
+    },
+    CardAdopt {
+        id_card: usize,
+    },
+    CardBottle {
+        id_card: usize,
+    },
+    CardDiscard {
+        id_card: usize,
+    },
+    CardDiscoverSelect {
+        id_card: usize,
+    },
+    CardDuplicate {
+        id_card: usize,
+    },
+    CardExhaust {
+        id_card: usize,
+    },
+    CardMove {
+        id_card: usize,
+    },
+    CardNightmareSelect {
+        id_card: usize,
+    },
+    CardPurge {
+        id_card: usize,
+    },
+    CardRetain {
+        id_card: usize,
+    },
+    CardSetupSelect {
+        id_card: usize,
+    },
+    CardTransform {
+        id_card: usize,
+    },
+    CardUpgrade {
+        id_card: usize,
+    },
+    MatchFlipSeen {
+        id_card: usize,
+    },
+    RelicLose {
+        id_relic: usize,
+    },
 }
 
 pub fn handle_action(state: &mut GameState, action: Action) -> Result<(), String> {
@@ -114,39 +160,57 @@ pub fn handle_action(state: &mut GameState, action: Action) -> Result<(), String
     state.effect_buf.clear();
     match action {
         Action::CardPlay {
-            idx_card,
-            idx_monster,
-        } => handle_card_play(state, idx_card, idx_monster),
+            id_card,
+            id_monster,
+        } => handle_card_play(state, id_card, id_monster),
         Action::ChestOpen => handle_chest_open(state),
-        Action::EffectPendingResolve { idx } => handle_effect_pending_resolve(state, idx),
-        Action::EventOptionSelect { idx } => handle_event_option_select(state, idx),
-        Action::PickSkip => handle_pick_skip(state),
-        Action::PotionDiscard { idx } => handle_potion_discard(state, idx),
+        Action::EventOptionSelect { id_option } => handle_event_option_select(state, id_option),
+        Action::SelectionSkip => handle_selection_skip(state),
+        Action::PotionDiscard { id_potion } => handle_potion_discard(state, id_potion),
         Action::PotionUse {
-            idx_potion,
-            idx_monster,
-        } => handle_potion_use(state, idx_potion, idx_monster),
+            id_potion,
+            id_monster,
+        } => handle_potion_use(state, id_potion, id_monster),
         Action::Rest => handle_rest(state),
         Action::RestDig => handle_rest_dig(state),
         Action::RestLift => handle_rest_lift(state),
         Action::RestSmith => handle_rest_smith(state),
         Action::RestToke => handle_rest_toke(state),
-        Action::RewardSingingBowl { idx_bundle } => handle_reward_singing_bowl(state, idx_bundle),
-        Action::RewardTakeCard {
-            idx_bundle,
-            idx_card,
-        } => handle_reward_take(state, RewardKind::Card, idx_bundle, idx_card),
-        Action::RewardTakeGold => handle_reward_take(state, RewardKind::Gold, 0, 0),
-        Action::RewardTakeGoldStolen => handle_reward_take(state, RewardKind::GoldStolen, 0, 0),
-        Action::RewardTakePotion { idx } => handle_reward_take(state, RewardKind::Potion, 0, idx),
-        Action::RewardTakeRelic { idx } => handle_reward_take(state, RewardKind::Relic, 0, idx),
+        Action::RewardSingingBowl { id_card } => handle_reward_singing_bowl(state, id_card),
+        Action::RewardTakeCard { id_card } => {
+            handle_reward_take(state, RewardKind::Card, Some(id_card))
+        }
+        Action::RewardTakeGold => handle_reward_take(state, RewardKind::Gold, None),
+        Action::RewardTakeGoldStolen => handle_reward_take(state, RewardKind::GoldStolen, None),
+        Action::RewardTakePotion { id_potion } => {
+            handle_reward_take(state, RewardKind::Potion, Some(id_potion))
+        }
+        Action::RewardTakeRelic { id_relic } => {
+            handle_reward_take(state, RewardKind::Relic, Some(id_relic))
+        }
         Action::RoomExit => handle_room_exit(state),
-        Action::RoomSelect { idx } => handle_room_select(state, idx),
-        Action::ShopBuyCard { idx } => handle_shop_buy(state, ShopSlot::Card, idx),
-        Action::ShopBuyPotion { idx } => handle_shop_buy(state, ShopSlot::Potion, idx),
-        Action::ShopBuyRelic { idx } => handle_shop_buy(state, ShopSlot::Relic, idx),
+        Action::RoomSelect { id_room } => handle_room_select(state, id_room),
+        Action::ShopBuyCard { id_card } => handle_shop_buy(state, ShopSlot::Card, id_card),
+        Action::ShopBuyPotion { id_potion } => handle_shop_buy(state, ShopSlot::Potion, id_potion),
+        Action::ShopBuyRelic { id_relic } => handle_shop_buy(state, ShopSlot::Relic, id_relic),
         Action::ShopPurge => handle_shop_purge(state),
         Action::TurnEnd => handle_turn_end(state),
+        Action::BonfireOffer { id_card: id }
+        | Action::CardAdopt { id_card: id }
+        | Action::CardBottle { id_card: id }
+        | Action::CardDiscard { id_card: id }
+        | Action::CardDiscoverSelect { id_card: id }
+        | Action::CardDuplicate { id_card: id }
+        | Action::CardExhaust { id_card: id }
+        | Action::CardMove { id_card: id }
+        | Action::CardNightmareSelect { id_card: id }
+        | Action::CardPurge { id_card: id }
+        | Action::CardRetain { id_card: id }
+        | Action::CardSetupSelect { id_card: id }
+        | Action::CardTransform { id_card: id }
+        | Action::CardUpgrade { id_card: id }
+        | Action::MatchFlipSeen { id_card: id }
+        | Action::RelicLose { id_relic: id } => handle_selection(state, id),
     }
     flush_effects_from_buf_to_queue_front(state);
     Ok(())
@@ -169,12 +233,12 @@ pub fn recompute_legal_actions(state: &mut GameState) {
         else {
             unreachable!("effect_pending carries a Resolve target")
         };
-        fill_legal_actions_effect_pending(state, filters, candidate_pool);
+        fill_legal_actions_effect_pending(state, effect_pending.kind, filters, candidate_pool);
         if matches!(selection_kind, SelectionKind::InputUpTo { .. }) {
-            state.legal_actions.push(Action::PickSkip);
+            state.legal_actions.push(Action::SelectionSkip);
         }
 
-        // A pick leaves the belt usable: any discard, and a drink that needs no target
+        // A selection leaves the belt usable: any discard, and a drink that needs no target
         push_potion_actions(state);
         return;
     }
@@ -189,13 +253,36 @@ pub fn recompute_legal_actions(state: &mut GameState) {
     }
 }
 
-// idx indexes the collection named by the pending effect's candidate pool
-fn handle_effect_pending_resolve(state: &mut GameState, idx: usize) {
+// The operation of each halting kind; Smith's and Toke's selections share Upgrade's and Purge's
+fn selection_action(kind: EffectKind, id: usize) -> Action {
+    match kind {
+        EffectKind::BonfireOffer => Action::BonfireOffer { id_card: id },
+        EffectKind::CardAdopt { .. } => Action::CardAdopt { id_card: id },
+        EffectKind::CardBottle => Action::CardBottle { id_card: id },
+        EffectKind::CardDiscard { .. } => Action::CardDiscard { id_card: id },
+        EffectKind::CardDiscoverSelect { .. } => Action::CardDiscoverSelect { id_card: id },
+        EffectKind::CardDuplicate { .. } => Action::CardDuplicate { id_card: id },
+        EffectKind::CardExhaust => Action::CardExhaust { id_card: id },
+        EffectKind::CardMove { .. } => Action::CardMove { id_card: id },
+        EffectKind::CardNightmareSelect => Action::CardNightmareSelect { id_card: id },
+        EffectKind::CardPurge | EffectKind::RestToke => Action::CardPurge { id_card: id },
+        EffectKind::CardRetain => Action::CardRetain { id_card: id },
+        EffectKind::CardSetupSelect { .. } => Action::CardSetupSelect { id_card: id },
+        EffectKind::CardTransform { .. } => Action::CardTransform { id_card: id },
+        EffectKind::CardUpgrade | EffectKind::RestSmith => Action::CardUpgrade { id_card: id },
+        EffectKind::MatchFlipSeen => Action::MatchFlipSeen { id_card: id },
+        EffectKind::RelicLose => Action::RelicLose { id_relic: id },
+        other => unreachable!("effect kind cannot halt: {:?}", other),
+    }
+}
+
+// Stages the selected id while selections remain; the last one applies right after the staged ids
+fn handle_selection(state: &mut GameState, id_selected: usize) {
     // Validate there's a pending `Effect` and, if so, take it
     let effect_pending = state
         .effect_pending
         .take()
-        .expect("EffectPendingResolve requires a pending effect");
+        .expect("A selection requires a pending effect");
 
     // Validate the pending `Effect`'s target is `Target::Resolve`
     let Target::Resolve {
@@ -207,27 +294,25 @@ fn handle_effect_pending_resolve(state: &mut GameState, idx: usize) {
         unreachable!("effect_pending carries a Resolve target")
     };
 
-    // Stage the selected `Entity` ID; nothing applies until the selection closes
-    let id_selected = pool_collection(
-        candidate_pool,
-        &state.combat,
-        &state.event,
-        &state.id_card_pile_deck,
-    )[idx];
-    state.effect_pending_selected.push(id_selected);
-
     let remaining = match selection_kind {
         SelectionKind::Input { count } | SelectionKind::InputUpTo { count } => {
             count.saturating_sub(1)
         }
-        _ => panic!("Pending pick carries an Input halt"),
+        _ => panic!("A pending selection carries an Input halt"),
     };
     if remaining == 0 {
-        flush_pending_picks(state, effect_pending.kind, effect_pending.id_source);
+        flush_card_pile_selected(state, effect_pending.kind, effect_pending.id_source);
+        state.effect_buf.push(Effect {
+            target: Target::Direct(Some(id_selected)),
+            ..effect_pending
+        });
         return;
     }
 
-    // Re-park with the remaining count; staged picks stay out of the pool
+    // Stage the selected `Entity` ID; nothing applies until the selection closes
+    state.id_card_pile_selected.push(id_selected);
+
+    // Re-park with the remaining count; staged selections stay out of the pool
     let selection_kind = match selection_kind {
         SelectionKind::Input { .. } => SelectionKind::Input { count: remaining },
         _ => SelectionKind::InputUpTo { count: remaining },
@@ -243,104 +328,43 @@ fn handle_effect_pending_resolve(state: &mut GameState, idx: usize) {
     });
 }
 
-// One Direct effect per staged pick, in pick order
-fn flush_pending_picks(state: &mut GameState, kind: EffectKind, id_source: Option<usize>) {
-    for &id in &state.effect_pending_selected {
+// One Direct effect per staged selection, in selection order
+fn flush_card_pile_selected(state: &mut GameState, kind: EffectKind, id_source: Option<usize>) {
+    for &id in &state.id_card_pile_selected {
         state.effect_buf.push(Effect {
             kind,
             id_source,
             target: Target::Direct(Some(id)),
         });
     }
-    state.effect_pending_selected.clear();
+    state.id_card_pile_selected.clear();
 }
 
-// The indexable collection behind each halting pool
-fn pool_collection<'a>(
-    pool: CandidatePool,
-    combat: &'a Combat,
-    event: &'a Event,
-    id_card_pile_deck: &'a [usize],
-) -> &'a [usize] {
-    match pool {
-        CandidatePool::CardPileHand => {
-            assert!(combat.active, "Hand pick outside combat");
-            &combat.id_card_pile_hand
-        }
-        CandidatePool::CardPileDiscover => {
-            assert!(combat.active, "Discover pick outside combat");
-            &combat.id_card_pile_discover
-        }
-        CandidatePool::CardPileDraw => {
-            assert!(combat.active, "Pile pick outside combat");
-            &combat.id_card_pile_draw
-        }
-        CandidatePool::CardPileDiscard => {
-            assert!(combat.active, "Pile pick outside combat");
-            &combat.id_card_pile_discard
-        }
-        CandidatePool::CardPileExhaust => {
-            assert!(combat.active, "Pile pick outside combat");
-            &combat.id_card_pile_exhaust
-        }
-        CandidatePool::CardPileDeck => id_card_pile_deck,
-        CandidatePool::CardPileEventRoll => {
-            assert!(event.active, "Event roll pick outside an event");
-            &event.id_card_pile_event_roll
-        }
-        CandidatePool::RelicEventRoll => {
-            assert!(event.active, "Event roll pick outside an event");
-            &event.id_relic_event_roll
-        }
-        CandidatePool::PotionEventRoll => {
-            assert!(event.active, "Event roll pick outside an event");
-            &event.id_potion_event_roll
-        }
-        other => unreachable!("pick over non-indexable pool: {:?}", other),
-    }
-}
-
-// Ends an InputUpTo halt early; staged picks apply, the remainder is forfeited
-fn handle_pick_skip(state: &mut GameState) {
+// Ends an InputUpTo halt early; staged selections apply, the remainder is forfeited
+fn handle_selection_skip(state: &mut GameState) {
     let effect_pending = state
         .effect_pending
         .take()
-        .expect("PickSkip requires a pending effect");
+        .expect("SelectionSkip requires a pending effect");
 
-    // A skipped discover pick still runs, with no Card, so its rolled Cards are cleared
-    if matches!(effect_pending.kind, EffectKind::CardDiscoverPick { .. }) {
+    // A skipped discover selection still runs, with no Card, so its rolled Cards are cleared
+    if matches!(effect_pending.kind, EffectKind::CardDiscoverSelect { .. }) {
         state.effect_buf.push(Effect {
             target: Target::Direct(None),
             ..effect_pending
         });
     }
-    flush_pending_picks(state, effect_pending.kind, effect_pending.id_source);
+    flush_card_pile_selected(state, effect_pending.kind, effect_pending.id_source);
 }
 
-fn handle_card_play(state: &mut GameState, idx_card: usize, idx_monster: Option<usize>) {
+fn handle_card_play(state: &mut GameState, id_card: usize, id_monster: Option<usize>) {
     assert!(state.combat.active, "handle_card_play outside combat");
-    let id_card = state.combat.id_card_pile_hand[idx_card];
-
-    // The play carries its own target: the picked Monster, if the Card needs one
-    let id_monster_target = if entity_requires_target(&state.entities[id_card]) {
-        let idx_monster =
-            idx_monster.expect("Missing `idx_monster` when `requires_target` is true");
-        let id_monster = state
-            .combat
-            .id_monsters
-            .iter()
-            .flatten()
-            .copied()
-            .nth(idx_monster)
-            .expect("Enumerated monster idx is valid");
-        Some(id_monster)
-    } else {
-        None
-    };
     let energy = state.combat.energy.energy_current;
+
+    // The play carries its own target: the selected Monster, if the Card needs one
     state.card_play_queue.push_back(CardPlay {
         id_card,
-        id_target: id_monster_target,
+        id_target: id_monster,
         play_source: PlaySource::Hand,
         energy,
         cost_effective: get_card_effective_cost(&state.entities[id_card], energy),
@@ -356,12 +380,11 @@ fn handle_chest_open(state: &mut GameState) {
     });
 }
 
-fn handle_event_option_select(state: &mut GameState, idx: usize) {
+fn handle_event_option_select(state: &mut GameState, id_option: usize) {
     assert!(
         context_focus(state) == Focus::Event,
         "EventOptionSelect outside the Event context"
     );
-    let id_option = state.event.id_event_options[idx];
     let effects = state.entities[id_option].event_option_effects;
     let effects_len = state.entities[id_option].event_option_effects_len as usize;
     for effect in &effects[..effects_len] {
@@ -372,49 +395,30 @@ fn handle_event_option_select(state: &mut GameState, idx: usize) {
     }
 }
 
-fn handle_potion_discard(state: &mut GameState, idx: usize) {
-    let id_potion = state.id_potions[idx];
+fn handle_potion_discard(state: &mut GameState, id_potion: usize) {
     state.effect_buf.push(Effect {
         kind: EffectKind::PotionDiscard,
         id_source: Some(id_potion),
         target: Target::Direct(Some(id_potion)),
     });
 
-    // At a pick, the pick halts again behind the Potion
+    // At a selection, the selection halts again behind the Potion
     if let Some(effect_pending) = state.effect_pending.take() {
         state.effect_buf.push(effect_pending);
     }
 }
 
-fn handle_potion_use(state: &mut GameState, idx_potion: usize, idx_monster: Option<usize>) {
-    let id_potion = state.id_potions[idx_potion];
-
-    // The use carries its own target: the picked Monster, if the Potion needs one
-    let id_monster_target = if entity_requires_target(&state.entities[id_potion]) {
-        assert!(state.combat.active, "Targeted Potion use outside combat");
-        let idx_monster =
-            idx_monster.expect("Missing `idx_monster` when `requires_target` is true");
-        let id_monster = state
-            .combat
-            .id_monsters
-            .iter()
-            .flatten()
-            .copied()
-            .nth(idx_monster)
-            .expect("Enumerated monster idx is valid");
-        Some(id_monster)
-    } else {
-        None
-    };
+fn handle_potion_use(state: &mut GameState, id_potion: usize, id_monster: Option<usize>) {
+    // The use carries its own target: the selected Monster, if the Potion needs one
     state.effect_buf.push(Effect {
         kind: EffectKind::PotionUse {
-            at_pick: state.effect_pending.is_some(),
+            at_selection: state.effect_pending.is_some(),
         },
         id_source: Some(id_potion),
-        target: Target::Direct(id_monster_target),
+        target: Target::Direct(id_monster),
     });
 
-    // At a pick, the pick halts again behind the Potion
+    // At a selection, the selection halts again behind the Potion
     if let Some(effect_pending) = state.effect_pending.take() {
         state.effect_buf.push(effect_pending);
     }
@@ -469,7 +473,7 @@ fn handle_rest_lift(state: &mut GameState) {
     push_rest_site_consume(state);
 }
 
-// Peace Pipe: spend the rest on purging a Card; skipping the deck pick cancels back to the site
+// Peace Pipe: spend the rest on purging a Card; the deck selection can't be skipped
 fn handle_rest_toke(state: &mut GameState) {
     state.effect_buf.push(Effect {
         kind: EffectKind::RestToke,
@@ -477,12 +481,12 @@ fn handle_rest_toke(state: &mut GameState) {
         target: Target::Resolve {
             candidate_pool: CandidatePool::CardPileDeck,
             filters: &[CandidateFilter::NotBottled, CandidateFilter::NotBoundCurse],
-            selection_kind: SelectionKind::InputUpTo { count: 1 },
+            selection_kind: SelectionKind::Input { count: 1 },
         },
     });
 }
 
-// Smith mirrors Toke: the picked Card is upgraded, and a skip cancels back to the site
+// Smith: the selected Card is upgraded; the deck selection can't be skipped
 fn handle_rest_smith(state: &mut GameState) {
     state.effect_buf.push(Effect {
         kind: EffectKind::RestSmith,
@@ -490,7 +494,7 @@ fn handle_rest_smith(state: &mut GameState) {
         target: Target::Resolve {
             candidate_pool: CandidatePool::CardPileDeck,
             filters: &[CandidateFilter::Upgradeable],
-            selection_kind: SelectionKind::InputUpTo { count: 1 },
+            selection_kind: SelectionKind::Input { count: 1 },
         },
     });
 }
@@ -505,25 +509,17 @@ fn handle_rest_dig(state: &mut GameState) {
 }
 
 // Singing Bowl: forfeit one Card bundle for +2 max HP
-fn handle_reward_singing_bowl(state: &mut GameState, idx_bundle: usize) {
+fn handle_reward_singing_bowl(state: &mut GameState, id_card: usize) {
     state.effect_buf.push(Effect {
-        kind: EffectKind::SingingBowlProc {
-            idx_bundle: idx_bundle as u8,
-        },
+        kind: EffectKind::SingingBowlProc,
         id_source: None,
-        target: Target::Direct(None),
+        target: Target::Direct(Some(id_card)),
     });
 }
 
-// One processor handles every kind; the action layer only resolves idx -> id
-fn handle_reward_take(state: &mut GameState, kind: RewardKind, idx_bundle: usize, idx: usize) {
+// One processor handles every kind
+fn handle_reward_take(state: &mut GameState, kind: RewardKind, id_taken: Option<usize>) {
     assert!(state.reward.active, "RewardTake outside the Reward context");
-    let id_taken = match kind {
-        RewardKind::Card => Some(state.reward.id_cards[idx_bundle][idx]),
-        RewardKind::Relic => Some(state.reward.id_relics[idx]),
-        RewardKind::Potion => Some(state.reward.id_potions[idx]),
-        RewardKind::Gold | RewardKind::GoldStolen => None,
-    };
     state.effect_buf.push(Effect {
         kind: EffectKind::RewardTake { kind },
         id_source: None,
@@ -540,16 +536,7 @@ fn handle_room_exit(state: &mut GameState) {
     });
 }
 
-fn handle_room_select(state: &mut GameState, idx: usize) {
-    // Membership guarantees the column has a reachable Room, so row < MAP_HEIGHT and the Room exists
-    let y_next = match state.location {
-        Location::Start => 0,
-        Location::Overworld { y, .. } => y + 1,
-        Location::BossRoom | Location::BossTreasure => {
-            unreachable!("RoomSelect not enumerated from the boss rooms")
-        }
-    };
-    let id_room = state.id_rooms[y_next][idx].expect("Enumerated room exists");
+fn handle_room_select(state: &mut GameState, id_room: usize) {
     state.effect_buf.push(Effect {
         kind: EffectKind::RoomSelect,
         id_source: None,
@@ -565,16 +552,11 @@ fn handle_turn_end(state: &mut GameState) {
     });
 }
 
-fn handle_shop_buy(state: &mut GameState, slot: ShopSlot, idx: usize) {
+fn handle_shop_buy(state: &mut GameState, slot: ShopSlot, id_bought: usize) {
     assert!(
         context_focus(state) == Focus::Shop,
         "ShopBuy outside the Shop context"
     );
-    let id_bought = match slot {
-        ShopSlot::Card => state.shop.id_cards_price[idx].0,
-        ShopSlot::Relic => state.shop.id_relics_price[idx].0,
-        ShopSlot::Potion => state.shop.id_potions_price[idx].0,
-    };
     state.effect_buf.push(Effect {
         kind: EffectKind::ShopBuy { slot },
         id_source: None,
@@ -590,25 +572,30 @@ fn handle_shop_purge(state: &mut GameState) {
     });
 }
 
-// One uniform arm: idx enumerates the pending pool's collection, filter-gated
+// Every filtered, unstaged candidate of the pending pool, as the pending kind's operation
 fn fill_legal_actions_effect_pending(
     state: &mut GameState,
+    kind: EffectKind,
     filters: &[CandidateFilter],
     pool: CandidatePool,
 ) {
     // Get `CandidatePool`'s instanced IDs
-    let id_collection =
-        pool_collection(pool, &state.combat, &state.event, &state.id_card_pile_deck);
+    let mut id_candidates = Vec::new();
+    fill_buf_candidates(
+        &mut id_candidates,
+        pool,
+        None,
+        state.id_character,
+        &state.combat,
+        &state.event,
+        &state.id_card_pile_deck,
+    );
 
-    // Apply the filters over the whole set, then map survivors back to pool indices;
-    // staged picks are out of the running
-    let mut survivors = id_collection.to_vec();
-    filter_candidates(filters, &mut survivors, &state.entities, None);
-    for (idx, &id) in id_collection.iter().enumerate() {
-        if !state.effect_pending_selected.contains(&id) && survivors.contains(&id) {
-            state
-                .legal_actions
-                .push(Action::EffectPendingResolve { idx });
+    // Apply the filters over the whole set; staged selections are out of the running
+    filter_candidates(filters, &mut id_candidates, &state.entities, None);
+    for id in id_candidates {
+        if !state.id_card_pile_selected.contains(&id) {
+            state.legal_actions.push(selection_action(kind, id));
         }
     }
 }
@@ -636,11 +623,11 @@ fn fill_legal_actions_combat(state: &mut GameState) {
         &state.id_relics,
         *this_turn_cards_played,
     );
-    for idx in 0..id_card_pile_hand.len() {
+    for &id_card in id_card_pile_hand {
         if cap_reached {
             break;
         }
-        let card = &state.entities[id_card_pile_hand[idx]];
+        let card = &state.entities[id_card];
         let restriction_ok = is_play_restriction_satisfied(
             card.card_play_restriction,
             card.card_kind,
@@ -657,18 +644,17 @@ fn fill_legal_actions_combat(state: &mut GameState) {
             continue;
         }
         let requires_target = entity_requires_target(card);
-        let alive_count = id_monsters.iter().flatten().count();
         if requires_target {
-            for m in 0..alive_count {
+            for &id_monster in id_monsters.iter().flatten() {
                 state.legal_actions.push(Action::CardPlay {
-                    idx_card: idx,
-                    idx_monster: Some(m),
+                    id_card,
+                    id_monster: Some(id_monster),
                 });
             }
         } else {
             state.legal_actions.push(Action::CardPlay {
-                idx_card: idx,
-                idx_monster: None,
+                id_card,
+                id_monster: None,
             });
         }
     }
@@ -688,33 +674,30 @@ fn fill_legal_actions_reward(state: &mut GameState) {
 
     // Take actions for every Card in every bundle; Singing Bowl forfeits per bundle
     let singing_bowl = has_relic(&state.id_relics, RelicName::SingingBowl);
-    for (idx_bundle, bundle) in id_cards.iter().enumerate() {
-        for idx_card in 0..bundle.len() {
-            state.legal_actions.push(Action::RewardTakeCard {
-                idx_bundle,
-                idx_card,
-            });
+    for bundle in id_cards {
+        for &id_card in bundle {
+            state.legal_actions.push(Action::RewardTakeCard { id_card });
         }
         if singing_bowl && !bundle.is_empty() && !state.reward.cards_forced {
             state
                 .legal_actions
-                .push(Action::RewardSingingBowl { idx_bundle });
+                .push(Action::RewardSingingBowl { id_card: bundle[0] });
         }
     }
-    for idx in 0..id_relics.len() {
+    for &id_relic in id_relics {
         state
             .legal_actions
-            .push(Action::RewardTakeRelic { idx: idx });
+            .push(Action::RewardTakeRelic { id_relic });
     }
 
     // Sozu: taking a Potion reward removes it and obtains nothing, so a full belt doesn't block it
     if belt_has_room(&state.id_potions, state.potion_slots_max)
         || has_relic(&state.id_relics, RelicName::Sozu)
     {
-        for idx in 0..id_potions.len() {
+        for &id_potion in id_potions {
             state
                 .legal_actions
-                .push(Action::RewardTakePotion { idx: idx });
+                .push(Action::RewardTakePotion { id_potion });
         }
     }
     if gold.is_some() {
@@ -735,12 +718,11 @@ fn fill_legal_actions_event(state: &mut GameState) {
     if state.event.consumed {
         state.legal_actions.push(Action::RoomExit);
     } else {
-        let num_options = state.event.id_event_options.len();
-        for idx in 0..num_options {
+        for (idx, &id_option) in state.event.id_event_options.iter().enumerate() {
             if event_option_available(state, idx) {
                 state
                     .legal_actions
-                    .push(Action::EventOptionSelect { idx: idx });
+                    .push(Action::EventOptionSelect { id_option });
             }
         }
     }
@@ -765,29 +747,31 @@ fn fill_legal_actions_shop(state: &mut GameState) {
     let belt_room = belt_has_room(&state.id_potions, state.potion_slots_max);
 
     // Cards
-    for (idx, &(_, price)) in id_cards_price.iter().enumerate() {
+    for &(id_card, price) in id_cards_price {
         if gold >= price {
-            state.legal_actions.push(Action::ShopBuyCard { idx: idx });
+            state.legal_actions.push(Action::ShopBuyCard { id_card });
         }
     }
 
     // Relics
-    for (idx, &(_, price)) in id_relics_price.iter().enumerate() {
+    for &(id_relic, price) in id_relics_price {
         if gold >= price {
-            state.legal_actions.push(Action::ShopBuyRelic { idx: idx });
+            state.legal_actions.push(Action::ShopBuyRelic { id_relic });
         }
     }
 
     // Potions (Sozu: unobtainable, so unbuyable)
     if belt_room && !has_relic(&state.id_relics, RelicName::Sozu) {
-        for (idx, &(_, price)) in id_potions_price.iter().enumerate() {
+        for &(id_potion, price) in id_potions_price {
             if gold >= price {
-                state.legal_actions.push(Action::ShopBuyPotion { idx: idx });
+                state
+                    .legal_actions
+                    .push(Action::ShopBuyPotion { id_potion });
             }
         }
     }
 
-    // Purge: pay-then-pick, so one gated entry; the halt lists the candidates
+    // Purge: pay-then-select, so one gated entry; the halt lists the candidates
     if !*purged
         && gold >= *purge_cost
         && state
@@ -861,7 +845,7 @@ fn fill_legal_actions_rest_site(state: &mut GameState) {
     push_potion_actions(state);
 }
 
-// An opened chest cannot be opened again (the boss chest after its pick)
+// An opened chest cannot be opened again (the boss chest after its selection)
 fn fill_legal_actions_chest(state: &mut GameState) {
     if !state.chest.chest_opened {
         state.legal_actions.push(Action::ChestOpen);
@@ -873,10 +857,8 @@ fn fill_legal_actions_chest(state: &mut GameState) {
 fn push_room_select_actions(state: &mut GameState) {
     match state.location {
         Location::Start => {
-            for x in 0..MAP_WIDTH {
-                if state.id_rooms[0][x].is_some() {
-                    state.legal_actions.push(Action::RoomSelect { idx: x });
-                }
+            for &id_room in state.id_rooms[0].iter().flatten() {
+                state.legal_actions.push(Action::RoomSelect { id_room });
             }
         }
         Location::Overworld { y, x } => {
@@ -891,8 +873,10 @@ fn push_room_select_actions(state: &mut GameState) {
                 let winged = state.id_relics[RelicName::WingBoots as usize]
                     .is_some_and(|id| state.entities[id].relic_counter > 0);
                 for x in 0..MAP_WIDTH {
-                    if (winged || has_edge(edges, x)) && state.id_rooms[y_next][x].is_some() {
-                        state.legal_actions.push(Action::RoomSelect { idx: x });
+                    if (winged || has_edge(edges, x))
+                        && let Some(id_room) = state.id_rooms[y_next][x]
+                    {
+                        state.legal_actions.push(Action::RoomSelect { id_room });
                     }
                 }
             }
@@ -907,15 +891,14 @@ fn push_potion_actions(state: &mut GameState) {
     } else {
         (false, 0)
     };
-    // A pick takes no aimed drink
-    let at_pick = state.effect_pending.is_some();
+    // A selection takes no aimed drink
+    let at_selection = state.effect_pending.is_some();
     let turn_ended = in_combat && state.combat.turn_ended;
 
     // A Room's event holds until the next Room is entered, even after its screen closes
     let in_we_meet_again = state.room_kind_resolved == Some(RoomKind::EventRoom)
         && state.event.name == EventName::WeMeetAgain;
-    for s in 0..state.id_potions.len() {
-        let id_potion = state.id_potions[s];
+    for &id_potion in &state.id_potions {
         let potion = &state.entities[id_potion];
 
         // The We Meet Again Room locks every Potion
@@ -925,13 +908,17 @@ fn push_potion_actions(state: &mut GameState) {
 
         // Once the turn has ended, a Potion can only be discarded
         if turn_ended {
-            state.legal_actions.push(Action::PotionDiscard { idx: s });
+            state
+                .legal_actions
+                .push(Action::PotionDiscard { id_potion });
             continue;
         }
 
         // Fairy in a Bottle is never drinkable; it procs from the death hook
         if potion.potion_name == PotionName::Fairy {
-            state.legal_actions.push(Action::PotionDiscard { idx: s });
+            state
+                .legal_actions
+                .push(Action::PotionDiscard { id_potion });
             continue;
         }
 
@@ -941,32 +928,38 @@ fn push_potion_actions(state: &mut GameState) {
             && get_active_room_kind(&state.id_rooms, state.location, &state.entities)
                 == Some(RoomKind::CombatBoss)
         {
-            state.legal_actions.push(Action::PotionDiscard { idx: s });
+            state
+                .legal_actions
+                .push(Action::PotionDiscard { id_potion });
             continue;
         }
 
         // Combat-only Potions need a combat with a Monster left in it
         if potion.potion_combat_only && (!in_combat || alive_count == 0) {
-            state.legal_actions.push(Action::PotionDiscard { idx: s });
+            state
+                .legal_actions
+                .push(Action::PotionDiscard { id_potion });
             continue;
         }
 
         // Target-requiring Potions
         if entity_requires_target(potion) {
-            if in_combat && !at_pick {
-                for m in 0..alive_count {
+            if in_combat && !at_selection {
+                for &id_monster in state.combat.id_monsters.iter().flatten() {
                     state.legal_actions.push(Action::PotionUse {
-                        idx_potion: s,
-                        idx_monster: Some(m),
+                        id_potion,
+                        id_monster: Some(id_monster),
                     });
                 }
             }
         } else {
             state.legal_actions.push(Action::PotionUse {
-                idx_potion: s,
-                idx_monster: None,
+                id_potion,
+                id_monster: None,
             });
         }
-        state.legal_actions.push(Action::PotionDiscard { idx: s });
+        state
+            .legal_actions
+            .push(Action::PotionDiscard { id_potion });
     }
 }

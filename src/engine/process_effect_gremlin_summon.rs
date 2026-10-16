@@ -3,7 +3,7 @@ use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::monsters::gremlin_leader::GREMLIN_POSTS;
-use crate::monsters::pick_gremlin;
+use crate::monsters::roll_gremlin;
 
 pub fn process_effect_gremlin_summon(state: &mut GameState) {
     // The first post whose slot is empty; with all three held the summon fizzles before the
@@ -17,7 +17,7 @@ pub fn process_effect_gremlin_summon(state: &mut GameState) {
     // Roll a gremlin from the weighted pool; the spawn stamps it Minion
     state.effect_queue.push_front(Effect {
         kind: EffectKind::MonsterSpawn {
-            name: pick_gremlin(&mut state.rng),
+            name: roll_gremlin(&mut state.rng),
             minion: true,
             slot,
         },

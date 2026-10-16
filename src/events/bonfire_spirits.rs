@@ -10,7 +10,7 @@ use crate::events::bake_options;
 use crate::events::make_event_option_template;
 use crate::game::GameState;
 
-// Offer: pick a Card to purge. An empty purgeable pool auto-resolves to nothing
+// Offer: select a Card to purge. An empty purgeable pool auto-resolves to nothing
 const OPTION_OFFER: &[Effect] = &[
     Effect {
         kind: EffectKind::BonfireOffer,

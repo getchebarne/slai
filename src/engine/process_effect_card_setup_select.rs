@@ -1,7 +1,7 @@
 use crate::game::GameState;
 use crate::types::Combat;
 
-pub fn process_effect_card_setup_pick(
+pub fn process_effect_card_setup_select(
     id_target: Option<usize>,
     state: &mut GameState,
     free: bool,
@@ -9,14 +9,14 @@ pub fn process_effect_card_setup_pick(
 ) {
     assert!(
         state.combat.active,
-        "process_effect_card_setup_pick outside the Combat frame"
+        "process_effect_card_setup_select outside the Combat frame"
     );
     let Combat {
         id_card_pile_hand,
         id_card_pile_draw,
         ..
     } = &mut state.combat;
-    let id_target = id_target.expect("CardSetupPick requires id_target");
+    let id_target = id_target.expect("CardSetupSelect requires id_target");
 
     // Only a Card costing above 0 is made free; X-cost and unplayable Cards store cost 0
     if free && state.entities[id_target].card_cost > 0 {

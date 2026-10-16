@@ -12,7 +12,7 @@ use crate::types::Focus;
 use crate::utils::context_focus;
 use crate::utils::flush_effects_from_buf_to_queue_front;
 
-// Pay-then-pick: charge the purge cost, then halt on the deck pick
+// Pay-then-select: charge the purge cost, then halt on the deck selection
 pub fn process_effect_shop_purge(state: &mut GameState) {
     assert!(
         context_focus(state) == Focus::Shop,

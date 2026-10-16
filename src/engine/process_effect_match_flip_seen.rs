@@ -8,7 +8,7 @@ use crate::types::EventName;
 use crate::types::Focus;
 use crate::utils::context_focus;
 
-// Match and Keep!: flips a face-down Card already seen, picked by the player or just revealed by an unseen flip
+// Match and Keep!: flips a face-down Card already seen, selected by the player or just revealed by an unseen flip
 pub fn process_effect_match_flip_seen(id_target: Option<usize>, state: &mut GameState) {
     let id_card = id_target.expect("MatchFlipSeen requires id_target");
     assert!(
@@ -26,7 +26,7 @@ pub fn process_effect_match_flip_seen(id_target: Option<usize>, state: &mut Game
         .id_card_pile_event_roll
         .iter()
         .position(|&id| id == id_card)
-        .expect("A seen flip picks a seen Card");
+        .expect("A seen flip selects a seen Card");
     event.id_card_pile_event_roll.remove(idx);
 
     // The attempt's first flip stays face up

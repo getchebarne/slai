@@ -23,7 +23,7 @@ pub fn process_effect_card_discover_roll(
     } = &mut state.combat;
     id_card_pile_discover.clear();
 
-    let card_picks = get_random_cards(
+    let cards_rolled = get_random_cards(
         color,
         kind,
         None,
@@ -32,8 +32,8 @@ pub fn process_effect_card_discover_roll(
         count as usize,
         &mut state.rng,
     );
-    for card_pick in card_picks {
-        let id = push_entity(&mut state.entities, card_pick);
+    for card_rolled in cards_rolled {
+        let id = push_entity(&mut state.entities, card_rolled);
         id_card_pile_discover.push(id);
     }
 }

@@ -2,7 +2,7 @@ use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::events::EFFECT_DECK_PURGE_PICK_1;
+use crate::events::EFFECT_DECK_PURGE_SELECT_1;
 use crate::events::EFFECT_EVENT_CLOSE;
 use crate::events::EFFECT_EVENT_CONSUME;
 use crate::events::EOT_LEAVE;
@@ -15,7 +15,7 @@ use crate::types::DeltaSign;
 // The draw gate in `draw_event` requires this much gold before the event can spawn
 pub const BEGGAR_COST_PURGE: u16 = 75;
 
-// Give: 75 gold buys a Card purge; consume after the cost, so the pick lands over the spent event, and close once it resolves
+// Give: 75 gold buys a Card purge; consume after the cost, so the selection lands over the spent event, and close once it resolves
 const OPTION_GIVE: &[Effect] = &[
     Effect {
         kind: EffectKind::GoldDelta {
@@ -26,14 +26,14 @@ const OPTION_GIVE: &[Effect] = &[
         target: Target::Direct(None),
     },
     EFFECT_EVENT_CONSUME,
-    EFFECT_DECK_PURGE_PICK_1,
+    EFFECT_DECK_PURGE_SELECT_1,
     EFFECT_EVENT_CLOSE,
 ];
 
 pub static EOTS_BASE: &[EventOptionTemplate] =
     &[make_event_option_template(OPTION_GIVE), EOT_LEAVE];
 
-// Give needs only the gold; with nothing to purge its pick resolves to nothing
+// Give needs only the gold; with nothing to purge its selection resolves to nothing
 pub fn option_available(state: &GameState, idx: usize) -> bool {
     match idx {
         0 => state.entities[state.id_character].character_gold >= BEGGAR_COST_PURGE,

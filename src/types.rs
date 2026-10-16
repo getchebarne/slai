@@ -31,7 +31,7 @@ pub struct Combat {
     pub id_card_pile_exhaust: Vec<usize>,
     pub id_monsters: [Option<usize>; MAX_MONSTERS],
     pub id_card_pile_stasis: [Option<usize>; MAX_MONSTERS], // Slot-parallel to `id_monsters`
-    pub id_monster_picked: Option<usize>,
+    pub id_monster_selected: Option<usize>,
     pub id_card_last_drawn: Option<usize>,
     pub id_card_pile_nightmare: Vec<(usize, u32)>, // (snapshot, seq), one per Nightmare play; they never merge
     pub id_card_pile_discover: Vec<usize>,
@@ -75,7 +75,7 @@ pub fn combat_reset(combat: &mut Combat) {
     combat.id_card_pile_exhaust.clear();
     combat.id_monsters.fill(None);
     combat.id_card_pile_stasis.fill(None);
-    combat.id_monster_picked = None;
+    combat.id_monster_selected = None;
     combat.id_card_last_drawn = None;
     combat.id_card_pile_nightmare.clear();
     combat.id_card_pile_discover.clear();
@@ -111,9 +111,9 @@ pub struct Reward {
     pub id_potions: Vec<usize>,
     pub gold: Option<u16>,
     pub gold_stolen: Option<u16>, // The thieves' purse, claimed apart from the room's gold
-    pub relics_exclusive: bool,   // The boss chest's pick-one offer; a skip shuts the chest again
-    pub cards_forced: bool,       // The Library's grid: one pick, no skip and no Singing Bowl
-    pub closes_on_pick: bool, // A take or Singing Bowl closes it (boss chest, Dream Catcher, the Library)
+    pub relics_exclusive: bool,   // The boss chest's select-one offer
+    pub cards_forced: bool,       // The Library's grid: one selection, no skip and no Singing Bowl
+    pub closes_on_selection: bool, // A take or Singing Bowl closes it (boss chest, Dream Catcher, the Library)
 }
 
 pub fn reward_reset(reward: &mut Reward) {
@@ -124,7 +124,7 @@ pub fn reward_reset(reward: &mut Reward) {
     reward.gold_stolen = None;
     reward.relics_exclusive = false;
     reward.cards_forced = false;
-    reward.closes_on_pick = false;
+    reward.closes_on_selection = false;
 }
 
 // Find-or-create for the RewardRoll* effects: any roll may activate the context
@@ -213,8 +213,7 @@ pub struct Chest {
     pub active: bool,
     pub chest_kind: ChestKind,
     pub chest_opened: bool,
-    pub chest_relics_seen: bool, // The boss chest was opened this visit, so its Relics are known
-    pub id_relics: Vec<usize>, // The boss chest's three Boss Relics, offered again if it is reopened
+    pub id_relics: Vec<usize>, // The boss chest's three Boss Relics
 }
 
 // The focused context

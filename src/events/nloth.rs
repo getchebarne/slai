@@ -12,7 +12,7 @@ use crate::events::make_event_option_template;
 use crate::game::GameState;
 use crate::types::RelicName;
 
-// One trade for both offers: the player picks which staked Relic to give up
+// One trade for both offers: the player selects which staked Relic to give up
 const OPTION_TRADE: &[Effect] = &[
     Effect {
         kind: EffectKind::RelicLose,
@@ -38,12 +38,12 @@ pub static EOTS_BASE: &[EventOptionTemplate] = &[
     make_event_option_template(&[EFFECT_EVENT_CONSUME]),
 ];
 
-// Two distinct owned Relics, staked on the context for the trade to pick from
+// Two distinct owned Relics, staked on the context for the trade to select from
 pub fn spawn(state: &mut GameState) -> Vec<usize> {
     // Collect owned Relics
     let id_relics: Vec<usize> = state.id_relics.iter().flatten().copied().collect();
 
-    // Roll picks
+    // Roll the two staked Relics
     let idx = state.rng.random_range(0..id_relics.len());
     let mut jdx = state.rng.random_range(0..id_relics.len() - 1);
     if jdx >= idx {

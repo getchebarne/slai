@@ -4,7 +4,7 @@ use crate::effect::Target;
 use crate::game::GameState;
 use crate::utils::unceasing_top_fires;
 
-// Unceasing Top at the turn end's rest, behind the turn-end Relics, their picks and the Cards played meanwhile: an empty hand draws 1 before the landing pass
+// Unceasing Top at the turn end's rest, behind the turn-end Relics, their selections and the Cards played meanwhile: an empty hand draws 1 before the landing pass
 pub fn process_effect_unceasing_top_draw(state: &mut GameState) {
     assert!(
         state.combat.active,

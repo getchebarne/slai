@@ -1,6 +1,6 @@
 use crate::game::GameState;
 
-// Each pick moves to the end of the hand, so the kept Cards lead the next hand in pick order
+// Each selection moves to the end of the hand, so the kept Cards lead the next hand in selection order
 pub fn process_effect_card_retain(id_target: Option<usize>, state: &mut GameState) {
     assert!(
         state.combat.active,

@@ -355,9 +355,9 @@ fn rule_sibling_applies(kind: RoomKind) -> bool {
     )
 }
 
-// Forced rows stamped first, then each
-// node takes the first drawn kind passing the row/parent/sibling rules; nodes
-// with no passing kind stay CombatMonster and never block later siblings
+// Forced rows stamped first, then each node takes the first drawn kind passing the
+// row/parent/sibling rules; nodes with no passing kind stay CombatMonster and never block
+// later siblings
 fn assign_room_kinds(
     nodes: &mut Grid,
     rng: &mut impl Rng,
@@ -392,7 +392,7 @@ fn assign_room_kinds(
     let num_event = (num_rooms as f32 * FACTOR_NUM_EVENT).round() as usize;
     let num_shop = (num_rooms as f32 * FACTOR_NUM_SHOP).round() as usize;
 
-    let mut types = vec![RoomKind::CombatMonster; positions.len()];
+    let mut room_kinds = vec![RoomKind::CombatMonster; positions.len()];
     let mut offset = 0;
     for (count, kind) in [
         (num_rest, RoomKind::RestSite),
@@ -400,10 +400,10 @@ fn assign_room_kinds(
         (num_event, RoomKind::Unknown),
         (num_shop, RoomKind::Shop),
     ] {
-        types[offset..offset + count].fill(kind);
+        room_kinds[offset..offset + count].fill(kind);
         offset += count;
     }
-    shuffle(&mut types, rng);
+    shuffle(&mut room_kinds, rng);
 
     // Forced rows are assigned up front so the rules see them
     for node in &mut nodes[MAP_HEIGHT - 1] {
@@ -459,15 +459,15 @@ fn assign_room_kinds(
             }
         }
 
-        let pick = types.iter().position(|&kind| {
-            rule_row_ok(kind, y)
-                && !(rule_parent_applies(kind) && mask_parents & (1 << kind as u8) != 0)
-                && !(rule_sibling_applies(kind) && mask_siblings & (1 << kind as u8) != 0)
+        let idx_room_kind_ok = room_kinds.iter().position(|&room_kind| {
+            rule_row_ok(room_kind, y)
+                && !(rule_parent_applies(room_kind) && mask_parents & (1 << room_kind as u8) != 0)
+                && !(rule_sibling_applies(room_kind) && mask_siblings & (1 << room_kind as u8) != 0)
         });
-        if let Some(idx) = pick {
-            let kind = types.remove(idx);
+        if let Some(idx) = idx_room_kind_ok {
+            let room_kind = room_kinds.remove(idx);
             if let Some(n) = &mut nodes[y][x] {
-                n.room_kind = kind;
+                n.room_kind = room_kind;
             }
             assigned[y][x] = true;
         }

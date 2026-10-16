@@ -1,7 +1,7 @@
 use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::RelicPick;
+use crate::effect::RelicRoll;
 use crate::effect::Target;
 use crate::events::EFFECT_EVENT_ADVANCE;
 use crate::events::EFFECT_EVENT_CLOSE;
@@ -57,8 +57,8 @@ const OPTION_FIGHT_NOBS: &[Effect] = &[
 pub const FIGHT_LOOT_NOBS: EventLoot = EventLoot {
     gold: Some(Amount::Absolute(100)),
     relics: [
-        Some(RelicPick::Tier(RelicTier::Rare)),
-        Some(RelicPick::Tier(RelicTier::Uncommon)),
+        Some(RelicRoll::Tier(RelicTier::Rare)),
+        Some(RelicRoll::Tier(RelicTier::Uncommon)),
     ],
 };
 

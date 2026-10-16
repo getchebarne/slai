@@ -25,7 +25,7 @@ pub static FORETHOUGHT: CardTemplate = make_card_template(
     false,
     false,
     &[Effect {
-        kind: EffectKind::CardSetupPick {
+        kind: EffectKind::CardSetupSelect {
             free: true,
             bottom: true,
         },
