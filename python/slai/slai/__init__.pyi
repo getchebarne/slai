@@ -1456,6 +1456,7 @@ class EventName:
     DrugDealer: Final[EventName]
     Duplicator: Final[EventName]
     FaceTrader: Final[EventName]
+    Falling: Final[EventName]
     ForgottenAltar: Final[EventName]
     Ghosts: Final[EventName]
     GoldenIdol: Final[EventName]

@@ -595,6 +595,7 @@ pub enum EventName {
     BonfireSpirits,
     OminousForge,
     FaceTrader,
+    Falling,
     Mushrooms,
     GoldenIdol,
     ScrapOoze,
