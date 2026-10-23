@@ -66,5 +66,38 @@ pub fn process_effect_move_execute(id_target: Option<usize>, state: &mut GameSta
         id_source: None,
         target: Target::Direct(Some(id_monster)),
     });
+
+    // Explosive and Fading count down behind the roll, read as the move starts: a stack off per move, and at 1 the owner dies
+    let modifiers = &state.entities[id_monster].modifiers;
+    for kind in [ModifierKind::Explosive, ModifierKind::Fading] {
+        if !has_modifier(modifiers, kind) {
+            continue;
+        }
+        if modifier_stacks(modifiers, kind) > 1 {
+            state.effect_buf.push(Effect {
+                kind: EffectKind::ModifierDelta { kind, stacks: -1 },
+                id_source: None,
+                target: Target::Direct(Some(id_monster)),
+            });
+        } else {
+            state.effect_buf.push(Effect {
+                kind: EffectKind::Death { with_leader: false },
+                id_source: None,
+                target: Target::Direct(Some(id_monster)),
+            });
+
+            // Explosive's blast follows the death: an unscaled 30 with no source, so Torii and Plated Armor ignore it
+            if kind == ModifierKind::Explosive {
+                state.effect_buf.push(Effect {
+                    kind: EffectKind::DamageDeal {
+                        amount: 30,
+                        lifesteal: false,
+                    },
+                    id_source: None,
+                    target: Target::Direct(Some(state.id_character)),
+                });
+            }
+        }
+    }
     flush_effects_from_buf_to_queue_front(state);
 }

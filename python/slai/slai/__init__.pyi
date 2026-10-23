@@ -1688,6 +1688,8 @@ class ModifierKind:
     Enrage: Final[ModifierKind]
     Entangled: Final[ModifierKind]
     Envenom: Final[ModifierKind]
+    Explosive: Final[ModifierKind]
+    Fading: Final[ModifierKind]
     Flight: Final[ModifierKind]
     Frail: Final[ModifierKind]
     Hex: Final[ModifierKind]
