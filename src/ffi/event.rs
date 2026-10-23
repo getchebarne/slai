@@ -13,8 +13,9 @@ mirror_enum!(PyEventName from EventName, "EventName", {
     Designer, DrugDealer, Duplicator, FaceTrader, Falling, ForgottenAltar, Ghosts, GoldenIdol,
     GoldenShrine, KnowingSkull, LivingWall, MaskedBandits, MatchAndKeep, Mushrooms, Neow, Nest,
     Nloth, OminousForge, Purifier, ScrapOoze, ShiningLight, TheCleric, TheDivineFountain, TheJoust,
-    TheLab, TheLibrary, TheMausoleum, TheMoaiHead, TheSsssserpent, TheWomanInBlue, Transmogrifier,
-    UpgradeShrine, Vampires, WeMeetAgain, WheelOfChange, WingStatue, WorldOfGoop,
+    TheLab, TheLibrary, TheMausoleum, TheMoaiHead, TheSsssserpent, TheWomanInBlue,
+    TombOfLordRedMask, Transmogrifier, UpgradeShrine, Vampires, WeMeetAgain, WheelOfChange,
+    WingStatue, WorldOfGoop,
 });
 
 #[pyclass(

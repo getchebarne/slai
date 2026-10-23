@@ -36,6 +36,7 @@ mod the_mausoleum;
 mod the_moai_head;
 mod the_ssssserpent;
 mod the_woman_in_blue;
+mod tomb_of_lord_red_mask;
 mod transmogrifier;
 mod upgrade_shrine;
 mod vampires;
@@ -211,6 +212,7 @@ pub fn spawn_event(state: &mut GameState, name: EventName) -> Vec<usize> {
         EventName::ForgottenAltar => forgotten_altar::spawn(state),
         EventName::Nloth => nloth::spawn(state),
         EventName::MatchAndKeep => match_and_keep::spawn(state),
+        EventName::TombOfLordRedMask => tomb_of_lord_red_mask::spawn(state),
     }
 }
 
@@ -262,6 +264,7 @@ pub fn options_catalog(name: EventName, ascension: u8) -> &'static [EventOptionT
         EventName::ForgottenAltar => forgotten_altar::catalog(ascension),
         EventName::Nloth => nloth::catalog(ascension),
         EventName::MatchAndKeep => match_and_keep::catalog(ascension),
+        EventName::TombOfLordRedMask => tomb_of_lord_red_mask::catalog(ascension),
     }
 }
 
@@ -362,6 +365,7 @@ pub fn event_option_available(state: &GameState, idx: usize) -> bool {
         EventName::ForgottenAltar => forgotten_altar::option_available(state, idx),
         EventName::Nloth => nloth::option_available(state, idx),
         EventName::MatchAndKeep => match_and_keep::option_available(state, idx),
+        EventName::TombOfLordRedMask => tomb_of_lord_red_mask::option_available(state, idx),
     }
 }
 
