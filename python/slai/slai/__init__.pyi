@@ -1481,6 +1481,7 @@ class EventName:
     TheLab: Final[EventName]
     TheLibrary: Final[EventName]
     TheMausoleum: Final[EventName]
+    TheMoaiHead: Final[EventName]
     TheSsssserpent: Final[EventName]
     TheWomanInBlue: Final[EventName]
     Transmogrifier: Final[EventName]

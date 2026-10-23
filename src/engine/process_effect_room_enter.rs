@@ -287,6 +287,7 @@ fn draw_random_event(state: &mut GameState) -> Option<EventName> {
 fn draw_event(state: &mut GameState) -> Option<EventName> {
     // Draw-gated events stay pooled until eligible
     let gold = state.entities[state.id_character].character_gold;
+    let vitals = state.entities[state.id_character].vitals;
     let floor = match state.location {
         Location::Overworld { y, .. } => y + 1,
         _ => 0,
@@ -300,6 +301,10 @@ fn draw_event(state: &mut GameState) -> Option<EventName> {
             EventName::Beggar => gold >= BEGGAR_COST_PURGE,
             EventName::Colosseum => floor > 8,
             EventName::Mushrooms | EventName::DeadAdventurer => floor > 6,
+            EventName::TheMoaiHead => {
+                has_relic(&state.id_relics, RelicName::GoldenIdol)
+                    || vitals.health <= vitals.health_max / 2
+            }
             _ => true,
         })
         .map(|(i, _)| i)
