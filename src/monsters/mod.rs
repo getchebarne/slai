@@ -25,6 +25,7 @@ pub mod lagavulin;
 pub mod looter;
 pub mod louse_green;
 pub mod louse_red;
+pub mod maw;
 pub mod mugger;
 pub mod sentry;
 pub mod shelled_parasite;
@@ -138,6 +139,7 @@ pub const ALL_MONSTERS: &[&'static MonsterTemplate] = &[
     &looter::LOOTER,
     &louse_green::LOUSE_DEFENSIVE,
     &louse_red::LOUSE_NORMAL,
+    &maw::MAW,
     &mugger::MUGGER,
     &sentry::SENTRY,
     &shelled_parasite::SHELLED_PARASITE,
@@ -309,6 +311,7 @@ pub fn monster_template(monster_name: MonsterName) -> &'static MonsterTemplate {
         MonsterName::BanditBear => &bandit_bear::BANDIT_BEAR,
         MonsterName::BanditLeader => &bandit_leader::BANDIT_LEADER,
         MonsterName::BanditPointy => &bandit_pointy::BANDIT_POINTY,
+        MonsterName::Maw => &maw::MAW,
     }
 }
 
@@ -532,6 +535,7 @@ pub fn get_next_move(
             ascension_level,
         ),
         MonsterName::BanditPointy => 0,
+        MonsterName::Maw => maw::get_next_move_maw(entity.monster_move_current, history, rng),
     }
 }
 
