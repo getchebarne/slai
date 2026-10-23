@@ -6,6 +6,7 @@ use crate::modifier::ModifierKind;
 use crate::monsters::book_of_stabbing;
 use crate::monsters::get_next_move;
 use crate::monsters::hexaghost;
+use crate::monsters::maw;
 use crate::monsters::push_move_history;
 use crate::monsters::the_guardian;
 use crate::types::Combat;
@@ -54,12 +55,16 @@ pub fn process_effect_move_update(
         && move_next == hexaghost::IDX_MOVE_DIVIDER)
         .then(|| character_health / HEXAGHOST_DIVIDER_DIVISOR + 1);
 
-    // Multi-Stab's hit count locks in at selection, from the moves chosen before it
-    let instances_locked = (entity.monster_name == MonsterName::BookOfStabbing
-        && move_next == book_of_stabbing::IDX_MOVE_MULTI_STAB)
-        .then(|| {
-            book_of_stabbing::multi_stab_instances(&entity.monster_move_uses, state.ascension)
-        });
+    // Multi-Stab's and Nom's hit counts lock in at selection, from the moves chosen before them
+    let instances_locked = match (entity.monster_name, move_next) {
+        (MonsterName::BookOfStabbing, book_of_stabbing::IDX_MOVE_MULTI_STAB) => Some(
+            book_of_stabbing::multi_stab_instances(&entity.monster_move_uses, state.ascension),
+        ),
+        (MonsterName::Maw, maw::IDX_MOVE_NOM) => {
+            Some(maw::nom_instances(&entity.monster_move_uses))
+        }
+        _ => None,
+    };
 
     // Twin Slam's Mode Shift locks in at selection: 10 more per Defensive Mode so far, each ending in one Twin Slam, this one included
     let mode_shift_bonus = if entity.monster_name == MonsterName::TheGuardian

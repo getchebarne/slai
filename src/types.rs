@@ -440,6 +440,7 @@ pub enum MonsterName {
     Looter,
     LouseDefensive,
     LouseNormal,
+    Maw,
     Sentry,
     SlaverBlue,
     SlaverRed,
@@ -490,6 +491,7 @@ pub enum EncounterPool {
     Act2Hard,
     Act2Elite,
     Act2Boss,
+    Act3Hard,
     Event,
 }
 
@@ -554,6 +556,9 @@ pub enum MonsterEncounter {
     BronzeAutomaton,
     TheCollector,
     Champ,
+
+    // Act 3 hard
+    Maw,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
