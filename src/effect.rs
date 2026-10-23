@@ -478,9 +478,9 @@ pub const fn is_multi_selection(selection_kind: SelectionKind) -> bool {
 pub enum CandidateFilter {
     // Compare against `Entity` fields
     Upgradeable,
-    KindAttack,
-    KindSkill,
-    KindPower,
+    CardKindAttack,
+    CardKindSkill,
+    CardKindPower,
     KindCurse,
     Costed,
     NotBottled,

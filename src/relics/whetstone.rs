@@ -25,7 +25,10 @@ pub static WHETSTONE: RelicTemplate = RelicTemplate {
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::CardPileDeck,
-            filters: &[CandidateFilter::Upgradeable, CandidateFilter::KindAttack],
+            filters: &[
+                CandidateFilter::Upgradeable,
+                CandidateFilter::CardKindAttack,
+            ],
             selection_kind: SelectionKind::Random { count: 2 },
         },
     }],

@@ -588,6 +588,7 @@ pub enum EventName {
     DrugDealer,
     Duplicator,
     FaceTrader,
+    Falling,
     ForgottenAltar,
     Ghosts,
     GoldenIdol,

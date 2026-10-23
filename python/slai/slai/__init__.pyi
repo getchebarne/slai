@@ -150,11 +150,11 @@ class AmountRelative:
 
 @final
 class CandidateFilter:
+    CardKindAttack: Final[CandidateFilter]
+    CardKindPower: Final[CandidateFilter]
+    CardKindSkill: Final[CandidateFilter]
     Costed: Final[CandidateFilter]
-    KindAttack: Final[CandidateFilter]
     KindCurse: Final[CandidateFilter]
-    KindPower: Final[CandidateFilter]
-    KindSkill: Final[CandidateFilter]
     NotBottled: Final[CandidateFilter]
     NotBoundCurse: Final[CandidateFilter]
     NotMinion: Final[CandidateFilter]
@@ -1458,6 +1458,7 @@ class EventName:
     DrugDealer: Final[EventName]
     Duplicator: Final[EventName]
     FaceTrader: Final[EventName]
+    Falling: Final[EventName]
     ForgottenAltar: Final[EventName]
     Ghosts: Final[EventName]
     GoldenIdol: Final[EventName]

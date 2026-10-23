@@ -337,9 +337,9 @@ fn entity_matches(filter: CandidateFilter, entity: &Entity) -> bool {
             entity.kind == EntityKind::Card && !card_name_bound_curse(entity.card_name)
         }
         CandidateFilter::Upgradeable => card_is_upgradable(entity),
-        CandidateFilter::KindAttack => entity.card_kind == CardKind::Attack,
-        CandidateFilter::KindSkill => entity.card_kind == CardKind::Skill,
-        CandidateFilter::KindPower => entity.card_kind == CardKind::Power,
+        CandidateFilter::CardKindAttack => entity.card_kind == CardKind::Attack,
+        CandidateFilter::CardKindSkill => entity.card_kind == CardKind::Skill,
+        CandidateFilter::CardKindPower => entity.card_kind == CardKind::Power,
         CandidateFilter::KindCurse => entity.card_kind == CardKind::Curse,
         CandidateFilter::Costed
         | CandidateFilter::NotSource

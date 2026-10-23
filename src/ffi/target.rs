@@ -17,8 +17,8 @@ mirror_enum!(PyCandidatePool from CandidatePool, "CandidatePool", {
 });
 
 mirror_enum!(PyCandidateFilter from CandidateFilter, "CandidateFilter", {
-    Upgradeable, KindAttack, KindSkill, KindPower, KindCurse, Costed, NotBottled, NotBoundCurse,
-    NotSource, NotSourceUnlessAlone, NotMinion, Starter,
+    Upgradeable, CardKindAttack, CardKindSkill, CardKindPower, KindCurse, Costed, NotBottled,
+    NotBoundCurse, NotSource, NotSourceUnlessAlone, NotMinion, Starter,
 });
 
 flat_variants!(PySelectionKind {

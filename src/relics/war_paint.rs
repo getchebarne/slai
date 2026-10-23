@@ -25,7 +25,7 @@ pub static WAR_PAINT: RelicTemplate = RelicTemplate {
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::CardPileDeck,
-            filters: &[CandidateFilter::Upgradeable, CandidateFilter::KindSkill],
+            filters: &[CandidateFilter::Upgradeable, CandidateFilter::CardKindSkill],
             selection_kind: SelectionKind::Random { count: 2 },
         },
     }],

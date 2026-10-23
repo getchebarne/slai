@@ -10,6 +10,7 @@ mod designer;
 mod drug_dealer;
 mod duplicator;
 mod face_trader;
+mod falling;
 mod forgotten_altar;
 mod ghosts;
 mod golden_idol;
@@ -183,6 +184,7 @@ pub fn spawn_event(state: &mut GameState, name: EventName) -> Vec<usize> {
         EventName::BonfireSpirits => bonfire_spirits::spawn(state),
         EventName::OminousForge => ominous_forge::spawn(state),
         EventName::FaceTrader => face_trader::spawn(state),
+        EventName::Falling => falling::spawn(state),
         EventName::Mushrooms => mushrooms::spawn(state),
         EventName::GoldenIdol => golden_idol::spawn(state),
         EventName::ScrapOoze => scrap_ooze::spawn(state),
@@ -232,6 +234,7 @@ pub fn options_catalog(name: EventName, ascension: u8) -> &'static [EventOptionT
         EventName::BonfireSpirits => bonfire_spirits::catalog(ascension),
         EventName::OminousForge => ominous_forge::catalog(ascension),
         EventName::FaceTrader => face_trader::catalog(ascension),
+        EventName::Falling => falling::catalog(ascension),
         EventName::Mushrooms => mushrooms::catalog(ascension),
         EventName::GoldenIdol => golden_idol::catalog(ascension),
         EventName::ScrapOoze => scrap_ooze::catalog(ascension),
@@ -330,6 +333,7 @@ pub fn event_option_available(state: &GameState, idx: usize) -> bool {
         EventName::BonfireSpirits => bonfire_spirits::option_available(state, idx),
         EventName::OminousForge => ominous_forge::option_available(state, idx),
         EventName::FaceTrader => face_trader::option_available(state, idx),
+        EventName::Falling => falling::option_available(state, idx),
         EventName::Mushrooms => mushrooms::option_available(state, idx),
         EventName::GoldenIdol => golden_idol::option_available(state, idx),
         EventName::ScrapOoze => scrap_ooze::option_available(state, idx),

@@ -10,10 +10,10 @@ use super::effect::snapshot_effect;
 
 mirror_enum!(PyEventName from EventName, "EventName", {
     Addict, BackToBasics, Beggar, BigFish, BonfireSpirits, Colosseum, CursedTome, DeadAdventurer,
-    Designer, DrugDealer, Duplicator, FaceTrader, ForgottenAltar, Ghosts, GoldenIdol, GoldenShrine,
-    KnowingSkull, LivingWall, MaskedBandits, MatchAndKeep, Mushrooms, Neow, Nest, Nloth,
-    OminousForge, Purifier, ScrapOoze, ShiningLight, TheCleric, TheDivineFountain, TheJoust, TheLab,
-    TheLibrary, TheMausoleum, TheSsssserpent, TheWomanInBlue, Transmogrifier, UpgradeShrine,
+    Designer, DrugDealer, Duplicator, FaceTrader, Falling, ForgottenAltar, Ghosts, GoldenIdol,
+    GoldenShrine, KnowingSkull, LivingWall, MaskedBandits, MatchAndKeep, Mushrooms, Neow, Nest,
+    Nloth, OminousForge, Purifier, ScrapOoze, ShiningLight, TheCleric, TheDivineFountain, TheJoust,
+    TheLab, TheLibrary, TheMausoleum, TheSsssserpent, TheWomanInBlue, Transmogrifier, UpgradeShrine,
     Vampires, WeMeetAgain, WheelOfChange, WingStatue, WorldOfGoop,
 });
 

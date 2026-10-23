@@ -26,7 +26,7 @@ const EFFECT_PURGE_STRIKES: Effect = Effect {
     id_source: None,
     target: Target::Resolve {
         candidate_pool: CandidatePool::CardPileDeck,
-        filters: &[CandidateFilter::Starter, CandidateFilter::KindAttack],
+        filters: &[CandidateFilter::Starter, CandidateFilter::CardKindAttack],
         selection_kind: SelectionKind::All,
     },
 };
