@@ -15,7 +15,7 @@ mirror_enum!(PyEventName from EventName, "EventName", {
     Nloth, OminousForge, Purifier, ScrapOoze, ShiningLight, TheCleric, TheDivineFountain, TheJoust,
     TheLab, TheLibrary, TheMausoleum, TheMoaiHead, TheSsssserpent, TheWomanInBlue,
     TombOfLordRedMask, Transmogrifier, UpgradeShrine, Vampires, WeMeetAgain, WheelOfChange,
-    WingStatue, WorldOfGoop,
+    WindingHalls, WingStatue, WorldOfGoop,
 });
 
 #[pyclass(

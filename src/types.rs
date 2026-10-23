@@ -620,6 +620,7 @@ pub enum EventName {
     Vampires,
     WeMeetAgain,
     WheelOfChange,
+    WindingHalls,
     WingStatue,
     WorldOfGoop,
 }

@@ -1484,11 +1484,13 @@ class EventName:
     TheMoaiHead: Final[EventName]
     TheSsssserpent: Final[EventName]
     TheWomanInBlue: Final[EventName]
+    TombOfLordRedMask: Final[EventName]
     Transmogrifier: Final[EventName]
     UpgradeShrine: Final[EventName]
     Vampires: Final[EventName]
     WeMeetAgain: Final[EventName]
     WheelOfChange: Final[EventName]
+    WindingHalls: Final[EventName]
     WingStatue: Final[EventName]
     WorldOfGoop: Final[EventName]
     def __eq__(self, other: object) -> bool: ...
