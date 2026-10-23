@@ -42,6 +42,7 @@ mod upgrade_shrine;
 mod vampires;
 mod we_meet_again;
 mod wheel_of_change;
+mod winding_halls;
 mod wing_statue;
 mod world_of_goop;
 
@@ -172,6 +173,7 @@ pub fn spawn_event(state: &mut GameState, name: EventName) -> Vec<usize> {
         EventName::Duplicator => duplicator::spawn(state),
         EventName::GoldenShrine => golden_shrine::spawn(state),
         EventName::TheMoaiHead => the_moai_head::spawn(state),
+        EventName::WindingHalls => winding_halls::spawn(state),
         EventName::WingStatue => wing_statue::spawn(state),
         EventName::WorldOfGoop => world_of_goop::spawn(state),
         EventName::LivingWall => living_wall::spawn(state),
@@ -224,6 +226,7 @@ pub fn options_catalog(name: EventName, ascension: u8) -> &'static [EventOptionT
         EventName::Duplicator => duplicator::catalog(ascension),
         EventName::GoldenShrine => golden_shrine::catalog(ascension),
         EventName::TheMoaiHead => the_moai_head::catalog(ascension),
+        EventName::WindingHalls => winding_halls::catalog(ascension),
         EventName::WingStatue => wing_statue::catalog(ascension),
         EventName::WorldOfGoop => world_of_goop::catalog(ascension),
         EventName::LivingWall => living_wall::catalog(ascension),
@@ -325,6 +328,7 @@ pub fn event_option_available(state: &GameState, idx: usize) -> bool {
         EventName::Duplicator => duplicator::option_available(state, idx),
         EventName::GoldenShrine => golden_shrine::option_available(state, idx),
         EventName::TheMoaiHead => the_moai_head::option_available(state, idx),
+        EventName::WindingHalls => winding_halls::option_available(state, idx),
         EventName::WingStatue => wing_statue::option_available(state, idx),
         EventName::WorldOfGoop => world_of_goop::option_available(state, idx),
         EventName::LivingWall => living_wall::option_available(state, idx),
