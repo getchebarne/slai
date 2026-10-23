@@ -182,7 +182,9 @@ pub enum EffectKind {
     HealthLowerTo {
         amount: Amount,
     },
-    HeelHookProc,
+    HeelHookProc {
+        damage: u16,
+    },
     HexaghostBurnIncrease {
         count: u8,
     },

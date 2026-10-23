@@ -616,7 +616,9 @@ fn dispatch_by_kind(
         EffectKind::DamageFlechettes { damage } => {
             process_effect_damage_flechettes(id_source, id_target, state, damage)
         }
-        EffectKind::HeelHookProc => process_effect_heel_hook_proc(id_target, state),
+        EffectKind::HeelHookProc { damage } => {
+            process_effect_heel_hook_proc(id_source, id_target, state, damage)
+        }
         EffectKind::SneakyStrikeProc { energy } => process_effect_sneaky_strike_proc(state, energy),
         EffectKind::StormOfSteelProc { upgraded } => {
             process_effect_storm_of_steel_proc(state, upgraded)

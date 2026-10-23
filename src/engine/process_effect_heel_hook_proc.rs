@@ -6,26 +6,41 @@ use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
 use crate::types::DeltaSign;
 
-// Weak on target -> +1 energy +1 Card (fires even on dead targets)
-pub fn process_effect_heel_hook_proc(id_target: Option<usize>, state: &mut GameState) {
+// The hit, then +1 energy +1 Card if the target was Weak before the hit
+pub fn process_effect_heel_hook_proc(
+    id_source: Option<usize>,
+    id_target: Option<usize>,
+    state: &mut GameState,
+    damage: u16,
+) {
     let id_target = id_target.expect("HeelHookProc requires id_target");
-    if !has_modifier(&state.entities[id_target].modifiers, ModifierKind::Weak) {
-        return;
-    }
+
     // Executes in reverse:
-    //     1. EnergyDelta
-    //     2. CardDraw
+    //     1. DamagePhysical
+    //     2. EnergyDelta
+    //     3. CardDraw
+    if has_modifier(&state.entities[id_target].modifiers, ModifierKind::Weak) {
+        state.effect_queue.push_front(Effect {
+            kind: EffectKind::CardDraw { count: 1 },
+            id_source: None,
+            target: Target::Direct(None),
+        });
+        state.effect_queue.push_front(Effect {
+            kind: EffectKind::EnergyDelta {
+                sign: DeltaSign::Gain,
+                amount: 1,
+            },
+            id_source: None,
+            target: Target::Direct(None),
+        });
+    }
     state.effect_queue.push_front(Effect {
-        kind: EffectKind::CardDraw { count: 1 },
-        id_source: None,
-        target: Target::Direct(None),
-    });
-    state.effect_queue.push_front(Effect {
-        kind: EffectKind::EnergyDelta {
-            sign: DeltaSign::Gain,
-            amount: 1,
+        kind: EffectKind::DamagePhysical {
+            amount: damage,
+            instances: 1,
+            lifesteal: false,
         },
-        id_source: None,
-        target: Target::Direct(None),
+        id_source,
+        target: Target::Direct(Some(id_target)),
     });
 }
