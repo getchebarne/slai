@@ -36,7 +36,7 @@ mirror_enum!(PyRewardRollTrigger from RewardRollTrigger, "RewardRollTrigger", {
 flat_variants!(PyEffect {
     DamagePhysical => PyEffectDamagePhysical as "EffectDamagePhysical" { amount: u16, instances: u16, lifesteal: bool, target: PyTarget },
     DamagePhysicalIfPoisoned => PyEffectDamagePhysicalIfPoisoned as "EffectDamagePhysicalIfPoisoned" { amount: u16, target: PyTarget },
-    HeelHookProc => PyEffectHeelHookProc as "EffectHeelHookProc" { target: PyTarget },
+    HeelHookProc => PyEffectHeelHookProc as "EffectHeelHookProc" { damage: u16, target: PyTarget },
     EscapePlanCheck => PyEffectEscapePlanCheck as "EffectEscapePlanCheck" { block: u16, target: PyTarget },
     GlassKnifeDecay => PyEffectGlassKnifeDecay as "EffectGlassKnifeDecay" { delta: i16, target: PyTarget },
     CardSetupSelect => PyEffectCardSetupSelect as "EffectCardSetupSelect" { free: bool, bottom: bool, target: PyTarget },
@@ -256,7 +256,8 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
                 target: require_target(target),
             })
         }
-        EffectKind::HeelHookProc => PyEffect::HeelHookProc(PyEffectHeelHookProc {
+        EffectKind::HeelHookProc { damage } => PyEffect::HeelHookProc(PyEffectHeelHookProc {
+            damage,
             target: require_target(target),
         }),
         EffectKind::EscapePlanCheck { block } => {

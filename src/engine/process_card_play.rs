@@ -438,9 +438,9 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
         match &mut effect.kind {
             EffectKind::DamagePhysical { amount, .. }
             | EffectKind::DamagePhysicalIfPoisoned { amount } => *amount += bonus_wrist_blade,
-            EffectKind::DamageFinisher { damage } | EffectKind::DamageFlechettes { damage } => {
-                *damage += bonus_wrist_blade
-            }
+            EffectKind::DamageFinisher { damage }
+            | EffectKind::DamageFlechettes { damage }
+            | EffectKind::HeelHookProc { damage } => *damage += bonus_wrist_blade,
             _ => {}
         }
 

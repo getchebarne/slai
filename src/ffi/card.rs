@@ -35,6 +35,7 @@ use super::effect::PyEffectDamageMindBlast;
 use super::effect::PyEffectDamagePhysical;
 use super::effect::PyEffectDamagePhysicalIfPoisoned;
 use super::effect::PyEffectEscapePlanCheck;
+use super::effect::PyEffectHeelHookProc;
 use super::effect::PyEffectModifierDelta;
 use super::effect::snapshot_effect;
 use super::macros::flat_variants;
@@ -385,6 +386,12 @@ pub(crate) fn snapshot_adjusted_effects(
             PyEffect::DamageMindBlast(PyEffectDamageMindBlast { target, .. }) => {
                 PyEffect::DamageMindBlast(PyEffectDamageMindBlast {
                     damage: adjusted_damage(draw_pile_size),
+                    target,
+                })
+            }
+            PyEffect::HeelHookProc(PyEffectHeelHookProc { damage, target }) => {
+                PyEffect::HeelHookProc(PyEffectHeelHookProc {
+                    damage: adjusted_damage(damage),
                     target,
                 })
             }
