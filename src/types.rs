@@ -614,6 +614,7 @@ pub enum EventName {
     TheMoaiHead,
     TheSsssserpent,
     TheWomanInBlue,
+    TombOfLordRedMask,
     Transmogrifier,
     UpgradeShrine,
     Vampires,
