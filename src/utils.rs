@@ -340,7 +340,7 @@ fn entity_matches(filter: CandidateFilter, entity: &Entity) -> bool {
         CandidateFilter::CardKindAttack => entity.card_kind == CardKind::Attack,
         CandidateFilter::CardKindSkill => entity.card_kind == CardKind::Skill,
         CandidateFilter::CardKindPower => entity.card_kind == CardKind::Power,
-        CandidateFilter::KindCurse => entity.card_kind == CardKind::Curse,
+        CandidateFilter::CardKindCurse => entity.card_kind == CardKind::Curse,
         CandidateFilter::Costed
         | CandidateFilter::NotSource
         | CandidateFilter::NotSourceUnlessAlone => {
