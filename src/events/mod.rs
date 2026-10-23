@@ -33,6 +33,7 @@ mod the_joust;
 mod the_lab;
 mod the_library;
 mod the_mausoleum;
+mod the_moai_head;
 mod the_ssssserpent;
 mod the_woman_in_blue;
 mod transmogrifier;
@@ -169,6 +170,7 @@ pub fn spawn_event(state: &mut GameState, name: EventName) -> Vec<usize> {
         EventName::TheCleric => the_cleric::spawn(state),
         EventName::Duplicator => duplicator::spawn(state),
         EventName::GoldenShrine => golden_shrine::spawn(state),
+        EventName::TheMoaiHead => the_moai_head::spawn(state),
         EventName::WingStatue => wing_statue::spawn(state),
         EventName::WorldOfGoop => world_of_goop::spawn(state),
         EventName::LivingWall => living_wall::spawn(state),
@@ -219,6 +221,7 @@ pub fn options_catalog(name: EventName, ascension: u8) -> &'static [EventOptionT
         EventName::TheCleric => the_cleric::catalog(ascension),
         EventName::Duplicator => duplicator::catalog(ascension),
         EventName::GoldenShrine => golden_shrine::catalog(ascension),
+        EventName::TheMoaiHead => the_moai_head::catalog(ascension),
         EventName::WingStatue => wing_statue::catalog(ascension),
         EventName::WorldOfGoop => world_of_goop::catalog(ascension),
         EventName::LivingWall => living_wall::catalog(ascension),
@@ -318,6 +321,7 @@ pub fn event_option_available(state: &GameState, idx: usize) -> bool {
         EventName::TheCleric => the_cleric::option_available(state, idx),
         EventName::Duplicator => duplicator::option_available(state, idx),
         EventName::GoldenShrine => golden_shrine::option_available(state, idx),
+        EventName::TheMoaiHead => the_moai_head::option_available(state, idx),
         EventName::WingStatue => wing_statue::option_available(state, idx),
         EventName::WorldOfGoop => world_of_goop::option_available(state, idx),
         EventName::LivingWall => living_wall::option_available(state, idx),

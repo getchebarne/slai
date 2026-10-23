@@ -611,6 +611,7 @@ pub enum EventName {
     TheLab,
     TheLibrary,
     TheMausoleum,
+    TheMoaiHead,
     TheSsssserpent,
     TheWomanInBlue,
     Transmogrifier,
