@@ -27,7 +27,7 @@ pub static BOTTLED_TORNADO: RelicTemplate = RelicTemplate {
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::CardPileDeck,
-            filters: &[CandidateFilter::KindPower],
+            filters: &[CandidateFilter::CardKindPower],
             selection_kind: SelectionKind::Input { count: 1 },
         },
     }],

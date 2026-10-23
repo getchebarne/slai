@@ -33,7 +33,7 @@ pub static SECRET_WEAPON: CardTemplate = make_card_template(
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::CardPileDraw,
-            filters: &[CandidateFilter::KindAttack],
+            filters: &[CandidateFilter::CardKindAttack],
             selection_kind: SelectionKind::Input { count: 1 },
         },
     }],

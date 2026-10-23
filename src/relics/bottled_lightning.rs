@@ -27,7 +27,7 @@ pub static BOTTLED_LIGHTNING: RelicTemplate = RelicTemplate {
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::CardPileDeck,
-            filters: &[CandidateFilter::KindSkill],
+            filters: &[CandidateFilter::CardKindSkill],
             selection_kind: SelectionKind::Input { count: 1 },
         },
     }],

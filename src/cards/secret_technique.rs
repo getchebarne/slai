@@ -33,7 +33,7 @@ pub static SECRET_TECHNIQUE: CardTemplate = make_card_template(
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::CardPileDraw,
-            filters: &[CandidateFilter::KindSkill],
+            filters: &[CandidateFilter::CardKindSkill],
             selection_kind: SelectionKind::Input { count: 1 },
         },
     }],

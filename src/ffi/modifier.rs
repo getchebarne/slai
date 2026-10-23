@@ -11,7 +11,7 @@ use crate::modifier::stacks_max_for;
 
 mirror_enum!(PyModifierKind from ModifierKind, "ModifierKind", {
     Accuracy, AfterImage, Angry, Artifact, Asleep, Blur, Burst, Choke, CorpseExplosion, CurlUp,
-    Dexterity, DoubleDamage, DrawCardNextTurn, Enrage, Entangled, Envenom, Frail,
+    Dexterity, DoubleDamage, DrawCardNextTurn, Enrage, Entangled, Envenom, Explosive, Fading, Frail,
     InfiniteBlades, Intangible, Metallicize, ModeShift, NextTurnBlock, NextTurnEnergy, NoDraw,
     NoxiousFumes, Phantasmal, PlatedArmor, Poison, Retain, Ritual, Shackled, SharpHide,
     Splittable, SporeCloud, Strength, Thievery, Thorns, ThousandCuts, ToolsOfTheTrade, Vigor,

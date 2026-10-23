@@ -21,22 +21,11 @@ pub static HEEL_HOOK: CardTemplate = make_card_template(
     false,
     false,
     false,
-    &[
-        Effect {
-            kind: EffectKind::DamagePhysical {
-                amount: 5,
-                instances: 1,
-                lifesteal: false,
-            },
-            id_source: None,
-            target: TARGET_MONSTER_SELECTED,
-        },
-        Effect {
-            kind: EffectKind::HeelHookProc,
-            id_source: None,
-            target: TARGET_MONSTER_SELECTED,
-        },
-    ],
+    &[Effect {
+        kind: EffectKind::HeelHookProc { damage: 5 },
+        id_source: None,
+        target: TARGET_MONSTER_SELECTED,
+    }],
     &[],
     &[],
     PlayRestriction::Always,
@@ -46,11 +35,7 @@ pub static HEEL_HOOK_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
     effects_play: {
         let mut effects = HEEL_HOOK.effects_play;
-        effects[0].kind = EffectKind::DamagePhysical {
-            amount: 8,
-            instances: 1,
-            lifesteal: false,
-        }; // +3 damage
+        effects[0].kind = EffectKind::HeelHookProc { damage: 8 }; // +3 damage
         effects
     },
     ..HEEL_HOOK

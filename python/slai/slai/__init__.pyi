@@ -150,11 +150,11 @@ class AmountRelative:
 
 @final
 class CandidateFilter:
+    CardKindAttack: Final[CandidateFilter]
+    CardKindPower: Final[CandidateFilter]
+    CardKindSkill: Final[CandidateFilter]
     Costed: Final[CandidateFilter]
-    KindAttack: Final[CandidateFilter]
     KindCurse: Final[CandidateFilter]
-    KindPower: Final[CandidateFilter]
-    KindSkill: Final[CandidateFilter]
     NotBottled: Final[CandidateFilter]
     NotBoundCurse: Final[CandidateFilter]
     NotMinion: Final[CandidateFilter]
@@ -1068,6 +1068,8 @@ class EffectHeelHookProc:
     def __hash__(self, /) -> int: ...
     def __ne__(self, other: object) -> bool: ...
     @property
+    def damage(self, /) -> int: ...
+    @property
     def target(self, /) -> Target: ...
 
 @final
@@ -1689,6 +1691,8 @@ class ModifierKind:
     Enrage: Final[ModifierKind]
     Entangled: Final[ModifierKind]
     Envenom: Final[ModifierKind]
+    Explosive: Final[ModifierKind]
+    Fading: Final[ModifierKind]
     Flight: Final[ModifierKind]
     Frail: Final[ModifierKind]
     Hex: Final[ModifierKind]

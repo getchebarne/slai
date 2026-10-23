@@ -16,10 +16,10 @@ use crate::types::CardKind;
 use crate::utils::filter_candidates;
 
 // The spawn's pick lists in draw order; a bottled Card is never staked
-const PICK_FILTERS: [&[CandidateFilter]; 3] = [
-    &[CandidateFilter::NotBottled, CandidateFilter::KindAttack],
-    &[CandidateFilter::NotBottled, CandidateFilter::KindSkill],
-    &[CandidateFilter::NotBottled, CandidateFilter::KindPower],
+const CANDIDATE_FILTERS: [&[CandidateFilter]; 3] = [
+    &[CandidateFilter::NotBottled, CandidateFilter::CardKindAttack],
+    &[CandidateFilter::NotBottled, CandidateFilter::CardKindSkill],
+    &[CandidateFilter::NotBottled, CandidateFilter::CardKindPower],
 ];
 
 // Lose the staked Card of one kind
@@ -39,13 +39,13 @@ const fn lose(filters: &'static [CandidateFilter]) -> [Effect; 2] {
 }
 
 // Lose the staked Skill
-const OPTION_SKILL: [Effect; 2] = lose(&[CandidateFilter::KindSkill]);
+const OPTION_SKILL: [Effect; 2] = lose(&[CandidateFilter::CardKindSkill]);
 
 // Lose the staked Power
-const OPTION_POWER: [Effect; 2] = lose(&[CandidateFilter::KindPower]);
+const OPTION_POWER: [Effect; 2] = lose(&[CandidateFilter::CardKindPower]);
 
 // Lose the staked Attack
-const OPTION_ATTACK: [Effect; 2] = lose(&[CandidateFilter::KindAttack]);
+const OPTION_ATTACK: [Effect; 2] = lose(&[CandidateFilter::CardKindAttack]);
 
 // The type rows, then the leave row that is the whole menu when nothing is staked
 static EOTS_BASE: &[EventOptionTemplate] = &[
@@ -62,7 +62,7 @@ pub fn catalog(_ascension: u8) -> &'static [EventOptionTemplate] {
 
 // Stakes one uniform pick per kind present; a missing kind draws nothing and keeps its row, locked
 pub fn spawn(state: &mut GameState) -> Vec<usize> {
-    for filters in PICK_FILTERS {
+    for filters in CANDIDATE_FILTERS {
         let mut id_cards = state.id_card_pile_deck.clone();
         filter_candidates(filters, &mut id_cards, &state.entities, None);
         if !id_cards.is_empty() {
