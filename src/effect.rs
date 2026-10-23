@@ -481,7 +481,7 @@ pub enum CandidateFilter {
     CardKindAttack,
     CardKindSkill,
     CardKindPower,
-    KindCurse,
+    CardKindCurse,
     Costed,
     NotBottled,
     NotBoundCurse,

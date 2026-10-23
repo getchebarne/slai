@@ -151,10 +151,10 @@ class AmountRelative:
 @final
 class CandidateFilter:
     CardKindAttack: Final[CandidateFilter]
+    CardKindCurse: Final[CandidateFilter]
     CardKindPower: Final[CandidateFilter]
     CardKindSkill: Final[CandidateFilter]
     Costed: Final[CandidateFilter]
-    KindCurse: Final[CandidateFilter]
     NotBottled: Final[CandidateFilter]
     NotBoundCurse: Final[CandidateFilter]
     NotMinion: Final[CandidateFilter]

@@ -15,7 +15,7 @@ use crate::game::GameState;
 pub const FOUNTAIN_CURSE_FILTERS: &[CandidateFilter] = &[
     CandidateFilter::NotBottled,
     CandidateFilter::NotBoundCurse,
-    CandidateFilter::KindCurse,
+    CandidateFilter::CardKindCurse,
 ];
 
 // Drink: purge every removable curse at once
