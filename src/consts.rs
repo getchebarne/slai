@@ -97,9 +97,11 @@ pub const CARD_REWARD_ROLL_OFFSET_MIN: i8 = -40;
 pub const CARD_REWARD_ROLL_CHANCE_RARE: i32 = 3;
 pub const CARD_REWARD_ROLL_CHANCE_UNCOMMON: i32 = 40;
 
-// Reward Cards arrive pre-upgraded per act: Act I 0, Act II 0.25 (0.125 at A12+)
+// Reward Cards arrive pre-upgraded per act: Act I 0, Act II 0.25 (0.125 at A12+), Act III 0.5 (0.25 at A12+)
 pub const CARD_REWARD_UPGRADE_CHANCE_ACT2: f64 = 0.25;
 pub const CARD_REWARD_UPGRADE_CHANCE_ACT2_A12: f64 = 0.125;
+pub const CARD_REWARD_UPGRADE_CHANCE_ACT3: f64 = 0.5;
+pub const CARD_REWARD_UPGRADE_CHANCE_ACT3_A12: f64 = 0.25;
 pub const ASCENSION_CARD_UPGRADE_CUT_LEVEL: u8 = 12;
 
 // Elite rooms widen both bands

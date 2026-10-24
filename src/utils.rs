@@ -18,6 +18,8 @@ use crate::consts::CARD_REWARD_ROLL_OFFSET_BASE;
 use crate::consts::CARD_REWARD_ROLL_OFFSET_MIN;
 use crate::consts::CARD_REWARD_UPGRADE_CHANCE_ACT2;
 use crate::consts::CARD_REWARD_UPGRADE_CHANCE_ACT2_A12;
+use crate::consts::CARD_REWARD_UPGRADE_CHANCE_ACT3;
+use crate::consts::CARD_REWARD_UPGRADE_CHANCE_ACT3_A12;
 use crate::consts::FACTOR_FRAIL;
 use crate::consts::FACTOR_VULN;
 use crate::consts::FACTOR_VULN_ODD_MUSHROOM;
@@ -45,6 +47,7 @@ use crate::entity::Entity;
 use crate::entity::EntityKind;
 use crate::entity::PlayRestriction;
 use crate::game::GameState;
+use crate::game::Location;
 use crate::modifier::ModifierKind;
 use crate::modifier::Modifiers;
 use crate::modifier::has_modifier;
@@ -525,6 +528,17 @@ pub fn relic_tier_by_roll(roll: u8, th_common: u8, th_uncommon: u8) -> RelicTier
     }
 }
 
+// The run's floor: 17 per act, the row + 1 on the map, 16 in the boss room, 17 at its chest
+pub fn run_floor(act: u8, location: Location) -> u8 {
+    let act_start = 17 * (act - 1);
+    match location {
+        Location::Start => act_start,
+        Location::Overworld { y, .. } => act_start + y as u8 + 1,
+        Location::BossRoom => act_start + 16,
+        Location::BossTreasure => act_start + 17,
+    }
+}
+
 // Spawn gates for the Relics that have one, read against the owned set `id_relics`
 pub fn relic_can_spawn(
     state: &GameState,
@@ -537,6 +551,7 @@ pub fn relic_can_spawn(
             .iter()
             .any(|&id| pred(&state.entities[id]))
     };
+    let floor = run_floor(state.act, state.location);
     match name {
         RelicName::BottledFlame => {
             deck_has(|c| c.card_kind == CardKind::Attack && c.card_rarity != CardRarity::Basic)
@@ -546,18 +561,38 @@ pub fn relic_can_spawn(
         }
         RelicName::BottledTornado => deck_has(|c| c.card_kind == CardKind::Power),
         RelicName::Girya | RelicName::PeacePipe | RelicName::Shovel => {
-            [RelicName::Girya, RelicName::PeacePipe, RelicName::Shovel]
-                .iter()
-                .filter(|&&campfire| has_relic(id_relics, campfire))
-                .count()
-                < 2
+            floor < 48
+                && [RelicName::Girya, RelicName::PeacePipe, RelicName::Shovel]
+                    .iter()
+                    .filter(|&&campfire| has_relic(id_relics, campfire))
+                    .count()
+                    < 2
         }
         RelicName::RingOfTheSerpent => has_relic(id_relics, RelicName::RingOfTheSnake),
         RelicName::Ectoplasm => state.act <= 1,
+        RelicName::TinyChest => floor <= 35,
+        RelicName::Matryoshka | RelicName::WingBoots => floor <= 40,
+        RelicName::AncientTeaSet
+        | RelicName::CeramicFish
+        | RelicName::DarkstonePeriapt
+        | RelicName::DreamCatcher
+        | RelicName::EggFrozen
+        | RelicName::EggMolten
+        | RelicName::EggToxic
+        | RelicName::JuzuBracelet
+        | RelicName::MealTicket
+        | RelicName::MeatOnTheBone
+        | RelicName::Omamori
+        | RelicName::PotionBelt
+        | RelicName::PrayerWheel
+        | RelicName::QuestionCard
+        | RelicName::RegalPillow
+        | RelicName::SingingBowl => floor <= 48,
         RelicName::TheCourier
         | RelicName::MawBank
         | RelicName::OldCoin
-        | RelicName::SmilingMask => state.room_kind_resolved != Some(RoomKind::Shop),
+        | RelicName::SmilingMask => floor <= 48 && state.room_kind_resolved != Some(RoomKind::Shop),
+        RelicName::PreservedInsect => floor <= 52,
         _ => true,
     }
 }
@@ -631,7 +666,7 @@ pub fn draw_relic_excluding(
     }
 }
 
-// Boss gold, shared by the mid-run reward roll and the final-boss direct grant
+// Boss gold for a mid-run boss's Reward
 pub fn roll_boss_gold(rng: &mut impl Rng, ascension: u8) -> u16 {
     let roll = rng.random_range(GOLD_BOSS_MIN..=GOLD_BOSS_MAX);
     if ascension >= 13 {
@@ -902,13 +937,14 @@ pub const fn potion_roll_policy(trigger: RewardRollTrigger) -> PotionRollPolicy 
 }
 
 pub fn card_reward_upgrade_chance(act: u8, ascension_level: u8) -> f64 {
-    if act < 2 {
-        return 0.0;
-    }
-    if ascension_level >= ASCENSION_CARD_UPGRADE_CUT_LEVEL {
-        CARD_REWARD_UPGRADE_CHANCE_ACT2_A12
-    } else {
-        CARD_REWARD_UPGRADE_CHANCE_ACT2
+    let cut = ascension_level >= ASCENSION_CARD_UPGRADE_CUT_LEVEL;
+    match (act, cut) {
+        (1, _) => 0.0,
+        (2, false) => CARD_REWARD_UPGRADE_CHANCE_ACT2,
+        (2, true) => CARD_REWARD_UPGRADE_CHANCE_ACT2_A12,
+        (3, false) => CARD_REWARD_UPGRADE_CHANCE_ACT3,
+        (3, true) => CARD_REWARD_UPGRADE_CHANCE_ACT3_A12,
+        _ => unreachable!("no card upgrade chance for act {act}"),
     }
 }
 
