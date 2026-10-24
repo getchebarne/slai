@@ -26,6 +26,7 @@ use crate::consts::FACTOR_WEAK_PAPER_KRANE;
 use crate::consts::GOLD_BOSS_MAX;
 use crate::consts::GOLD_BOSS_MIN;
 use crate::consts::MAX_CARD_REWARD_ROLL;
+use crate::consts::MAX_MONSTERS;
 use crate::consts::MAX_SIZE_CARD_PILE_HAND;
 use crate::consts::SHOP_CARD_CUT_RARE;
 use crate::consts::SHOP_CARD_CUT_UNCOMMON;
@@ -124,6 +125,18 @@ pub fn get_id_actor(entities: &[Entity], id_character: usize, id_source: usize) 
     } else {
         id_source
     }
+}
+
+// The roster's living Monsters in slot order: Card targets, the Monsters pool and the draw-top rolls all leave a half-dead one out
+pub fn monsters_alive(
+    entities: &[Entity],
+    id_monsters: &[Option<usize>; MAX_MONSTERS],
+) -> impl Iterator<Item = usize> {
+    id_monsters
+        .iter()
+        .flatten()
+        .copied()
+        .filter(|&id| !entities[id].monster_half_dead)
 }
 
 pub fn has_relic(id_relics: &[Option<usize>; RelicName::COUNT], name: RelicName) -> bool {

@@ -119,6 +119,7 @@ flat_variants!(PyEffect {
     DamageDeal => PyEffectDamageDeal as "EffectDamageDeal" { amount: u16, lifesteal: bool, target: PyTarget },
     MatchFlipSeen => PyEffectMatchFlipSeen as "EffectMatchFlipSeen" { target: PyTarget },
     MatchFlipUnseen => PyEffectMatchFlipUnseen as "EffectMatchFlipUnseen",
+    HalfDeadRevive => PyEffectHalfDeadRevive as "EffectHalfDeadRevive" { target: PyTarget },
 });
 
 // The kinds that can park in `state.effect_pending`
@@ -605,6 +606,9 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
             target: require_target(target),
         }),
         EffectKind::MatchFlipUnseen => PyEffect::MatchFlipUnseen(PyEffectMatchFlipUnseen),
+        EffectKind::HalfDeadRevive => PyEffect::HalfDeadRevive(PyEffectHalfDeadRevive {
+            target: require_target(target),
+        }),
         other => unreachable!(
             "snapshot_effect: unexpected EffectKind on static Card effect: {:?}",
             other

@@ -111,7 +111,9 @@ pub fn process_effect_turn_start_character(state: &mut GameState) {
     let modifiers = state.entities[state.id_character].modifiers;
 
     // Last turn's plays decide Art of War and Pocketwatch; this turn counts from zero
-    let art_of_war_energy = !first_turn && *this_turn_attacks == 0;
+    let art_of_war_energy = !first_turn
+        && state.id_relics[RelicName::ArtOfWar as usize]
+            .is_some_and(|id| state.entities[id].relic_counter == 0);
     let pocketwatch_draw = !first_turn
         && state.id_relics[RelicName::Pocketwatch as usize]
             .is_some_and(|id| state.entities[id].relic_counter <= 3);
@@ -314,7 +316,7 @@ pub fn process_effect_turn_start_character(state: &mut GameState) {
         ));
     }
 
-    // Mayhem: each stack rolls a living Monster before the draw; MayhemProc queues the play
+    // Mayhem: each stack's MayhemProc rolls its target before the draw and queues the play
     if has_modifier(&modifiers, ModifierKind::Mayhem) {
         let stacks = modifier_stacks(&modifiers, ModifierKind::Mayhem);
         for _ in 0..stacks.max(0) {
@@ -323,11 +325,7 @@ pub fn process_effect_turn_start_character(state: &mut GameState) {
                 Effect {
                     kind: EffectKind::MayhemProc,
                     id_source: None,
-                    target: Target::Resolve {
-                        candidate_pool: CandidatePool::Monsters,
-                        filters: &[],
-                        selection_kind: SelectionKind::Random { count: 1 },
-                    },
+                    target: Target::Direct(None),
                 },
             ));
         }
@@ -521,7 +519,7 @@ fn push_relics_turn_start(
                 }
             }
 
-            // Art of War: a turn without Attacks gives 1 energy
+            // Art of War: a turn with no Attack used gives 1 energy
             RelicName::ArtOfWar if art_of_war_energy => effect_buf.push(Effect {
                 kind: EffectKind::EnergyDelta {
                     sign: DeltaSign::Gain,

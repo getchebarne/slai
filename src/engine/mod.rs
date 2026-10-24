@@ -60,6 +60,7 @@ pub mod process_effect_glass_knife_decay;
 pub mod process_effect_gold_delta;
 pub mod process_effect_gold_steal;
 pub mod process_effect_gremlin_summon;
+pub mod process_effect_half_dead_revive;
 pub mod process_effect_hand_of_greed_proc;
 pub mod process_effect_health_delta;
 pub mod process_effect_health_lower_to;
@@ -190,6 +191,7 @@ use self::process_effect_glass_knife_decay::process_effect_glass_knife_decay;
 use self::process_effect_gold_delta::process_effect_gold_delta;
 use self::process_effect_gold_steal::process_effect_gold_steal;
 use self::process_effect_gremlin_summon::process_effect_gremlin_summon;
+use self::process_effect_half_dead_revive::process_effect_half_dead_revive;
 use self::process_effect_hand_of_greed_proc::process_effect_hand_of_greed_proc;
 use self::process_effect_health_delta::process_effect_health_delta;
 use self::process_effect_health_lower_to::process_effect_health_lower_to;
@@ -274,6 +276,7 @@ use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::effect::is_multi_selection;
 use crate::effect::pool_is_cards;
+use crate::entity::Entity;
 use crate::game::GameState;
 use crate::game::Location;
 use crate::map::get_active_room_kind;
@@ -282,6 +285,7 @@ use crate::types::Event;
 use crate::types::EventName;
 use crate::types::RoomKind;
 use crate::utils::filter_candidates;
+use crate::utils::monsters_alive;
 use crate::utils::shuffle;
 use crate::utils::unceasing_top_fires;
 
@@ -306,6 +310,7 @@ pub(crate) fn fill_buf_candidates(
     candidate_pool: CandidatePool,
     id_source: Option<usize>,
     id_character: usize,
+    entities: &[Entity],
     combat: &Combat,
     event: &Event,
     id_card_pile_deck: &[usize],
@@ -331,7 +336,7 @@ pub(crate) fn fill_buf_candidates(
         CandidatePool::Character => effect_candidate_buf.push(id_character),
         CandidatePool::Monsters => {
             assert!(combat.active, "Monsters pool outside combat");
-            effect_candidate_buf.extend(combat.id_monsters.iter().flatten().copied())
+            effect_candidate_buf.extend(monsters_alive(entities, &combat.id_monsters))
         }
         CandidatePool::MonsterSelected => {
             assert!(combat.active, "MonsterSelected pool outside combat");
@@ -459,6 +464,7 @@ fn resolve_or_halt(
         candidate_pool,
         id_source,
         state.id_character,
+        &state.entities,
         &state.combat,
         &state.event,
         &state.id_card_pile_deck,
@@ -658,6 +664,7 @@ fn dispatch_by_kind(
             // Character can die outside Combat; empty Monster slots make iter a no-op
             process_effect_death(id_target, state, with_leader)
         }
+        EffectKind::HalfDeadRevive => process_effect_half_dead_revive(id_target, state),
         EffectKind::DefensiveMode => process_effect_defensive_mode(id_target, state),
         EffectKind::LagavulinWake => process_effect_lagavulin_wake(id_target, state),
         EffectKind::CombatStart { elite } => process_effect_combat_start(state, elite),
@@ -701,7 +708,7 @@ fn dispatch_by_kind(
         EffectKind::MausoleumOpen => process_effect_mausoleum_open(state),
         EffectKind::MatchFlipSeen => process_effect_match_flip_seen(id_target, state),
         EffectKind::MatchFlipUnseen => process_effect_match_flip_unseen(state),
-        EffectKind::MayhemProc => process_effect_mayhem_proc(id_target, state),
+        EffectKind::MayhemProc => process_effect_mayhem_proc(state),
         EffectKind::HexaghostBurnIncrease { count } => {
             process_effect_hexaghost_burn_increase(state, count)
         }

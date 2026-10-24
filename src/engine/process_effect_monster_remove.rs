@@ -38,9 +38,9 @@ pub fn process_effect_monster_remove(id_target: Option<usize>, state: &mut GameS
     }
 
     // Check for combat end
-    let any_alive = id_monsters.iter().any(|slot| slot.is_some());
+    let any_left = id_monsters.iter().any(|slot| slot.is_some());
     flush_effects_from_buf_to_queue_front(state);
-    if !any_alive {
+    if !any_left {
         state.effect_queue.clear();
         state.effect_queue.push_back(Effect {
             kind: EffectKind::CombatEnd {

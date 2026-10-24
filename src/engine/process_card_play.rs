@@ -133,7 +133,7 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
     // The Card's selected-Monster effects resolve against this play's target
     *id_monster_selected = id_target;
 
-    // Draw-top plays and replays are re-gated when served; a Card needing a target needs it alive, and none plays once the turn has ended or every Monster is gone
+    // Draw-top plays and replays are re-gated when served; a Card needing a target is refused once its target has left the roster, and none plays once the turn has ended or every Monster is gone
     let target_gone = entity_requires_target(&card)
         && id_target.is_some_and(|id| !id_monsters.contains(&Some(id)));
     let monsters_gone = id_monsters.iter().all(Option::is_none);
@@ -189,6 +189,17 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
     if card.card_kind == CardKind::Attack {
         // Increase this-turn-played-attacks counter
         *this_turn_attacks = this_turn_attacks.saturating_add(1);
+    }
+
+    // A Card needing a target whose target went half-dead, or that has none, is counted and does nothing more: no hook, no effect, no relocation, so a draw-top Card ends in no pile
+    if entity_requires_target(&card)
+        && id_target.is_none_or(|id| state.entities[id].monster_half_dead)
+    {
+        assert!(
+            play_source != PlaySource::Hand,
+            "a hand play never meets a half-dead target"
+        );
+        return;
     }
 
     // On-power play triggers
@@ -548,6 +559,9 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
                         .extend_from_slice(state.entities[id_relic].relic_effects_counter);
                 }
             }
+
+            // Art of War: an Attack used this turn latches the counter, and next turn gives no energy
+            (RelicName::ArtOfWar, CardKind::Attack) => state.entities[id_relic].relic_counter = 1,
 
             // Pen Nib: every 10th Attack is doubled; the 9th primes the charge, the 10th starts the count over
             (RelicName::PenNib, CardKind::Attack) => {

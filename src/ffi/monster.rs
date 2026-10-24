@@ -141,6 +141,7 @@ pub struct PyMonster {
     pub health: u16,
     pub health_max: u16,
     pub block: u16,
+    pub half_dead: bool, // At 0 HP, out of every Card's, hit's and Power's reach until its own rule revives or kills it
     pub modifiers: Vec<PyModifier>,
     pub intent: Option<PyIntent>,    // None while Runic Dome hides it
     pub move_effects: Vec<PyEffect>, // The current move's Effect payload; empty when the intent is hidden
@@ -277,6 +278,7 @@ pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
                 health: monster.vitals.health,
                 health_max: monster.vitals.health_max,
                 block: monster.vitals.block,
+                half_dead: monster.monster_half_dead,
                 modifiers: snapshot_modifiers(&monster.modifiers),
                 intent,
                 move_effects,

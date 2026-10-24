@@ -24,8 +24,9 @@ pub fn process_effect_damage_deal(
 ) {
     let id_target = id_target.expect("DamageDeal requires id_target");
 
-    // Corpses absorb nothing: pre-resolved Direct hits can outlive their target
-    if state.entities[id_target].dead {
+    // Corpses and half-dead Monsters absorb nothing: pre-resolved Direct hits can outlive their target
+    let target = &state.entities[id_target];
+    if target.dead || target.monster_half_dead {
         return;
     }
 

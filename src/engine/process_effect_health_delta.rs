@@ -51,8 +51,9 @@ fn apply_gain(id_target: usize, state: &mut GameState, amount: u16) {
 }
 
 fn apply_loss(id_source: Option<usize>, id_target: usize, state: &mut GameState, amount: u16) {
-    // Corpses take no losses: a re-queued Death would double the on-death triggers
-    if state.entities[id_target].dead {
+    // Corpses and half-dead Monsters take no losses: a re-queued Death would double the on-death triggers
+    let target = &state.entities[id_target];
+    if target.dead || target.monster_half_dead {
         return;
     }
 

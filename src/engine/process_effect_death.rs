@@ -8,6 +8,7 @@ use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
 use crate::modifier::modifier_stacks;
+use crate::monsters::monster_half_dies;
 use crate::potions::remove_potion;
 use crate::types::Combat;
 use crate::types::DeltaSign;
@@ -73,6 +74,19 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState, wit
         state.combat.active,
         "Monster death outside the Combat frame"
     );
+
+    // A Monster its own rule spares goes half-dead instead: it keeps its slot, its turns and the combat going, at 0 HP with no block; a half-dead Monster's next Death is its last
+    let monster = &mut state.entities[id_target];
+    if !monster.monster_half_dead && monster_half_dies(monster) {
+        monster.monster_half_dead = true;
+        monster.vitals.block = 0;
+
+        // Its on-death triggers fire as at a death the other Monsters survive, behind everything queued
+        state.effect_buf.clear();
+        push_on_death_triggers(state, id_target);
+        state.effect_queue.extend(state.effect_buf.drain(..));
+        return;
+    }
     let Combat {
         id_monsters,
         id_card_pile_hand,
@@ -84,21 +98,22 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState, wit
     *this_combat_monster_died = true;
     let id_character = state.id_character;
 
-    // Mark the corpse dead, drop it from the live roster, and check if combat continues
+    // Mark the Monster dead, half-dead no more, drop it from the roster, and check if combat continues
     state.entities[id_target].dead = true;
+    state.entities[id_target].monster_half_dead = false;
     let slot = id_monsters.iter().position(|slot| *slot == Some(id_target));
     if let Some(slot) = slot {
         id_monsters[slot] = None; // Clear from `id_monsters` Vec
     }
 
-    // Calculate if there're any Monsters left alive
-    let any_alive = id_monsters.iter().any(|slot| slot.is_some());
+    // Calculate if there're any Monsters left; a half-dead one keeps the combat going
+    let any_left = id_monsters.iter().any(|slot| slot.is_some());
 
     // Stolen gold is staged as its own reward item; claimed at reward screen; skips Golden Idol
     *gold_stolen_total += state.entities[id_target].monster_gold_stolen;
     state.entities[id_target].monster_gold_stolen = 0;
 
-    if !any_alive {
+    if !any_left {
         // The last kill ends the combat: no waiting Card play or turn phase starts, and only the queued heals, block and damage resolve, Hand of Greed and Ritual Dagger with them
         state.card_play_queue.clear();
         state.phase_queue.clear();
@@ -170,69 +185,12 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState, wit
         });
     }
 
-    // CorpseExplosion: max_health to each survivor; no source scaling, no Envenom proc
-    if has_modifier(&target.modifiers, ModifierKind::CorpseExplosion) {
-        let damage = target.vitals.health_max.saturating_mul(
-            modifier_stacks(&target.modifiers, ModifierKind::CorpseExplosion).max(0) as u16,
-        );
-        for id_monster in id_monsters.iter() {
-            if let Some(id) = *id_monster {
-                state.effect_buf.push(Effect {
-                    kind: EffectKind::DamageDeal {
-                        amount: damage,
-                        lifesteal: false,
-                    },
-                    id_source: None,
-                    target: Target::Direct(Some(id)),
-                });
-            }
-        }
-    }
-
-    // The on-death Relics fire in pickup order
-    let mut id_relics: Vec<usize> = state.id_relics.iter().flatten().copied().collect();
-    id_relics.sort_unstable_by_key(|&id| state.entities[id].relic_seq);
-    for id_relic in id_relics {
-        match state.entities[id_relic].relic_name {
-            // Gremlin Horn: a Monster's death grants 1 energy and draws 1
-            RelicName::GremlinHorn => {
-                state.effect_buf.push(Effect {
-                    kind: EffectKind::EnergyDelta {
-                        sign: DeltaSign::Gain,
-                        amount: 1,
-                    },
-                    id_source: None,
-                    target: Target::Direct(None),
-                });
-                state.effect_buf.push(Effect {
-                    kind: EffectKind::CardDraw { count: 1 },
-                    id_source: None,
-                    target: Target::Direct(None),
-                });
-            }
-
-            // The Specimen: the Character moves the corpse's Poison to a random survivor
-            RelicName::TheSpecimen if has_modifier(&target.modifiers, ModifierKind::Poison) => {
-                state.effect_buf.push(Effect {
-                    kind: EffectKind::ModifierDelta {
-                        kind: ModifierKind::Poison,
-                        stacks: modifier_stacks(&target.modifiers, ModifierKind::Poison),
-                    },
-                    id_source: Some(id_character),
-                    target: Target::Resolve {
-                        candidate_pool: CandidatePool::Monsters,
-                        filters: &[],
-                        selection_kind: SelectionKind::Random { count: 1 },
-                    },
-                });
-            }
-            _ => {}
-        }
-    }
+    // Corpse Explosion, then the on-death Relics
+    push_on_death_triggers(state, id_target);
 
     // Gremlin Leader: its gremlins flee last; minions escaping here don't skip rewards because of `RoomKind::CombatElite`
     if gremlins_flee {
-        for id_monster in id_monsters.iter() {
+        for id_monster in state.combat.id_monsters.iter() {
             if let Some(id) = *id_monster {
                 state.effect_buf.push(Effect {
                     kind: EffectKind::MonsterEscape,
@@ -261,5 +219,70 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState, wit
             id_source: None,
             target: Target::Direct(Some(id_character)),
         });
+    }
+}
+
+// The on-death triggers of a death or half-death the other Monsters survive, staged in `effect_buf` from the dying Monster's Modifiers as they stand
+fn push_on_death_triggers(state: &mut GameState, id_target: usize) {
+    let target = &state.entities[id_target];
+
+    // CorpseExplosion: max_health to every Monster in the roster, though a half-dead one takes nothing; no source scaling, no Envenom proc
+    if has_modifier(&target.modifiers, ModifierKind::CorpseExplosion) {
+        let damage = target.vitals.health_max.saturating_mul(
+            modifier_stacks(&target.modifiers, ModifierKind::CorpseExplosion).max(0) as u16,
+        );
+        for id_monster in state.combat.id_monsters.iter() {
+            if let Some(id) = *id_monster {
+                state.effect_buf.push(Effect {
+                    kind: EffectKind::DamageDeal {
+                        amount: damage,
+                        lifesteal: false,
+                    },
+                    id_source: None,
+                    target: Target::Direct(Some(id)),
+                });
+            }
+        }
+    }
+
+    // The on-death Relics fire in pickup order
+    let mut id_relics: Vec<usize> = state.id_relics.iter().flatten().copied().collect();
+    id_relics.sort_unstable_by_key(|&id| state.entities[id].relic_seq);
+    for id_relic in id_relics {
+        match state.entities[id_relic].relic_name {
+            // Gremlin Horn: a Monster's death or half-death grants 1 energy and draws 1
+            RelicName::GremlinHorn => {
+                state.effect_buf.push(Effect {
+                    kind: EffectKind::EnergyDelta {
+                        sign: DeltaSign::Gain,
+                        amount: 1,
+                    },
+                    id_source: None,
+                    target: Target::Direct(None),
+                });
+                state.effect_buf.push(Effect {
+                    kind: EffectKind::CardDraw { count: 1 },
+                    id_source: None,
+                    target: Target::Direct(None),
+                });
+            }
+
+            // The Specimen: the Character moves the dying Monster's Poison to a random Monster that isn't half-dead
+            RelicName::TheSpecimen if has_modifier(&target.modifiers, ModifierKind::Poison) => {
+                state.effect_buf.push(Effect {
+                    kind: EffectKind::ModifierDelta {
+                        kind: ModifierKind::Poison,
+                        stacks: modifier_stacks(&target.modifiers, ModifierKind::Poison),
+                    },
+                    id_source: Some(state.id_character),
+                    target: Target::Resolve {
+                        candidate_pool: CandidatePool::Monsters,
+                        filters: &[],
+                        selection_kind: SelectionKind::Random { count: 1 },
+                    },
+                });
+            }
+            _ => {}
+        }
     }
 }

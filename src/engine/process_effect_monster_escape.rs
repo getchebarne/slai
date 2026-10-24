@@ -37,7 +37,7 @@ pub fn process_effect_monster_escape(id_target: Option<usize>, state: &mut GameS
             });
         }
     }
-    let any_alive = id_monsters.iter().any(|slot| slot.is_some());
+    let any_left = id_monsters.iter().any(|slot| slot.is_some());
     flush_effects_from_buf_to_queue_front(state);
 
     // A thief's escape lets a later Smoke Bomb keep the reward
@@ -46,12 +46,12 @@ pub fn process_effect_monster_escape(id_target: Option<usize>, state: &mut GameS
     }
 
     // A fight counts as escaped only if no Monster is left and none fell in battle
-    if !any_alive && !state.combat.this_combat_monster_died {
+    if !any_left && !state.combat.this_combat_monster_died {
         state.combat.this_combat_escaped = true;
     }
 
     // The last escape closes the combat behind every queued effect and waiting Card play; no turn phase starts
-    if !any_alive {
+    if !any_left {
         state.phase_queue.clear();
         state.phase_queue.push_back(Effect {
             kind: EffectKind::CombatEnd {

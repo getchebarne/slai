@@ -28,8 +28,9 @@ pub fn process_effect_modifier_delta(
 ) {
     let id_target = id_target.expect("ModifierDelta requires id_target");
 
-    // A corpse takes no Powers, and its hooks (Snecko Skull, Sadistic Nature) must not fire
-    if state.entities[id_target].dead {
+    // A corpse or a half-dead Monster takes no Powers, and their hooks (Snecko Skull, Sadistic Nature) must not fire
+    let target = &state.entities[id_target];
+    if target.dead || target.monster_half_dead {
         return;
     }
 

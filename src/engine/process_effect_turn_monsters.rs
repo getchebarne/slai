@@ -32,7 +32,7 @@ pub fn process_effect_turn_monsters(state: &mut GameState, stage: TurnMonstersSt
             });
         }
 
-        // Once the Poison ticks have resolved, the Monsters still standing act one at a time; the round end follows the last
+        // Once the Poison ticks have resolved, every Monster in the roster acts in slot order, a half-dead one included; the round end follows the last
         TurnMonstersStage::Moves => {
             for id_monster in id_monsters.iter().flatten().copied() {
                 state.phase_queue.push_back(Effect {

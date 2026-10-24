@@ -2,8 +2,9 @@ use crate::relics::RelicTemplate;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
-// If no Attack was played this turn, gain 1 energy next turn
+// If no Attack was used this turn, gain 1 energy next turn; the counter latches 1 at the turn's first Attack
 // See:
+//    - `process_card_play.rs`
 //    - `process_effect_turn_start_character.rs`
 pub static ART_OF_WAR: RelicTemplate = RelicTemplate {
     name: RelicName::ArtOfWar,
