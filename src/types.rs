@@ -57,6 +57,7 @@ pub struct Combat {
     pub this_combat_escaped: bool,
     pub this_combat_thief_escaped: bool, // A Smoke Bomb then still keeps the reward
     pub this_combat_monster_died: bool,
+    pub boss_fight: bool, // A boss Monster opened this fight; it stays set after the boss leaves the roster
     pub gold_stolen: u16,
 
     // The HP a target actually lost, after Buffer and Tungsten Rod
@@ -99,6 +100,7 @@ pub fn combat_reset(combat: &mut Combat) {
     combat.this_combat_escaped = false;
     combat.this_combat_thief_escaped = false;
     combat.this_combat_monster_died = false;
+    combat.boss_fight = false;
     combat.gold_stolen = 0;
     combat.last_health_lost = 0;
     combat.bombs.clear();

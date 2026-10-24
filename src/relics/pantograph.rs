@@ -4,7 +4,7 @@ use crate::types::RelicTier;
 
 // Boss combats start with a 25 HP heal
 // See:
-//    - `process_effect_room_enter.rs`
+//    - `process_effect_combat_start.rs`
 pub static PANTOGRAPH: RelicTemplate = RelicTemplate {
     name: RelicName::Pantograph,
     tier: RelicTier::Uncommon,

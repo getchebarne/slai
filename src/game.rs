@@ -75,7 +75,7 @@ pub struct GameState {
     // Plays waiting their turn; the next one starts once effect_queue is empty
     pub card_play_queue: VecDeque<CardPlay>,
 
-    // Turn phases, and the CombatEnd of the last kill, the last escape or a Smoke Bomb, waiting their turn; the next one starts once effect_queue and card_play_queue are empty
+    // Turn phases, the CombatEnd of the last kill, the last escape or a Smoke Bomb, and the final boss's GameOver, waiting their turn; the next one starts once effect_queue and card_play_queue are empty
     pub phase_queue: VecDeque<Effect>,
 
     // Per-handler effect builder; drained back-to-front into queue front
@@ -296,6 +296,7 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
             this_combat_escaped: false,
             this_combat_thief_escaped: false,
             this_combat_monster_died: false,
+            boss_fight: false,
             gold_stolen: 0,
             last_health_lost: 0,
             bombs: Vec::new(),

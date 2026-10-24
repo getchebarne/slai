@@ -93,18 +93,6 @@ pub fn process_effect_room_enter(state: &mut GameState, location: Location, land
             // Spawn boss
             let encounter = state.encounter_boss;
             spawn_encounter_monsters(state, encounter, false);
-
-            // Pantograph: boss fights open with a 25 HP heal
-            if has_relic(&state.id_relics, RelicName::Pantograph) {
-                state.effect_queue.push_back(Effect {
-                    kind: EffectKind::HealthDelta {
-                        sign: DeltaSign::Gain,
-                        amount: Amount::Absolute(25),
-                    },
-                    id_source: None,
-                    target: Target::Direct(Some(state.id_character)),
-                });
-            }
         }
         RoomKind::CombatMonster => {
             // Pop an encounter and spawn its Monsters
