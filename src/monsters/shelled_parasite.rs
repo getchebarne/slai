@@ -64,7 +64,7 @@ pub static SHELLED_PARASITE: MonsterTemplate = MonsterTemplate {
     name: MonsterName::ShelledParasite,
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (68, 72)), (7, (70, 75))],
-    block_start: PLATED_ARMOR_START as u16,
+    block_tiers: &[(0, PLATED_ARMOR_START as u16)],
     move_tiers: &[(0, &[&MOVES_ASC0]), (2, &[&MOVES_ASC2])],
     modifier_tiers: &[(
         0,

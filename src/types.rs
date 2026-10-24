@@ -436,6 +436,7 @@ pub enum MonsterName {
     GremlinWizard,
     Hexaghost,
     JawWorm,
+    JawWormHard,
     Lagavulin,
     Looter,
     LouseDefensive,
@@ -558,6 +559,7 @@ pub enum MonsterEncounter {
     Champ,
 
     // Act 3 hard
+    JawWormHorde,
     Maw,
 }
 

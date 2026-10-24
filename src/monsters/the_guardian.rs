@@ -162,7 +162,7 @@ pub static THE_GUARDIAN: MonsterTemplate = MonsterTemplate {
     name: MonsterName::TheGuardian,
     kind: MonsterKind::Boss,
     health_tiers: &[(0, (240, 240)), (9, (250, 250))],
-    block_start: 0,
+    block_tiers: &[],
     move_tiers: &[
         (0, &[&MOVES_ASC0]),
         (4, &[&MOVES_ASC4]),

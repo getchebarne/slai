@@ -12,7 +12,7 @@ pub static TORCH_HEAD: MonsterTemplate = MonsterTemplate {
     name: MonsterName::TorchHead,
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (38, 40)), (9, (40, 45))],
-    block_start: 0,
+    block_tiers: &[],
     move_tiers: &[(0, &[&MOVES])],
     modifier_tiers: &[(0, &[modifier_fixed(ModifierKind::Minion, 1)])],
 };

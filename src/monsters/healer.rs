@@ -65,7 +65,7 @@ pub static HEALER: MonsterTemplate = MonsterTemplate {
     name: MonsterName::Healer,
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (48, 56)), (7, (50, 58))],
-    block_start: 0,
+    block_tiers: &[],
     move_tiers: &[
         (0, &[&MOVES_ASC0]),
         (2, &[&MOVES_ASC2]),

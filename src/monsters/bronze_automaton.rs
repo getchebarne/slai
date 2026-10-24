@@ -102,7 +102,7 @@ pub static BRONZE_AUTOMATON: MonsterTemplate = MonsterTemplate {
     name: MonsterName::BronzeAutomaton,
     kind: MonsterKind::Boss,
     health_tiers: &[(0, (300, 300)), (9, (320, 320))],
-    block_start: 0,
+    block_tiers: &[],
     move_tiers: &[
         (0, &[&MOVES_ASC0]),
         (4, &[&MOVES_ASC4]),

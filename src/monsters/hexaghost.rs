@@ -144,7 +144,7 @@ pub static HEXAGHOST: MonsterTemplate = MonsterTemplate {
     name: MonsterName::Hexaghost,
     kind: MonsterKind::Boss,
     health_tiers: &[(0, (250, 250)), (9, (264, 264))],
-    block_start: 0,
+    block_tiers: &[],
     move_tiers: &[
         (0, &[&MOVES_ASC0]),
         (4, &[&MOVES_ASC4]),

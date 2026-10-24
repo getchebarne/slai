@@ -16,7 +16,7 @@ pub static GREMLIN_WARRIOR: MonsterTemplate = MonsterTemplate {
     name: MonsterName::GremlinWarrior,
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (20, 24)), (7, (21, 25))],
-    block_start: 0,
+    block_tiers: &[],
     move_tiers: &[
         (0, &[&MOVES_ASC0]),
         (2, &[&MOVES_ASC2]),

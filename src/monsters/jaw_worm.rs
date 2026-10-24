@@ -4,8 +4,10 @@ use crate::effect::TARGET_CHARACTER;
 use crate::effect::TARGET_SOURCE;
 use crate::entity::Intent;
 use crate::entity::Move;
+use crate::modifier::ModifierKind;
 use crate::monsters::MonsterTemplate;
 use crate::monsters::make_move;
+use crate::monsters::modifier_fixed;
 use crate::monsters::move_attack;
 use crate::monsters::move_block_buff;
 use crate::types::MonsterKind;
@@ -52,13 +54,27 @@ pub static JAW_WORM: MonsterTemplate = MonsterTemplate {
     name: MonsterName::JawWorm,
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (40, 44)), (7, (42, 46))],
-    block_start: 0,
+    block_tiers: &[],
     move_tiers: &[
         (0, &[&MOVES_ASC0]),
         (2, &[&MOVES_ASC2]),
         (17, &[&MOVES_ASC17]),
     ],
     modifier_tiers: &[],
+};
+
+// The Jaw Worm Horde's worm: the Jaw Worm spawned with its Bellow's Strength and block
+pub static JAW_WORM_HARD: MonsterTemplate = MonsterTemplate {
+    name: MonsterName::JawWormHard,
+    kind: MonsterKind::Normal,
+    health_tiers: JAW_WORM.health_tiers,
+    block_tiers: &[(0, 6), (17, 9)],
+    move_tiers: JAW_WORM.move_tiers,
+    modifier_tiers: &[
+        (0, &[modifier_fixed(ModifierKind::Strength, 3)]),
+        (2, &[modifier_fixed(ModifierKind::Strength, 4)]),
+        (17, &[modifier_fixed(ModifierKind::Strength, 5)]),
+    ],
 };
 
 pub fn get_next_move_jaw_worm(
@@ -70,13 +86,16 @@ pub fn get_next_move_jaw_worm(
         return IDX_MOVE_CHOMP;
     }
 
+    get_next_move_jaw_worm_hard(move_history, rng)
+}
+
+// No opening Chomp: the first move rolls on an empty history, which has no last move
+pub fn get_next_move_jaw_worm_hard(move_history: &[u8], rng: &mut impl Rng) -> usize {
     let roll = rng.random_range(0..=99);
-    let move_last = *move_history
-        .last()
-        .expect("`move_history` cannot be empty here") as usize;
+    let move_last = move_history.last().copied();
 
     if roll < 25 {
-        if move_last == IDX_MOVE_CHOMP {
+        if move_last == Some(IDX_MOVE_CHOMP as u8) {
             return if rng.random_bool(0.5625) {
                 IDX_MOVE_BELLOW
             } else {
@@ -94,7 +113,7 @@ pub fn get_next_move_jaw_worm(
         }
         IDX_MOVE_THRASH
     } else {
-        if move_last == IDX_MOVE_BELLOW {
+        if move_last == Some(IDX_MOVE_BELLOW as u8) {
             return if rng.random_bool(0.416) {
                 IDX_MOVE_CHOMP
             } else {

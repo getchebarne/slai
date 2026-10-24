@@ -14,7 +14,7 @@ pub static GREMLIN_THIEF: MonsterTemplate = MonsterTemplate {
     name: MonsterName::GremlinThief,
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (10, 14)), (7, (11, 15))],
-    block_start: 0,
+    block_tiers: &[],
     move_tiers: &[
         (0, &[&MOVES_ASC0]),
         (2, &[&MOVES_ASC2]),

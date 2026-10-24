@@ -22,7 +22,7 @@ pub static SLIME_ACID_SMALL: MonsterTemplate = MonsterTemplate {
     name: MonsterName::SlimeAcidSmall,
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (8, 12)), (7, (9, 13))],
-    block_start: 0,
+    block_tiers: &[],
     move_tiers: &[
         (0, &[&MOVES_ASC0]),
         (2, &[&MOVES_ASC2]),

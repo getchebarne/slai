@@ -147,7 +147,7 @@ pub static THE_COLLECTOR: MonsterTemplate = MonsterTemplate {
     name: MonsterName::TheCollector,
     kind: MonsterKind::Boss,
     health_tiers: &[(0, (282, 282)), (9, (300, 300))],
-    block_start: 0,
+    block_tiers: &[],
     move_tiers: &[
         (0, &[&MOVES_ASC0]),
         (4, &[&MOVES_ASC4]),

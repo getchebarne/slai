@@ -51,7 +51,7 @@ pub static MUGGER: MonsterTemplate = MonsterTemplate {
     name: MonsterName::Mugger,
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (48, 52)), (7, (50, 54))],
-    block_start: 0,
+    block_tiers: &[],
     move_tiers: &[
         (0, &[&MOVES_ASC0]),
         (2, &[&MOVES_ASC2]),

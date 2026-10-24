@@ -31,7 +31,7 @@ pub static LOUSE_DEFENSIVE: MonsterTemplate = MonsterTemplate {
     name: MonsterName::LouseDefensive,
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (11, 17)), (7, (12, 18))],
-    block_start: 0,
+    block_tiers: &[],
     move_tiers: &[(0, &MOVES_ASC0), (2, &MOVES_ASC2)],
     modifier_tiers: &[
         (0, &[modifier_rolled(ModifierKind::CurlUp, 3, 7)]),

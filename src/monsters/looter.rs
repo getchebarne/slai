@@ -47,7 +47,7 @@ pub static LOOTER: MonsterTemplate = MonsterTemplate {
     name: MonsterName::Looter,
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (44, 48)), (7, (46, 50))],
-    block_start: 0,
+    block_tiers: &[],
     move_tiers: &[(0, &[&MOVES_ASC0]), (2, &[&MOVES_ASC2])],
     modifier_tiers: &[
         (0, &[modifier_fixed(ModifierKind::Thievery, 15)]),

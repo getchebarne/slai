@@ -25,7 +25,7 @@ pub static BOOK_OF_STABBING: MonsterTemplate = MonsterTemplate {
     name: MonsterName::BookOfStabbing,
     kind: MonsterKind::Elite,
     health_tiers: &[(0, (160, 164)), (8, (168, 172))],
-    block_start: 0,
+    block_tiers: &[],
     move_tiers: &[(0, &[&MOVES_ASC0]), (3, &[&MOVES_ASC3])],
     modifier_tiers: &[(0, &[modifier_fixed(ModifierKind::PainfulStabs, 1)])],
 };

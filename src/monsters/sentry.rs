@@ -56,7 +56,7 @@ pub static SENTRY: MonsterTemplate = MonsterTemplate {
     name: MonsterName::Sentry,
     kind: MonsterKind::Elite,
     health_tiers: &[(0, (38, 42)), (8, (39, 45))],
-    block_start: 0,
+    block_tiers: &[],
     move_tiers: &[
         (0, &[&MOVES_ASC0]),
         (3, &[&MOVES_ASC3]),

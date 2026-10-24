@@ -51,7 +51,7 @@ pub static SNAKE_PLANT: MonsterTemplate = MonsterTemplate {
     name: MonsterName::SnakePlant,
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (75, 79)), (7, (78, 82))],
-    block_start: 0,
+    block_tiers: &[],
     move_tiers: &[(0, &[&MOVES_ASC0]), (2, &[&MOVES_ASC2])],
     modifier_tiers: &[(
         0,

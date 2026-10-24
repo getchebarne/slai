@@ -11,7 +11,7 @@ pub static BANDIT_POINTY: MonsterTemplate = MonsterTemplate {
     name: MonsterName::BanditPointy,
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (30, 30)), (7, (34, 34))],
-    block_start: 0,
+    block_tiers: &[],
     move_tiers: &[(0, &[&MOVES_ASC0]), (2, &[&MOVES_ASC2])],
     modifier_tiers: &[],
 };
