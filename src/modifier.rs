@@ -1,5 +1,7 @@
 use strum::EnumCount;
 
+use crate::consts::TIME_WARP_PLAYS;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumCount)]
 #[repr(u8)]
 pub enum ModifierKind {
@@ -43,6 +45,7 @@ pub enum ModifierKind {
     Thievery,
     Thorns,
     ThousandCuts,
+    TimeWarp,
     ToolsOfTheTrade,
     Vigor,
     Vulnerable,
@@ -417,6 +420,14 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
         stacks_duration: false,
         stacks_min: 1,
         stacks_max: i16::MAX,
+    },
+    ModifierDef {
+        kind: ModifierKind::TimeWarp,
+        priority: PRIORITY_DEFAULT,
+        is_buff: true,
+        stacks_duration: false,
+        stacks_min: 0, // The play count runs from 0 to 11; the 12th play starts it over
+        stacks_max: TIME_WARP_PLAYS - 1,
     },
     ModifierDef {
         kind: ModifierKind::ToolsOfTheTrade,

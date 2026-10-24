@@ -288,6 +288,7 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
             orange_pellets_played_attack: false,
             orange_pellets_played_skill: false,
             orange_pellets_played_power: false,
+            turn_end_pending: false,
             turn_end_started: false,
             turn_ended: false,
             panache_countdown: PANACHE_PLAYS,

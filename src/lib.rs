@@ -198,6 +198,8 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyPlayRestriction;
     #[pymodule_export]
+    use super::ffi::PyPlaySource;
+    #[pymodule_export]
     use super::ffi::PyPotionName;
     #[pymodule_export]
     use super::ffi::PyPotionRarity;

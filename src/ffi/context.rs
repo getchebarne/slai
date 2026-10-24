@@ -1,5 +1,7 @@
 use pyo3::prelude::*;
+use strum::IntoEnumIterator;
 
+use crate::effect::PlaySource;
 use crate::game::GameState;
 use crate::types::ChestKind;
 use crate::types::EventName;
@@ -23,6 +25,50 @@ use super::relic::snapshot_relic;
 mirror_enum!(PyChestKind from ChestKind, "ChestKind", {
     Small, Medium, Large, Boss,
 });
+
+#[pyclass(
+    skip_from_py_object,
+    eq,
+    eq_int,
+    frozen,
+    name = "PlaySource",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, strum::EnumIter)]
+pub enum PyPlaySource {
+    Hand,
+    DrawTop,
+    Replay,
+    ReplayCopy,
+    TurnEnd,
+}
+
+#[pymethods]
+impl PyPlaySource {
+    // Declaration order, which is also int() order
+    #[staticmethod]
+    fn members() -> Vec<PyPlaySource> {
+        PyPlaySource::iter().collect()
+    }
+
+    // Hash by raw discriminant so eq_int and hash agree; the derived hash
+    // breaks Python's eq/hash contract for int-keyed dicts
+    fn __hash__(&self) -> isize {
+        *self as isize
+    }
+}
+
+impl From<PlaySource> for PyPlaySource {
+    fn from(play_source: PlaySource) -> Self {
+        match play_source {
+            PlaySource::Hand => Self::Hand,
+            PlaySource::DrawTop => Self::DrawTop,
+            PlaySource::Replay => Self::Replay,
+            PlaySource::ReplayCopy { .. } => Self::ReplayCopy,
+            PlaySource::TurnEnd { .. } => Self::TurnEnd,
+        }
+    }
+}
 
 #[pyclass(
     skip_from_py_object,
@@ -55,6 +101,7 @@ pub struct PyCombat {
     pub card_pile_discard: Vec<PyCard>,
     pub card_pile_exhaust: Vec<PyCard>,
     pub card_play_queue: Vec<PyCard>,
+    pub play_sources: Vec<PyPlaySource>, // Parallel to `card_play_queue`: what queued each waiting play
     pub energy: PyEnergy,
     pub monsters: Vec<PyMonster>,
     pub card_pile_stasis: Vec<Option<PyCard>>, // Parallel to `monsters`: the Card each one holds in Stasis
@@ -68,7 +115,8 @@ pub struct PyCombat {
     pub orange_pellets_played_attack: bool, // Card kinds played since Orange Pellets last fired this turn
     pub orange_pellets_played_skill: bool,
     pub orange_pellets_played_power: bool,
-    pub turn_end_started: bool, // From the Character's TurnEnd to its next turn start
+    pub turn_end_pending: bool, // From an early turn end to its first pass
+    pub turn_end_started: bool, // From the turn end's first pass to the Character's next turn start
     pub turn_ended: bool, // From the first Monster turn start to the Character's next turn start
     pub this_combat_thief_escaped: bool, // A Smoke Bomb then still keeps the reward
     pub this_combat_monster_died: bool, // Monsters escaping afterwards no longer cost a normal fight its gold and Potion roll
@@ -225,6 +273,11 @@ pub(crate) fn snapshot_combat(state: &GameState) -> PyCombat {
                 )
             })
             .collect(),
+        play_sources: state
+            .card_play_queue
+            .iter()
+            .map(|card_play| card_play.play_source.into())
+            .collect(),
         energy: PyEnergy {
             energy_current: combat.energy.energy_current,
             energy_max: combat.energy.energy_max,
@@ -272,6 +325,7 @@ pub(crate) fn snapshot_combat(state: &GameState) -> PyCombat {
         orange_pellets_played_attack: combat.orange_pellets_played_attack,
         orange_pellets_played_skill: combat.orange_pellets_played_skill,
         orange_pellets_played_power: combat.orange_pellets_played_power,
+        turn_end_pending: combat.turn_end_pending,
         turn_end_started: combat.turn_end_started,
         turn_ended: combat.turn_ended,
         this_combat_thief_escaped: combat.this_combat_thief_escaped,

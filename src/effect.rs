@@ -317,6 +317,7 @@ pub enum EffectKind {
     StrengthLoseTemp {
         stacks: i16,
     },
+    TimeWarpProc,
     TurnEndCharacter {
         landing: bool, // The second pass, which TurnEndCharacter queues for itself
     },

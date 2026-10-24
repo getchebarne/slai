@@ -120,6 +120,7 @@ pub mod process_effect_singing_bowl_proc;
 pub mod process_effect_sneaky_strike_proc;
 pub mod process_effect_storm_of_steel_proc;
 pub mod process_effect_strength_lose_temp;
+pub mod process_effect_time_warp_proc;
 pub mod process_effect_turn_end_character;
 pub mod process_effect_turn_end_monster;
 pub mod process_effect_turn_monsters;
@@ -251,6 +252,7 @@ use self::process_effect_singing_bowl_proc::process_effect_singing_bowl_proc;
 use self::process_effect_sneaky_strike_proc::process_effect_sneaky_strike_proc;
 use self::process_effect_storm_of_steel_proc::process_effect_storm_of_steel_proc;
 use self::process_effect_strength_lose_temp::process_effect_strength_lose_temp;
+use self::process_effect_time_warp_proc::process_effect_time_warp_proc;
 use self::process_effect_turn_end_character::process_effect_turn_end_character;
 use self::process_effect_turn_end_monster::process_effect_turn_end_monster;
 use self::process_effect_turn_monsters::process_effect_turn_monsters;
@@ -709,6 +711,7 @@ fn dispatch_by_kind(
         EffectKind::MatchFlipSeen => process_effect_match_flip_seen(id_target, state),
         EffectKind::MatchFlipUnseen => process_effect_match_flip_unseen(state),
         EffectKind::MayhemProc => process_effect_mayhem_proc(state),
+        EffectKind::TimeWarpProc => process_effect_time_warp_proc(id_target, state),
         EffectKind::HexaghostBurnIncrease { count } => {
             process_effect_hexaghost_burn_increase(state, count)
         }

@@ -34,8 +34,12 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
     );
 
     if !landing {
+        // An early turn end raised inside the turn end runs this pass again: its Relics, Plated Armor and the self-play scan, and nothing else
+        let rerun = state.combat.turn_end_started;
+
         // The Character's turn is ending
         state.combat.turn_end_started = true;
+        state.combat.turn_end_pending = false;
 
         let Combat {
             id_card_pile_hand,
@@ -48,7 +52,9 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
         state.effect_buf.clear();
 
         // What the turn applied stops being new before Doubt and Shame land; the first Monster turn start re-clears all but Weak and Frail
-        modifier_set_not_new(&mut state.entities[state.id_character].modifiers);
+        if !rerun {
+            modifier_set_not_new(&mut state.entities[state.id_character].modifiers);
+        }
 
         // Orichalcum: Character gains 6 block if it has none, ahead of the other turn-end Relics
         if state.entities[state.id_character].vitals.block == 0
@@ -122,21 +128,23 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
             }
         }
 
-        // Unceasing Top: the turn end's rest draws 1 into an empty hand unless a Card played itself out of hand
-        if has_relic(&state.id_relics, RelicName::UnceasingTop) && !card_played_itself {
+        if !rerun {
+            // Unceasing Top: the turn end's rest draws 1 into an empty hand unless a Card played itself out of hand
+            if has_relic(&state.id_relics, RelicName::UnceasingTop) && !card_played_itself {
+                state.phase_queue.push_back(Effect {
+                    kind: EffectKind::UnceasingTopDraw,
+                    id_source: None,
+                    target: Target::Direct(None),
+                });
+            }
+
+            // The end-of-turn Modifiers and the discard wait for the Cards above and all they set off
             state.phase_queue.push_back(Effect {
-                kind: EffectKind::UnceasingTopDraw,
+                kind: EffectKind::TurnEndCharacter { landing: true },
                 id_source: None,
                 target: Target::Direct(None),
             });
         }
-
-        // The end-of-turn Modifiers and the discard wait for the Cards above and all they set off
-        state.phase_queue.push_back(Effect {
-            kind: EffectKind::TurnEndCharacter { landing: true },
-            id_source: None,
-            target: Target::Direct(None),
-        });
 
         flush_effects_from_buf_to_queue_front(state);
         return;

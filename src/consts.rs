@@ -84,6 +84,10 @@ pub const BOMB_FUSE_TURNS: u8 = 3;
 // Panache hits all enemies on every 5th Card played while it is active; the count restarts each turn
 pub const PANACHE_PLAYS: u8 = 5;
 
+// Time Warp ends the Character's turn on every 12th Card played, counted across turns, and gives every Monster 2 Strength
+pub const TIME_WARP_PLAYS: i16 = 12;
+pub const TIME_WARP_STRENGTH: i16 = 2;
+
 // Event roll-pool stakes: the widest offer any event places in `id_roll_*`
 pub const MAX_SIZE_CARD_PILE_EVENT_ROLL: usize = 2 * MATCH_AND_KEEP_ATTEMPTS as usize; // Match and Keep!
 pub const MAX_SIZE_RELIC_EVENT_ROLL: usize = 2; // N'loth's two owned relics
