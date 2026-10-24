@@ -543,6 +543,11 @@ pub fn get_next_move(
     }
 }
 
+// A Monster brought to 0 HP dies unless its own rule makes it half-dead; no Monster has one yet
+pub fn monster_half_dies(_entity: &Entity) -> bool {
+    false
+}
+
 // The repeated Monster move shapes; each spells out one Effect array longhand
 pub const fn move_attack(name: &'static str, damage: u16, instances: u8) -> Move {
     make_move(

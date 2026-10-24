@@ -12,11 +12,12 @@ pub fn process_effect_strength_lose_temp(
 ) {
     let id_target = id_target.expect("StrengthLoseTemp requires id_target");
 
-    // A corpse takes no debuff
-    if state.entities[id_target].dead {
+    // A corpse or a half-dead Monster takes no debuff
+    let target = &state.entities[id_target];
+    if target.dead || target.monster_half_dead {
         return;
     }
-    let modifiers = &state.entities[id_target].modifiers;
+    let modifiers = &target.modifiers;
 
     // Executes in reverse, both applied by the Character:
     //     1. ModifierDelta Strength

@@ -172,6 +172,8 @@ pub enum EffectKind {
         amount: u8,
     },
     GremlinSummon,
+    #[expect(dead_code, reason = "the half-dead Monsters' revives build it")]
+    HalfDeadRevive,
     HandOfGreedProc {
         gold: u16,
     },
@@ -388,7 +390,7 @@ pub enum PlaySource {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum TurnMonstersStage {
     TurnStarts, // Every Monster's turn starts, its Poison tick with it
-    Moves,      // The Monsters still standing act one at a time
+    Moves,      // Every Monster in the roster acts in slot order, a half-dead one included
     RoundEnd,   // Every Monster's turn ends, then the Character's next turn starts
 }
 

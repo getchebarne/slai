@@ -63,7 +63,7 @@ pub struct PyCombat {
     pub card_pile_nightmare: Vec<PyCard>, // Each arrives NIGHTMARE_COPIES times next turn
     pub panache_countdown: u8,            // Plays left until Panache's hit
     pub this_turn_discards: u16, // Cards discarded this turn (Sneaky Strike's refund, Eviscerate's discount)
-    pub this_turn_attacks: u16,  // Attacks played this turn (Finisher's hits, Art of War's energy)
+    pub this_turn_attacks: u16,  // Attacks played this turn (Finisher's hits)
     pub this_turn_cards_played: u16, // Cards played this turn (Normality's cap)
     pub orange_pellets_played_attack: bool, // Card kinds played since Orange Pellets last fired this turn
     pub orange_pellets_played_skill: bool,

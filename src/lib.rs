@@ -333,6 +333,8 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEffectGremlinSummon;
     #[pymodule_export]
+    use super::ffi::PyEffectHalfDeadRevive;
+    #[pymodule_export]
     use super::ffi::PyEffectHandOfGreedProc;
     #[pymodule_export]
     use super::ffi::PyEffectHealthDelta;

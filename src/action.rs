@@ -42,6 +42,7 @@ use crate::utils::flush_effects_from_buf_to_queue_front;
 use crate::utils::get_card_effective_cost;
 use crate::utils::has_relic;
 use crate::utils::is_play_restriction_satisfied;
+use crate::utils::monsters_alive;
 use crate::utils::play_cap_reached;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -586,6 +587,7 @@ fn fill_legal_actions_effect_pending(
         pool,
         None,
         state.id_character,
+        &state.entities,
         &state.combat,
         &state.event,
         &state.id_card_pile_deck,
@@ -645,7 +647,8 @@ fn fill_legal_actions_combat(state: &mut GameState) {
         }
         let requires_target = entity_requires_target(card);
         if requires_target {
-            for &id_monster in id_monsters.iter().flatten() {
+            // A Card can't be aimed at a half-dead Monster
+            for id_monster in monsters_alive(&state.entities, id_monsters) {
                 state.legal_actions.push(Action::CardPlay {
                     id_card,
                     id_monster: Some(id_monster),
@@ -886,7 +889,7 @@ fn push_room_select_actions(state: &mut GameState) {
 }
 
 fn push_potion_actions(state: &mut GameState) {
-    let (in_combat, alive_count) = if context_focus(state) == Focus::Combat {
+    let (in_combat, monsters_left) = if context_focus(state) == Focus::Combat {
         (true, state.combat.id_monsters.iter().flatten().count())
     } else {
         (false, 0)
@@ -935,14 +938,14 @@ fn push_potion_actions(state: &mut GameState) {
         }
 
         // Combat-only Potions need a combat with a Monster left in it
-        if potion.potion_combat_only && (!in_combat || alive_count == 0) {
+        if potion.potion_combat_only && (!in_combat || monsters_left == 0) {
             state
                 .legal_actions
                 .push(Action::PotionDiscard { id_potion });
             continue;
         }
 
-        // Target-requiring Potions
+        // Target-requiring Potions; unlike a Card, one can be thrown at a half-dead Monster
         if entity_requires_target(potion) {
             if in_combat && !at_selection {
                 for &id_monster in state.combat.id_monsters.iter().flatten() {

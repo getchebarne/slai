@@ -11,6 +11,7 @@ use crate::types::PotionName;
 use crate::types::RelicName;
 use crate::utils::flush_effects_from_buf_to_queue_front;
 use crate::utils::has_relic;
+use crate::utils::monsters_alive;
 
 // id_source is the used Potion, id_target its Monster if it needs one
 pub fn process_effect_potion_use(
@@ -50,11 +51,13 @@ pub fn process_effect_potion_use(
             ..*effect
         };
 
-        // Distilled Chaos rolls its targets in play order, all before any Card resolves
+        // Distilled Chaos rolls its targets in play order, all before any Card resolves, among the living Monsters; with none, the play goes ahead targetless
         if matches!(effect.kind, EffectKind::CardPlayFromCardPileDrawTop) {
-            let alive: Vec<usize> = state.combat.id_monsters.iter().flatten().copied().collect();
-            let id_monster = alive[state.rng.random_range(0..alive.len())];
-            effect.target = Target::Direct(Some(id_monster));
+            let id_alive: Vec<usize> =
+                monsters_alive(&state.entities, &state.combat.id_monsters).collect();
+            let id_monster =
+                (!id_alive.is_empty()).then(|| id_alive[state.rng.random_range(0..id_alive.len())]);
+            effect.target = Target::Direct(id_monster);
         }
 
         // Gambler's Brew reads the hand as it is drunk; Cards selected at the open selection have left it
