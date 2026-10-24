@@ -47,7 +47,7 @@ pub static GREMLIN_TSUNDERE: MonsterTemplate = MonsterTemplate {
     name: MonsterName::GremlinTsundere,
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (12, 15)), (7, (13, 17))],
-    block_start: 0,
+    block_tiers: &[],
     move_tiers: &[
         (0, &[&MOVES_ASC0]),
         (2, &[&MOVES_ASC2]),

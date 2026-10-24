@@ -23,7 +23,7 @@ pub static FUNGI_BEAST: MonsterTemplate = MonsterTemplate {
     name: MonsterName::FungiBeast,
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (22, 28)), (7, (24, 28))],
-    block_start: 0,
+    block_tiers: &[],
     move_tiers: &[
         (0, &[&MOVES_ASC0]),
         (2, &[&MOVES_ASC2]),

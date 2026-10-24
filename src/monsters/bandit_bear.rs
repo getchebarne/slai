@@ -68,7 +68,7 @@ pub static BANDIT_BEAR: MonsterTemplate = MonsterTemplate {
     name: MonsterName::BanditBear,
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (38, 42)), (7, (40, 44))],
-    block_start: 0,
+    block_tiers: &[],
     move_tiers: &[
         (0, &[&MOVES_ASC0]),
         (2, &[&MOVES_ASC2]),

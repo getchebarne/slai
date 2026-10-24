@@ -99,7 +99,7 @@ pub static LAGAVULIN: MonsterTemplate = MonsterTemplate {
     name: MonsterName::Lagavulin,
     kind: MonsterKind::Elite,
     health_tiers: &[(0, (109, 111)), (8, (112, 115))],
-    block_start: 8,
+    block_tiers: &[(0, 8)],
     move_tiers: &[
         (0, &[&MOVES_ASC0]),
         (3, &[&MOVES_ASC3]),

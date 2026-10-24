@@ -67,7 +67,7 @@ pub static SLIME_BOSS: MonsterTemplate = MonsterTemplate {
     name: MonsterName::SlimeBoss,
     kind: MonsterKind::Boss,
     health_tiers: &[(0, (140, 140)), (9, (150, 150))],
-    block_start: 0,
+    block_tiers: &[],
     move_tiers: &[
         (0, &[&MOVES_ASC0]),
         (4, &[&MOVES_ASC4]),

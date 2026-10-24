@@ -52,7 +52,7 @@ pub static BRONZE_ORB: MonsterTemplate = MonsterTemplate {
     name: MonsterName::BronzeOrb,
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (52, 58)), (9, (54, 60))],
-    block_start: 0,
+    block_tiers: &[],
     move_tiers: &[(0, &[&MOVES])],
     modifier_tiers: &[(0, &[modifier_fixed(ModifierKind::Minion, 1)])],
 };

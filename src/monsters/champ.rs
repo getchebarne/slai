@@ -175,7 +175,7 @@ pub static CHAMP: MonsterTemplate = MonsterTemplate {
     name: MonsterName::Champ,
     kind: MonsterKind::Boss,
     health_tiers: &[(0, (420, 420)), (9, (440, 440))],
-    block_start: 0,
+    block_tiers: &[],
     move_tiers: &[
         (0, &[&MOVES_ASC0]),
         (4, &[&MOVES_ASC4]),

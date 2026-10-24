@@ -36,7 +36,7 @@ pub static SLIME_SPIKE_LARGE: MonsterTemplate = MonsterTemplate {
     name: MonsterName::SlimeSpikeLarge,
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (64, 70)), (7, (67, 73))],
-    block_start: 0,
+    block_tiers: &[],
     move_tiers: &[
         (0, &[&MOVES_ASC0]),
         (2, &[&MOVES_ASC2]),

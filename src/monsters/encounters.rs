@@ -61,6 +61,7 @@ pub const ALL_ENCOUNTERS: &[MonsterEncounter] = &[
     MonsterEncounter::Champ,
     MonsterEncounter::LagavulinEvent,
     MonsterEncounter::Maw,
+    MonsterEncounter::JawWormHorde,
 ];
 // Assert that all `MonsterEncounter` members are covered
 const _: () = assert!(ALL_ENCOUNTERS.len() == MonsterEncounter::COUNT);
@@ -138,7 +139,7 @@ pub const fn get_encounter_pool(encounter: MonsterEncounter) -> EncounterPool {
         | MonsterEncounter::Champ => EncounterPool::Act2Boss,
 
         // Act 3 hard
-        MonsterEncounter::Maw => EncounterPool::Act3Hard,
+        MonsterEncounter::JawWormHorde | MonsterEncounter::Maw => EncounterPool::Act3Hard,
 
         // Event-only
         MonsterEncounter::ThreeFungiBeasts | MonsterEncounter::LagavulinEvent => {
@@ -205,6 +206,7 @@ pub const fn get_encounter_weight(encounter: MonsterEncounter) -> f32 {
         MonsterEncounter::Champ => 1.0,
 
         // Act 3 hard
+        MonsterEncounter::JawWormHorde => 1.0,
         MonsterEncounter::Maw => 1.0,
 
         // Event-only, never rolled from a pool
@@ -688,6 +690,11 @@ pub fn spawn_encounter_monsters(state: &mut GameState, encounter: MonsterEncount
             push_monster_spawn(effects, MonsterName::TheCollector, 2)
         }
         MonsterEncounter::Champ => push_monster_spawn(effects, MonsterName::Champ, 0),
+        MonsterEncounter::JawWormHorde => {
+            for slot in 0..3 {
+                push_monster_spawn(effects, MonsterName::JawWormHard, slot);
+            }
+        }
         MonsterEncounter::Maw => push_monster_spawn(effects, MonsterName::Maw, 0),
     }
 

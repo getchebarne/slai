@@ -50,7 +50,7 @@ pub static CENTURION: MonsterTemplate = MonsterTemplate {
     name: MonsterName::Centurion,
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (76, 80)), (7, (78, 83))],
-    block_start: 0,
+    block_tiers: &[],
     move_tiers: &[
         (0, &[&MOVES_ASC0]),
         (2, &[&MOVES_ASC2]),

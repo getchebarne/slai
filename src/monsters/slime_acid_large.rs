@@ -49,7 +49,7 @@ pub static SLIME_ACID_LARGE: MonsterTemplate = MonsterTemplate {
     name: MonsterName::SlimeAcidLarge,
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (65, 69)), (7, (68, 72))],
-    block_start: 0,
+    block_tiers: &[],
     move_tiers: &[(0, &[&MOVES_ASC0]), (2, &[&MOVES_ASC2])],
     modifier_tiers: &[(0, &[modifier_fixed(ModifierKind::Splittable, 1)])],
 };

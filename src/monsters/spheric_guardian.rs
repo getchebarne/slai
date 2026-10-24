@@ -80,7 +80,7 @@ pub static SPHERIC_GUARDIAN: MonsterTemplate = MonsterTemplate {
     name: MonsterName::SphericGuardian,
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (20, 20))],
-    block_start: START_BLOCK,
+    block_tiers: &[(0, START_BLOCK)],
     move_tiers: &[
         (0, &[&MOVES_ASC0]),
         (2, &[&MOVES_ASC2]),

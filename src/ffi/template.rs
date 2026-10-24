@@ -333,7 +333,7 @@ pub fn get_monster_templates(ascension: u8) -> Vec<PyMonsterTemplate> {
                 kind: template.kind.into(),
                 hp_range: tier_at(template.health_tiers, ascension)
                     .expect("health_tiers is never empty"),
-                block_start: template.block_start,
+                block_start: tier_at(template.block_tiers, ascension).unwrap_or(0),
                 moves,
                 modifier_spawns: tier_at(template.modifier_tiers, ascension)
                     .unwrap_or(&[])

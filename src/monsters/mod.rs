@@ -106,7 +106,7 @@ pub struct MonsterTemplate {
     pub name: MonsterName,
     pub kind: MonsterKind,
     pub health_tiers: &'static [(u8, (u16, u16))],
-    pub block_start: u16,
+    pub block_tiers: &'static [(u8, u16)],
     pub move_tiers: &'static [(u8, &'static [&'static [Move]])],
     pub modifier_tiers: &'static [(u8, &'static [ModifierSpawn])],
 }
@@ -135,6 +135,7 @@ pub const ALL_MONSTERS: &[&'static MonsterTemplate] = &[
     &healer::HEALER,
     &hexaghost::HEXAGHOST,
     &jaw_worm::JAW_WORM,
+    &jaw_worm::JAW_WORM_HARD,
     &lagavulin::LAGAVULIN,
     &looter::LOOTER,
     &louse_green::LOUSE_DEFENSIVE,
@@ -174,6 +175,7 @@ const _: () = {
     let mut idx = 0;
     while idx < ALL_MONSTERS.len() {
         assert_tiers_ascend(ALL_MONSTERS[idx].health_tiers);
+        assert_tiers_ascend(ALL_MONSTERS[idx].block_tiers);
         assert_tiers_ascend(ALL_MONSTERS[idx].move_tiers);
         assert_tiers_ascend(ALL_MONSTERS[idx].modifier_tiers);
         idx += 1;
@@ -202,7 +204,7 @@ const _: () = {
     }
 };
 
-// None iff `tiers` is empty (the modifier tables most Monsters leave blank)
+// None iff `tiers` is empty (the block and modifier tables most Monsters leave blank)
 pub fn tier_at<T: Copy>(tiers: &'static [(u8, T)], ascension_level: u8) -> Option<T> {
     tiers
         .iter()
@@ -252,7 +254,7 @@ fn instance_monster_from_template(
         Vitals {
             health: health_max,
             health_max,
-            block: template.block_start,
+            block: tier_at(template.block_tiers, ascension_level).unwrap_or(0),
         },
         modifiers,
         moves,
@@ -268,6 +270,7 @@ pub fn monster_template(monster_name: MonsterName) -> &'static MonsterTemplate {
     match monster_name {
         MonsterName::Cultist => &cultist::CULTIST,
         MonsterName::JawWorm => &jaw_worm::JAW_WORM,
+        MonsterName::JawWormHard => &jaw_worm::JAW_WORM_HARD,
         MonsterName::TheGuardian => &the_guardian::THE_GUARDIAN,
         MonsterName::FungiBeast => &fungi_beast::FUNGI_BEAST,
         MonsterName::SlaverBlue => &slaver_blue::SLAVER_BLUE,
@@ -388,6 +391,7 @@ pub fn get_next_move(
         MonsterName::JawWorm => {
             jaw_worm::get_next_move_jaw_worm(entity.monster_move_current, history, rng)
         }
+        MonsterName::JawWormHard => jaw_worm::get_next_move_jaw_worm_hard(history, rng),
         MonsterName::TheGuardian => the_guardian::get_next_move_the_guardian_full(
             entity.monster_move_current,
             history,

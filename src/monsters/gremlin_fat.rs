@@ -54,7 +54,7 @@ pub static GREMLIN_FAT: MonsterTemplate = MonsterTemplate {
     name: MonsterName::GremlinFat,
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (13, 17)), (7, (14, 18))],
-    block_start: 0,
+    block_tiers: &[],
     move_tiers: &[
         (0, &[&MOVES_ASC0]),
         (2, &[&MOVES_ASC2]),

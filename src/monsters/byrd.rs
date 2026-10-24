@@ -88,7 +88,7 @@ pub static BYRD: MonsterTemplate = MonsterTemplate {
     name: MonsterName::Byrd,
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (25, 31)), (7, (26, 33))],
-    block_start: 0,
+    block_tiers: &[],
     move_tiers: &[
         (0, &[&MOVES_ASC0]),
         (2, &[&MOVES_ASC2]),

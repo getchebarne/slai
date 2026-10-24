@@ -31,8 +31,8 @@ mirror_enum!(PyMonsterKind from MonsterKind, "MonsterKind", {
 
 mirror_enum!(PyMonsterName from MonsterName, "MonsterName", {
     Cultist, FungiBeast, GremlinFat, GremlinNob, GremlinThief, GremlinTsundere, GremlinWarrior,
-    GremlinWizard, Hexaghost, JawWorm, Lagavulin, Looter, LouseDefensive, LouseNormal, Maw, Sentry,
-    SlaverBlue, SlaverRed, SlimeAcidLarge, SlimeAcidMedium, SlimeAcidSmall, SlimeBoss,
+    GremlinWizard, Hexaghost, JawWorm, JawWormHard, Lagavulin, Looter, LouseDefensive, LouseNormal,
+    Maw, Sentry, SlaverBlue, SlaverRed, SlimeAcidLarge, SlimeAcidMedium, SlimeAcidSmall, SlimeBoss,
     SlimeSpikeLarge, SlimeSpikeMedium, SlimeSpikeSmall, TheGuardian, Byrd, Centurion, Chosen,
     Healer, Mugger, ShelledParasite, SnakePlant, Snecko, SphericGuardian, BookOfStabbing,
     GremlinLeader, Taskmaster, BronzeAutomaton, BronzeOrb, Champ, TheCollector, TorchHead,
@@ -46,7 +46,7 @@ mirror_enum!(PyMonsterEncounter from MonsterEncounter, "MonsterEncounter", {
     LagavulinEvent, SphericGuardian, Chosen, ShelledParasite, ThreeByrds, TwoThieves, SnakePlant,
     CenturionAndHealer, Snecko, CultistAndChosen, ThreeCultists, ShelledParasiteAndFungi,
     ChosenAndByrds, SentryAndSphere, GremlinLeader, Slavers, BookOfStabbing, BronzeAutomaton,
-    TheCollector, Champ, Maw,
+    TheCollector, Champ, JawWormHorde, Maw,
 });
 
 #[pyclass(
