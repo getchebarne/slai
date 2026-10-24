@@ -638,6 +638,20 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
         }
     }
 
+    // After-use Monster hooks: every play that gets this far reaches them behind its on-use hooks and ahead of its routing; what they set off lands behind Thousand Cuts' sweep
+    for id_monster in id_monsters.iter().flatten().copied() {
+        let mods_monster = &state.entities[id_monster].modifiers;
+
+        // Time Warp counts the play
+        if has_modifier(mods_monster, ModifierKind::TimeWarp) {
+            state.effect_buf.push(Effect {
+                kind: EffectKind::TimeWarpProc,
+                id_source: None,
+                target: Target::Direct(Some(id_monster)),
+            });
+        }
+    }
+
     // Route the played Card to its pile once every on-use hook has resolved; a replay leaves it where it lies
     if !replay {
         state.effect_buf.push(Effect {

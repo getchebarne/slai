@@ -10,6 +10,7 @@ CardRarity = _rs.CardRarity
 CardPile = _rs.CardPile
 CostScope = _rs.CostScope
 PlayRestriction = _rs.PlayRestriction
+PlaySource = _rs.PlaySource
 RoomKind = _rs.RoomKind
 RelicTier = _rs.RelicTier
 RelicExclusion = _rs.RelicExclusion
@@ -514,6 +515,7 @@ __all__ = [
     "CardPile",
     "CostScope",
     "PlayRestriction",
+    "PlaySource",
     "ModifierKind",
     "IntentKind",
     "CandidateFilter",
