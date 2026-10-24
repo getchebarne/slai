@@ -16,7 +16,6 @@ use crate::engine::fill_buf_candidates;
 use crate::events::event_option_available;
 use crate::game::GameState;
 use crate::game::Location;
-use crate::map::get_active_room_kind;
 use crate::map::has_edge;
 use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
@@ -925,12 +924,8 @@ fn push_potion_actions(state: &mut GameState) {
             continue;
         }
 
-        // Smoke Bomb: can't escape from Boss fights
-        if potion.potion_name == PotionName::SmokeBomb
-            && in_combat
-            && get_active_room_kind(&state.id_rooms, state.location, &state.entities)
-                == Some(RoomKind::CombatBoss)
-        {
+        // Smoke Bomb: no escape from a fight a boss Monster opened
+        if potion.potion_name == PotionName::SmokeBomb && in_combat && state.combat.boss_fight {
             state
                 .legal_actions
                 .push(Action::PotionDiscard { id_potion });

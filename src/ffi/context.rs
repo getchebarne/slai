@@ -120,6 +120,7 @@ pub struct PyCombat {
     pub turn_ended: bool, // From the first Monster turn start to the Character's next turn start
     pub this_combat_thief_escaped: bool, // A Smoke Bomb then still keeps the reward
     pub this_combat_monster_died: bool, // Monsters escaping afterwards no longer cost a normal fight its gold and Potion roll
+    pub boss_fight: bool, // A boss Monster opened this fight; it stays set after the boss leaves the roster
     pub gold_stolen: u16, // The killed thieves' purse, claimed apart from the room's gold
 }
 
@@ -330,6 +331,7 @@ pub(crate) fn snapshot_combat(state: &GameState) -> PyCombat {
         turn_ended: combat.turn_ended,
         this_combat_thief_escaped: combat.this_combat_thief_escaped,
         this_combat_monster_died: combat.this_combat_monster_died,
+        boss_fight: combat.boss_fight,
         gold_stolen: combat.gold_stolen,
     }
 }

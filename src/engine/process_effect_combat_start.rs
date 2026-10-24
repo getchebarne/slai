@@ -26,10 +26,12 @@ pub fn process_effect_combat_start(state: &mut GameState, elite: bool) {
         id_monsters,
         id_card_origins,
         energy,
+        boss_fight,
         ..
     } = &mut state.combat;
 
-    let is_fight_boss = id_monsters
+    // A boss Monster in the opening roster makes the whole combat a boss fight
+    *boss_fight = id_monsters
         .iter()
         .flatten()
         .any(|&id| state.entities[id].monster_kind == MonsterKind::Boss);
@@ -53,7 +55,7 @@ pub fn process_effect_combat_start(state: &mut GameState, elite: bool) {
     }
 
     // Slaver's Collar: +1 max energy in elite and boss fights only
-    if has_relic(&state.id_relics, RelicName::SlaversCollar) && (elite || is_fight_boss) {
+    if has_relic(&state.id_relics, RelicName::SlaversCollar) && (elite || *boss_fight) {
         energy_max += 1;
     }
 
@@ -97,6 +99,18 @@ pub fn process_effect_combat_start(state: &mut GameState, elite: bool) {
         id_source: None,
         target: TARGET_MONSTERS_ALL,
     });
+
+    // Pantograph: a fight a boss Monster opened starts with a 25 HP heal
+    if has_relic(&state.id_relics, RelicName::Pantograph) && *boss_fight {
+        state.effect_queue.push_back(Effect {
+            kind: EffectKind::HealthDelta {
+                sign: DeltaSign::Gain,
+                amount: Amount::Absolute(25),
+            },
+            id_source: None,
+            target: Target::Direct(Some(state.id_character)),
+        });
+    }
 
     // Ancient Tea Set: primed by the last rest site (counter 1), spends it for 2 energy
     if let Some(id) = state.id_relics[RelicName::AncientTeaSet as usize]

@@ -195,9 +195,13 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
 
     queue_combat_end_relics(state);
 
-    // Final-act boss victory ends the run, resting on Map
+    // Final-act boss victory: the run ends once the combat-end Relics have resolved, resting on Map
     if matches!(state.location, Location::BossRoom) && state.act >= ACT_FINAL {
-        state.game_over = true;
+        state.phase_queue.push_back(Effect {
+            kind: EffectKind::GameOver,
+            id_source: None,
+            target: Target::Direct(None),
+        });
     }
 }
 

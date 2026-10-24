@@ -160,6 +160,7 @@ pub enum EffectKind {
     GambleDraw {
         discards_before: u16, // This turn's discards as the Gamble began
     },
+    GameOver,
     GiryaLift,
     GlassKnifeDecay {
         delta: i16,

@@ -55,6 +55,7 @@ pub mod process_effect_event_close;
 pub mod process_effect_event_consume;
 pub mod process_effect_gamble;
 pub mod process_effect_gamble_draw;
+pub mod process_effect_game_over;
 pub mod process_effect_girya_lift;
 pub mod process_effect_glass_knife_decay;
 pub mod process_effect_gold_delta;
@@ -187,6 +188,7 @@ use self::process_effect_event_close::process_effect_event_close;
 use self::process_effect_event_consume::process_effect_event_consume;
 use self::process_effect_gamble::process_effect_gamble;
 use self::process_effect_gamble_draw::process_effect_gamble_draw;
+use self::process_effect_game_over::process_effect_game_over;
 use self::process_effect_girya_lift::process_effect_girya_lift;
 use self::process_effect_glass_knife_decay::process_effect_glass_knife_decay;
 use self::process_effect_gold_delta::process_effect_gold_delta;
@@ -673,6 +675,7 @@ fn dispatch_by_kind(
         EffectKind::CombatEnd { escaped_character } => {
             process_effect_combat_end(state, escaped_character)
         }
+        EffectKind::GameOver => process_effect_game_over(state),
         EffectKind::TurnStartCharacter => process_effect_turn_start_character(state),
         EffectKind::TurnStartMonster => process_effect_turn_start_monster(id_target, state),
         EffectKind::TurnEndCharacter { landing } => {
