@@ -1,5 +1,4 @@
 use rand::Rng;
-use strum::EnumCount;
 
 use crate::consts::NUM_ENCOUNTERS_EASY;
 use crate::consts::NUM_ENCOUNTERS_EASY_ACT2;
@@ -12,265 +11,61 @@ use crate::effect::Target;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::monsters::GREMLIN_POOL;
-use crate::types::EncounterPool;
 use crate::types::MonsterEncounter;
 use crate::types::MonsterName;
 use crate::utils::flush_effects_from_buf_to_queue_front;
 use crate::utils::shuffle;
 
-pub const ALL_ENCOUNTERS: &[MonsterEncounter] = &[
-    MonsterEncounter::BlueSlaver,
-    MonsterEncounter::ThreeFungiBeasts,
-    MonsterEncounter::Cultist,
-    MonsterEncounter::ExordiumThugs,
-    MonsterEncounter::ExordiumWildlife,
-    MonsterEncounter::GremlinGang,
-    MonsterEncounter::GremlinNob,
-    MonsterEncounter::Hexaghost,
-    MonsterEncounter::JawWorm,
-    MonsterEncounter::Lagavulin,
-    MonsterEncounter::LargeSlime,
-    MonsterEncounter::Looter,
-    MonsterEncounter::LotsOfSlimes,
-    MonsterEncounter::RedSlaver,
-    MonsterEncounter::SlimeBoss,
-    MonsterEncounter::SmallSlimes,
-    MonsterEncounter::TheGuardian,
-    MonsterEncounter::ThreeLouse,
-    MonsterEncounter::ThreeSentries,
-    MonsterEncounter::TwoFungiBeasts,
-    MonsterEncounter::TwoLouse,
-    MonsterEncounter::SphericGuardian,
-    MonsterEncounter::Chosen,
-    MonsterEncounter::ShelledParasite,
-    MonsterEncounter::ThreeByrds,
-    MonsterEncounter::TwoThieves,
-    MonsterEncounter::SnakePlant,
-    MonsterEncounter::CenturionAndHealer,
-    MonsterEncounter::Snecko,
-    MonsterEncounter::CultistAndChosen,
-    MonsterEncounter::ThreeCultists,
-    MonsterEncounter::ShelledParasiteAndFungi,
-    MonsterEncounter::ChosenAndByrds,
-    MonsterEncounter::SentryAndSphere,
-    MonsterEncounter::GremlinLeader,
-    MonsterEncounter::Slavers,
-    MonsterEncounter::BookOfStabbing,
-    MonsterEncounter::BronzeAutomaton,
-    MonsterEncounter::TheCollector,
-    MonsterEncounter::Champ,
-    MonsterEncounter::LagavulinEvent,
-    MonsterEncounter::Maw,
-    MonsterEncounter::JawWormHorde,
+// One list per act and tier, in draw order; an encounter can sit in several lists
+const ENC_POOL_EASY_ACT_1: &[(MonsterEncounter, f32)] = &[
+    (MonsterEncounter::Cultist, 2.0),
+    (MonsterEncounter::JawWorm, 2.0),
+    (MonsterEncounter::SmallSlimes, 2.0),
+    (MonsterEncounter::TwoLouse, 2.0),
 ];
-// Assert that all `MonsterEncounter` members are covered
-const _: () = assert!(ALL_ENCOUNTERS.len() == MonsterEncounter::COUNT);
-
-// Assert there's no duplicates
-const _: () = {
-    let mut seen = [false; MonsterEncounter::COUNT];
-    let mut idx = 0;
-    while idx < ALL_ENCOUNTERS.len() {
-        let jdx = ALL_ENCOUNTERS[idx] as usize;
-        assert!(
-            !seen[jdx],
-            "ALL_ENCOUNTERS contains a duplicate MonsterEncounter"
-        );
-        seen[jdx] = true;
-        idx += 1;
-    }
-};
-
-pub const fn get_encounter_pool(encounter: MonsterEncounter) -> EncounterPool {
-    match encounter {
-        // Easy
-        MonsterEncounter::Cultist
-        | MonsterEncounter::JawWorm
-        | MonsterEncounter::TwoLouse
-        | MonsterEncounter::SmallSlimes => EncounterPool::Act1Easy,
-
-        // Hard
-        MonsterEncounter::BlueSlaver
-        | MonsterEncounter::RedSlaver
-        | MonsterEncounter::Looter
-        | MonsterEncounter::TwoFungiBeasts
-        | MonsterEncounter::ThreeLouse
-        | MonsterEncounter::LargeSlime
-        | MonsterEncounter::LotsOfSlimes
-        | MonsterEncounter::GremlinGang
-        | MonsterEncounter::ExordiumThugs
-        | MonsterEncounter::ExordiumWildlife => EncounterPool::Act1Hard,
-
-        // Elite
-        MonsterEncounter::GremlinNob
-        | MonsterEncounter::Lagavulin
-        | MonsterEncounter::ThreeSentries => EncounterPool::Act1Elite,
-
-        // Boss
-        MonsterEncounter::TheGuardian
-        | MonsterEncounter::Hexaghost
-        | MonsterEncounter::SlimeBoss => EncounterPool::Act1Boss,
-
-        // Act 2 easy
-        MonsterEncounter::SphericGuardian
-        | MonsterEncounter::Chosen
-        | MonsterEncounter::ShelledParasite
-        | MonsterEncounter::ThreeByrds
-        | MonsterEncounter::TwoThieves => EncounterPool::Act2Easy,
-
-        // Act 2 hard
-        MonsterEncounter::SnakePlant
-        | MonsterEncounter::CenturionAndHealer
-        | MonsterEncounter::Snecko
-        | MonsterEncounter::CultistAndChosen
-        | MonsterEncounter::ThreeCultists
-        | MonsterEncounter::ShelledParasiteAndFungi
-        | MonsterEncounter::ChosenAndByrds
-        | MonsterEncounter::SentryAndSphere => EncounterPool::Act2Hard,
-
-        // Act 2 elite
-        MonsterEncounter::GremlinLeader
-        | MonsterEncounter::Slavers
-        | MonsterEncounter::BookOfStabbing => EncounterPool::Act2Elite,
-
-        // Act 2 boss
-        MonsterEncounter::BronzeAutomaton
-        | MonsterEncounter::TheCollector
-        | MonsterEncounter::Champ => EncounterPool::Act2Boss,
-
-        // Act 3 hard
-        MonsterEncounter::JawWormHorde | MonsterEncounter::Maw => EncounterPool::Act3Hard,
-
-        // Event-only
-        MonsterEncounter::ThreeFungiBeasts | MonsterEncounter::LagavulinEvent => {
-            EncounterPool::Event
-        }
-    }
-}
-
-pub const fn get_encounter_weight(encounter: MonsterEncounter) -> f32 {
-    match encounter {
-        // Easy
-        MonsterEncounter::Cultist => 2.0,
-        MonsterEncounter::JawWorm => 2.0,
-        MonsterEncounter::TwoLouse => 2.0,
-        MonsterEncounter::SmallSlimes => 2.0,
-
-        // Hard
-        MonsterEncounter::BlueSlaver => 2.0,
-        MonsterEncounter::GremlinGang => 1.0,
-        MonsterEncounter::Looter => 2.0,
-        MonsterEncounter::LargeSlime => 2.0,
-        MonsterEncounter::LotsOfSlimes => 1.0,
-        MonsterEncounter::ExordiumThugs => 1.5,
-        MonsterEncounter::ExordiumWildlife => 1.5,
-        MonsterEncounter::RedSlaver => 1.0,
-        MonsterEncounter::ThreeLouse => 2.0,
-        MonsterEncounter::TwoFungiBeasts => 2.0,
-
-        // Elite
-        MonsterEncounter::GremlinNob => 1.0,
-        MonsterEncounter::Lagavulin => 1.0,
-        MonsterEncounter::ThreeSentries => 1.0,
-
-        // Boss
-        MonsterEncounter::TheGuardian => 1.0,
-        MonsterEncounter::Hexaghost => 1.0,
-        MonsterEncounter::SlimeBoss => 1.0,
-
-        // Act 2 easy
-        MonsterEncounter::SphericGuardian => 2.0,
-        MonsterEncounter::Chosen => 2.0,
-        MonsterEncounter::ShelledParasite => 2.0,
-        MonsterEncounter::ThreeByrds => 2.0,
-        MonsterEncounter::TwoThieves => 2.0,
-
-        // Act 2 hard
-        MonsterEncounter::SnakePlant => 6.0,
-        MonsterEncounter::CenturionAndHealer => 6.0,
-        MonsterEncounter::Snecko => 4.0,
-        MonsterEncounter::CultistAndChosen => 3.0,
-        MonsterEncounter::ThreeCultists => 3.0,
-        MonsterEncounter::ShelledParasiteAndFungi => 3.0,
-        MonsterEncounter::ChosenAndByrds => 2.0,
-        MonsterEncounter::SentryAndSphere => 2.0,
-
-        // Act 2 elite
-        MonsterEncounter::GremlinLeader => 1.0,
-        MonsterEncounter::Slavers => 1.0,
-        MonsterEncounter::BookOfStabbing => 1.0,
-
-        // Act 2 boss
-        MonsterEncounter::BronzeAutomaton => 1.0,
-        MonsterEncounter::TheCollector => 1.0,
-        MonsterEncounter::Champ => 1.0,
-
-        // Act 3 hard
-        MonsterEncounter::JawWormHorde => 1.0,
-        MonsterEncounter::Maw => 1.0,
-
-        // Event-only, never rolled from a pool
-        MonsterEncounter::ThreeFungiBeasts => 1.0,
-        MonsterEncounter::LagavulinEvent => 1.0,
-    }
-}
-
-const fn pool_eq(lhs: EncounterPool, rhs: EncounterPool) -> bool {
-    lhs as u8 == rhs as u8
-}
-
-const fn count_pool(pool: EncounterPool) -> usize {
-    let mut num = 0;
-    let mut idx = 0;
-    while idx < ALL_ENCOUNTERS.len() {
-        if pool_eq(get_encounter_pool(ALL_ENCOUNTERS[idx]), pool) {
-            num += 1;
-        }
-        idx += 1;
-    }
-    num
-}
-
-const fn build_pool<const N: usize>(pool: EncounterPool) -> [MonsterEncounter; N] {
-    // Initialize buffer w/ placeholder encounters
-    let mut buf = [MonsterEncounter::Cultist; N];
-
-    let mut idx = 0;
-    let mut jdx = 0;
-    while idx < ALL_ENCOUNTERS.len() {
-        if pool_eq(get_encounter_pool(ALL_ENCOUNTERS[idx]), pool) {
-            // Add encounter to buffer
-            buf[jdx] = ALL_ENCOUNTERS[idx];
-            jdx += 1;
-        }
-        idx += 1;
-    }
-    buf
-}
-
-// Number of encounters per pool
-const NUM_EASY: usize = count_pool(EncounterPool::Act1Easy);
-const NUM_HARD: usize = count_pool(EncounterPool::Act1Hard);
-const NUM_ELITE: usize = count_pool(EncounterPool::Act1Elite);
-const NUM_EASY2: usize = count_pool(EncounterPool::Act2Easy);
-const NUM_HARD2: usize = count_pool(EncounterPool::Act2Hard);
-const NUM_ELITE2: usize = count_pool(EncounterPool::Act2Elite);
-
-// Encounter arrays per pool
-const ENC_POOL_EASY: [MonsterEncounter; NUM_EASY] = build_pool(EncounterPool::Act1Easy);
-const ENC_POOL_HARD: [MonsterEncounter; NUM_HARD] = build_pool(EncounterPool::Act1Hard);
-const ENC_POOL_ELITE: [MonsterEncounter; NUM_ELITE] = build_pool(EncounterPool::Act1Elite);
-const ENC_POOL_EASY2: [MonsterEncounter; NUM_EASY2] = build_pool(EncounterPool::Act2Easy);
-const ENC_POOL_HARD2: [MonsterEncounter; NUM_HARD2] = build_pool(EncounterPool::Act2Hard);
-const ENC_POOL_ELITE2: [MonsterEncounter; NUM_ELITE2] = build_pool(EncounterPool::Act2Elite);
+const ENC_POOL_HARD_ACT_1: &[(MonsterEncounter, f32)] = &[
+    (MonsterEncounter::BlueSlaver, 2.0),
+    (MonsterEncounter::ExordiumThugs, 1.5),
+    (MonsterEncounter::ExordiumWildlife, 1.5),
+    (MonsterEncounter::GremlinGang, 1.0),
+    (MonsterEncounter::LargeSlime, 2.0),
+    (MonsterEncounter::Looter, 2.0),
+    (MonsterEncounter::LotsOfSlimes, 1.0),
+    (MonsterEncounter::RedSlaver, 1.0),
+    (MonsterEncounter::ThreeLouse, 2.0),
+    (MonsterEncounter::TwoFungiBeasts, 2.0),
+];
+const ENC_POOL_ELITE_ACT_1: &[(MonsterEncounter, f32)] = &[
+    (MonsterEncounter::GremlinNob, 1.0),
+    (MonsterEncounter::Lagavulin, 1.0),
+    (MonsterEncounter::ThreeSentries, 1.0),
+];
+const ENC_POOL_EASY_ACT_2: &[(MonsterEncounter, f32)] = &[
+    (MonsterEncounter::SphericGuardian, 2.0),
+    (MonsterEncounter::Chosen, 2.0),
+    (MonsterEncounter::ShelledParasite, 2.0),
+    (MonsterEncounter::ThreeByrds, 2.0),
+    (MonsterEncounter::TwoThieves, 2.0),
+];
+const ENC_POOL_HARD_ACT_2: &[(MonsterEncounter, f32)] = &[
+    (MonsterEncounter::SnakePlant, 6.0),
+    (MonsterEncounter::CenturionAndHealer, 6.0),
+    (MonsterEncounter::Snecko, 4.0),
+    (MonsterEncounter::CultistAndChosen, 3.0),
+    (MonsterEncounter::ThreeCultists, 3.0),
+    (MonsterEncounter::ShelledParasiteAndFungi, 3.0),
+    (MonsterEncounter::ChosenAndByrds, 2.0),
+    (MonsterEncounter::SentryAndSphere, 2.0),
+];
+const ENC_POOL_ELITE_ACT_2: &[(MonsterEncounter, f32)] = &[
+    (MonsterEncounter::GremlinLeader, 1.0),
+    (MonsterEncounter::Slavers, 1.0),
+    (MonsterEncounter::BookOfStabbing, 1.0),
+];
 
 // Sort ascending by weight (stable for ties), normalize to sum 1.0
-fn normalize_weights(pool: &[MonsterEncounter]) -> Vec<(MonsterEncounter, f32)> {
-    // Pair each encounter with its raw weight
-    let mut encounter_table: Vec<(MonsterEncounter, f32)> = pool
-        .iter()
-        .map(|&monster_encounter| (monster_encounter, get_encounter_weight(monster_encounter)))
-        .collect();
+fn normalize_weights(pool: &[(MonsterEncounter, f32)]) -> Vec<(MonsterEncounter, f32)> {
+    let mut encounter_table = pool.to_vec();
 
     // Stable ascending sort
     encounter_table.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
@@ -376,12 +171,19 @@ pub fn generate_act_monsters(
     rng: &mut impl Rng,
 ) {
     // Per-act pools and easy-fight count
-    let (pool_easy, pool_hard, num_easy_enc): (&[MonsterEncounter], &[MonsterEncounter], usize) =
-        match act {
-            1 => (&ENC_POOL_EASY, &ENC_POOL_HARD, NUM_ENCOUNTERS_EASY),
-            2 => (&ENC_POOL_EASY2, &ENC_POOL_HARD2, NUM_ENCOUNTERS_EASY_ACT2),
-            _ => unreachable!("no encounter pools for act {act}"),
-        };
+    let (pool_easy, pool_hard, num_easy_enc) = match act {
+        1 => (
+            ENC_POOL_EASY_ACT_1,
+            ENC_POOL_HARD_ACT_1,
+            NUM_ENCOUNTERS_EASY,
+        ),
+        2 => (
+            ENC_POOL_EASY_ACT_2,
+            ENC_POOL_HARD_ACT_2,
+            NUM_ENCOUNTERS_EASY_ACT2,
+        ),
+        _ => unreachable!("no encounter pools for act {act}"),
+    };
 
     // Get normalized encounter tables for each pool
     let encounter_table_easy = normalize_weights(pool_easy);
@@ -421,9 +223,9 @@ pub fn generate_act_monsters(
 
 // One act's elite list; room entry rolls a fresh one when the act runs out
 pub fn generate_act_elites(act: u8, elite_list: &mut Vec<MonsterEncounter>, rng: &mut impl Rng) {
-    let pool_elite: &[MonsterEncounter] = match act {
-        1 => &ENC_POOL_ELITE,
-        2 => &ENC_POOL_ELITE2,
+    let pool_elite = match act {
+        1 => ENC_POOL_ELITE_ACT_1,
+        2 => ENC_POOL_ELITE_ACT_2,
         _ => unreachable!("no elite pool for act {act}"),
     };
     populate_encounter_list(
@@ -435,8 +237,7 @@ pub fn generate_act_elites(act: u8, elite_list: &mut Vec<MonsterEncounter>, rng:
     );
 }
 
-// Boss arrays stay hand-ordered per act: deriving them from ALL_ENCOUNTERS would
-// reorder the draw and shift the RNG stream
+// Boss arrays are in draw order, so entries never move
 pub fn roll_boss(act: u8, rng: &mut impl Rng) -> MonsterEncounter {
     const BOSSES_ACT1: [MonsterEncounter; 3] = [
         MonsterEncounter::TheGuardian,
