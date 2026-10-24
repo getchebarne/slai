@@ -4,6 +4,7 @@ use crate::consts::BOSS_RELIC_REWARD_COUNT;
 use crate::consts::CHEST_SMALL_PCT;
 use crate::consts::CHEST_SMALL_PLUS_MEDIUM_PCT;
 use crate::consts::EVENT_SPECIAL_CHANCE;
+use crate::consts::MAP_HEIGHT;
 use crate::consts::UNKNOWN_CHANCE_BASE_MONSTER;
 use crate::consts::UNKNOWN_CHANCE_BASE_SHOP;
 use crate::consts::UNKNOWN_CHANCE_BASE_TREASURE;
@@ -32,6 +33,7 @@ use crate::utils::filter_candidates;
 use crate::utils::flush_effects_from_buf_to_queue_front;
 use crate::utils::has_relic;
 use crate::utils::push_entity;
+use crate::utils::run_floor;
 
 pub fn process_effect_room_enter(state: &mut GameState, location: Location, landing: bool) {
     state.location = location;
@@ -288,10 +290,11 @@ fn draw_event(state: &mut GameState) -> Option<EventName> {
     // Draw-gated events stay pooled until eligible
     let gold = state.entities[state.id_character].character_gold;
     let vitals = state.entities[state.id_character].vitals;
-    let floor = match state.location {
-        Location::Overworld { y, .. } => y + 1,
+    let row = match state.location {
+        Location::Overworld { y, .. } => y,
         _ => 0,
     };
+    let floor = run_floor(state.act, state.location);
     let eligible: Vec<usize> = state
         .pool_events
         .iter()
@@ -299,7 +302,7 @@ fn draw_event(state: &mut GameState) -> Option<EventName> {
         .filter(|&(_, &name)| match name {
             EventName::TheCleric => gold >= 35,
             EventName::Beggar => gold >= BEGGAR_COST_PURGE,
-            EventName::Colosseum => floor > 8,
+            EventName::Colosseum => row > MAP_HEIGHT / 2,
             EventName::Mushrooms | EventName::DeadAdventurer => floor > 6,
             EventName::TheMoaiHead => {
                 has_relic(&state.id_relics, RelicName::GoldenIdol)
