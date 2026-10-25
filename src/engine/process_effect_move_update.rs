@@ -9,6 +9,7 @@ use crate::monsters::hexaghost;
 use crate::monsters::maw;
 use crate::monsters::push_move_history;
 use crate::monsters::the_guardian;
+use crate::monsters::transient;
 use crate::types::Combat;
 use crate::types::MonsterName;
 
@@ -76,13 +77,20 @@ pub fn process_effect_move_update(
         0
     };
 
+    // The Transient's attack locks in at selection: 10 more per attack chosen before it
+    let damage_bonus = if entity.monster_name == MonsterName::Transient {
+        10 * u16::from(entity.monster_move_uses[transient::IDX_MOVE_ATTACK])
+    } else {
+        0
+    };
+
     // The locked values go into the copy
     for effect in entity.monster_move_effects[..move_chosen.effects_len as usize].iter_mut() {
         match &mut effect.kind {
             EffectKind::DamagePhysical {
                 amount, instances, ..
             } => {
-                *amount = damage_locked.unwrap_or(*amount);
+                *amount = damage_locked.unwrap_or(*amount) + damage_bonus;
                 *instances = instances_locked.map_or(*instances, u16::from);
             }
             EffectKind::ModifierDelta {

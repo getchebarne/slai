@@ -634,7 +634,7 @@ fn dispatch_by_kind(
             process_effect_storm_of_steel_proc(state, upgraded)
         }
         EffectKind::StrengthLoseTemp { stacks } => {
-            process_effect_strength_lose_temp(id_target, state, stacks)
+            process_effect_strength_lose_temp(id_source, id_target, state, stacks)
         }
         EffectKind::UnloadDiscard => process_effect_unload_discard(state),
         EffectKind::DamageDeal { amount, lifesteal } => {

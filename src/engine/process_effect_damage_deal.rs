@@ -133,7 +133,7 @@ pub fn process_effect_damage_deal(
             target: Target::Direct(Some(id_target)),
         });
 
-        // On-attacked triggers respond to attack damage only
+        // Curl Up, Angry, Flight and Malleable answer attack damage only
         if (from_card || from_monster) && id_source != Some(id_target) {
             let target = &mut state.entities[id_target];
             fire_on_damage_taken(

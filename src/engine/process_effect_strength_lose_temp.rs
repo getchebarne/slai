@@ -6,6 +6,7 @@ use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
 
 pub fn process_effect_strength_lose_temp(
+    id_source: Option<usize>,
     id_target: Option<usize>,
     state: &mut GameState,
     stacks: i16,
@@ -19,7 +20,7 @@ pub fn process_effect_strength_lose_temp(
     }
     let modifiers = &target.modifiers;
 
-    // Executes in reverse, both applied by the Character:
+    // Executes in reverse, both applied by the effect's source:
     //     1. ModifierDelta Strength
     //     2. ModifierDelta Shackled (if no Artifact)
     if !has_modifier(modifiers, ModifierKind::Artifact) {
@@ -28,7 +29,7 @@ pub fn process_effect_strength_lose_temp(
                 kind: ModifierKind::Shackled,
                 stacks,
             },
-            id_source: Some(state.id_character),
+            id_source,
             target: Target::Direct(Some(id_target)),
         });
     }
@@ -37,7 +38,7 @@ pub fn process_effect_strength_lose_temp(
             kind: ModifierKind::Strength,
             stacks: -stacks,
         },
-        id_source: Some(state.id_character),
+        id_source,
         target: Target::Direct(Some(id_target)),
     });
 }

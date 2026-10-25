@@ -257,4 +257,15 @@ fn apply_loss(id_source: Option<usize>, id_target: usize, state: &mut GameState,
             }
         }
     }
+
+    // Shifting: every HP loss lowers Strength until the owner's turn end
+    if amount > 0 && has_modifier(&target.modifiers, ModifierKind::Shifting) {
+        state.effect_queue.push_front(Effect {
+            kind: EffectKind::StrengthLoseTemp {
+                stacks: amount as i16,
+            },
+            id_source: Some(id_target),
+            target: Target::Direct(Some(id_target)),
+        });
+    }
 }

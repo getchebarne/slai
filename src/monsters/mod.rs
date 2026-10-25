@@ -45,6 +45,7 @@ pub mod taskmaster;
 pub mod the_collector;
 pub mod the_guardian;
 pub mod torch_head;
+pub mod transient;
 
 use crate::consts::MAX_EFFECTS_PER_MOVE;
 use crate::consts::MAX_MONSTER_MOVES;
@@ -160,6 +161,7 @@ pub const ALL_MONSTERS: &[&'static MonsterTemplate] = &[
     &the_collector::THE_COLLECTOR,
     &the_guardian::THE_GUARDIAN,
     &torch_head::TORCH_HEAD,
+    &transient::TRANSIENT,
 ];
 const _: () = assert!(ALL_MONSTERS.len() == MonsterName::COUNT);
 
@@ -315,6 +317,7 @@ pub fn monster_template(monster_name: MonsterName) -> &'static MonsterTemplate {
         MonsterName::BanditLeader => &bandit_leader::BANDIT_LEADER,
         MonsterName::BanditPointy => &bandit_pointy::BANDIT_POINTY,
         MonsterName::Maw => &maw::MAW,
+        MonsterName::Transient => &transient::TRANSIENT,
     }
 }
 
@@ -386,7 +389,8 @@ pub fn get_next_move(
         MonsterName::SlimeSpikeSmall
         | MonsterName::GremlinFat
         | MonsterName::GremlinThief
-        | MonsterName::GremlinWarrior => 0,
+        | MonsterName::GremlinWarrior
+        | MonsterName::Transient => 0,
         MonsterName::Cultist => cultist::get_next_move_cultist(entity.monster_move_current),
         MonsterName::JawWorm => {
             jaw_worm::get_next_move_jaw_worm(entity.monster_move_current, history, rng)
