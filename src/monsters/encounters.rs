@@ -507,6 +507,11 @@ pub fn spawn_encounter_monsters(state: &mut GameState, encounter: MonsterEncount
             push_monster_spawn(effects, MonsterName::Donu, 1);
         }
         MonsterEncounter::TimeEater => push_monster_spawn(effects, MonsterName::TimeEater, 0),
+        MonsterEncounter::AwakenedOne => {
+            push_monster_spawn(effects, MonsterName::Cultist, 0);
+            push_monster_spawn(effects, MonsterName::Cultist, 1);
+            push_monster_spawn(effects, MonsterName::AwakenedOne, 2);
+        }
     }
 
     effects.push(Effect {

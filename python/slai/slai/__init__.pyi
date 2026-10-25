@@ -429,6 +429,7 @@ class CardName:
     Trip: Final[CardName]
     Unload: Final[CardName]
     Violence: Final[CardName]
+    Void: Final[CardName]
     WellLaidPlans: Final[CardName]
     Wound: Final[CardName]
     WraithForm: Final[CardName]
@@ -1718,6 +1719,7 @@ class ModifierKind:
     Choke: Final[ModifierKind]
     Confusion: Final[ModifierKind]
     CorpseExplosion: Final[ModifierKind]
+    Curiosity: Final[ModifierKind]
     CurlUp: Final[ModifierKind]
     Dexterity: Final[ModifierKind]
     DoubleDamage: Final[ModifierKind]
@@ -1753,6 +1755,7 @@ class ModifierKind:
     Phantasmal: Final[ModifierKind]
     PlatedArmor: Final[ModifierKind]
     Poison: Final[ModifierKind]
+    Regenerate: Final[ModifierKind]
     Regeneration: Final[ModifierKind]
     Retain: Final[ModifierKind]
     Ritual: Final[ModifierKind]
@@ -1768,6 +1771,7 @@ class ModifierKind:
     ThousandCuts: Final[ModifierKind]
     TimeWarp: Final[ModifierKind]
     ToolsOfTheTrade: Final[ModifierKind]
+    Unawakened: Final[ModifierKind]
     Vigor: Final[ModifierKind]
     Vulnerable: Final[ModifierKind]
     Weak: Final[ModifierKind]
@@ -1828,6 +1832,7 @@ class Monster:
 
 @final
 class MonsterEncounter:
+    AwakenedOne: Final[MonsterEncounter]
     BlueSlaver: Final[MonsterEncounter]
     BookOfStabbing: Final[MonsterEncounter]
     BronzeAutomaton: Final[MonsterEncounter]
@@ -1914,6 +1919,7 @@ class MonsterMoveTemplate:
 
 @final
 class MonsterName:
+    AwakenedOne: Final[MonsterName]
     BanditBear: Final[MonsterName]
     BanditLeader: Final[MonsterName]
     BanditPointy: Final[MonsterName]

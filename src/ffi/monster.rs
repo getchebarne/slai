@@ -30,13 +30,14 @@ mirror_enum!(PyMonsterKind from MonsterKind, "MonsterKind", {
 });
 
 mirror_enum!(PyMonsterName from MonsterName, "MonsterName", {
-    Cultist, Deca, Donu, FungiBeast, GremlinFat, GremlinNob, GremlinThief, GremlinTsundere,
-    GremlinWarrior, GremlinWizard, Hexaghost, JawWorm, JawWormHard, Lagavulin, Looter,
-    LouseDefensive, LouseNormal, Maw, OrbWalker, Sentry, SlaverBlue, SlaverRed, SlimeAcidLarge,
-    SlimeAcidMedium, SlimeAcidSmall, SlimeBoss, SlimeSpikeLarge, SlimeSpikeMedium, SlimeSpikeSmall,
-    TheGuardian, TimeEater, Byrd, Centurion, Chosen, Healer, Mugger, ShelledParasite, SnakePlant,
-    Snecko, SphericGuardian, BookOfStabbing, GremlinLeader, Taskmaster, BronzeAutomaton, BronzeOrb,
-    Champ, TheCollector, TorchHead, BanditBear, BanditLeader, BanditPointy,
+    AwakenedOne, Cultist, Deca, Donu, FungiBeast, GremlinFat, GremlinNob, GremlinThief,
+    GremlinTsundere, GremlinWarrior, GremlinWizard, Hexaghost, JawWorm, JawWormHard, Lagavulin,
+    Looter, LouseDefensive, LouseNormal, Maw, OrbWalker, Sentry, SlaverBlue, SlaverRed,
+    SlimeAcidLarge, SlimeAcidMedium, SlimeAcidSmall, SlimeBoss, SlimeSpikeLarge, SlimeSpikeMedium,
+    SlimeSpikeSmall, TheGuardian, TimeEater, Byrd, Centurion, Chosen, Healer, Mugger,
+    ShelledParasite, SnakePlant, Snecko, SphericGuardian, BookOfStabbing, GremlinLeader, Taskmaster,
+    BronzeAutomaton, BronzeOrb, Champ, TheCollector, TorchHead, BanditBear, BanditLeader,
+    BanditPointy,
 });
 
 mirror_enum!(PyMonsterEncounter from MonsterEncounter, "MonsterEncounter", {
@@ -46,7 +47,7 @@ mirror_enum!(PyMonsterEncounter from MonsterEncounter, "MonsterEncounter", {
     TwoOrbWalkers, SphericGuardian, Chosen, ShelledParasite, ThreeByrds, TwoThieves, SnakePlant,
     CenturionAndHealer, Snecko, CultistAndChosen, ThreeCultists, ShelledParasiteAndFungi,
     ChosenAndByrds, SentryAndSphere, GremlinLeader, Slavers, BookOfStabbing, BronzeAutomaton,
-    TheCollector, Champ, OrbWalker, JawWormHorde, Maw, DonuAndDeca, TimeEater,
+    TheCollector, Champ, OrbWalker, JawWormHorde, Maw, AwakenedOne, DonuAndDeca, TimeEater,
 });
 
 #[pyclass(
@@ -143,7 +144,7 @@ pub struct PyMonster {
     pub health: u16,
     pub health_max: u16,
     pub block: u16,
-    pub half_dead: bool, // At 0 HP, out of every Card's, hit's and Power's reach until its own rule revives or kills it
+    pub half_dead: bool, // At 0 HP, out of every Card's, hit's and Power's reach until its rebirth or its next Death
     pub modifiers: Vec<PyModifier>,
     pub intent: Option<PyIntent>,    // None while Runic Dome hides it
     pub move_effects: Vec<PyEffect>, // The current move's Effect payload; empty when the intent is hidden
