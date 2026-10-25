@@ -154,13 +154,18 @@ pub fn process_effect_turn_start_character(state: &mut GameState) {
     let mut id_relics: Vec<usize> = state.id_relics.iter().flatten().copied().collect();
     id_relics.sort_unstable_by_key(|&id| state.entities[id].relic_seq);
 
-    // Hand size: 5, Snecko Eye +2, Ring of the Serpent +1
+    // Hand size: 5, Snecko Eye +2, Ring of the Serpent +1, Draw Reduction -1
     let mut draw_count = CARDS_DRAWN_PER_TURN;
     if has_relic(&state.id_relics, RelicName::SneckoEye) {
         draw_count += 2;
     }
     if has_relic(&state.id_relics, RelicName::RingOfTheSerpent) {
         draw_count += 1;
+    }
+
+    // Read ahead of the round-end tick below, so the turn Draw Reduction wears off still draws one fewer
+    if has_modifier(&modifiers, ModifierKind::DrawReduction) {
+        draw_count -= 1;
     }
 
     if first_turn {

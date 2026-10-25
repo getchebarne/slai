@@ -126,6 +126,7 @@ mod transmutation;
 mod trip;
 mod unload;
 mod violence;
+mod void;
 mod well_laid_plans;
 mod wound;
 mod wraith_form;
@@ -289,6 +290,7 @@ pub fn get_card_template(name: CardName, upgraded: bool) -> &'static CardTemplat
         CardName::Violence => &violence::VIOLENCE_PLUS,
         CardName::RitualDagger => &ritual_dagger::RITUAL_DAGGER_PLUS,
         CardName::Dazed
+        | CardName::Void
         | CardName::Wound
         | CardName::Slimed
         | CardName::AscendersBane
@@ -394,6 +396,7 @@ pub const ALL_CARDS: &[&'static CardTemplate] = &[
     &terror::TERROR,
     &tools_of_the_trade::TOOLS_OF_THE_TRADE,
     &unload::UNLOAD,
+    &void::VOID,
     &well_laid_plans::WELL_LAID_PLANS,
     &wraith_form::WRAITH_FORM,
     &ascenders_bane::ASCENDERS_BANE,
