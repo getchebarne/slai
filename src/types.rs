@@ -463,6 +463,7 @@ pub enum MonsterName {
     SlimeSpikeSmall,
     TheGuardian,
     TimeEater,
+    Transient,
     WrithingMass,
     Byrd,
     Centurion,
@@ -561,6 +562,7 @@ pub enum MonsterEncounter {
     // Act 3 hard
     JawWormHorde,
     Maw,
+    Transient,
     WrithingMass,
 
     // Act 3 boss
