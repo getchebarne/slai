@@ -46,6 +46,11 @@ pub fn process_effect_health_delta(
 }
 
 fn apply_gain(id_target: usize, state: &mut GameState, amount: u16) {
+    // Mark of the Bloom: the Character can't heal
+    if id_target == state.id_character && has_relic(&state.id_relics, RelicName::MarkOfTheBloom) {
+        return;
+    }
+
     let vitals = &mut state.entities[id_target].vitals;
     vitals.health = (vitals.health + amount).min(vitals.health_max);
 }

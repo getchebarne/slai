@@ -12,8 +12,8 @@ use super::effect::snapshot_effect;
 
 mirror_enum!(PyRelicName from RelicName, "RelicName", {
     RingOfTheSnake, Akabeko, Anchor, BagOfMarbles, BagOfPreparation, BloodVial, BronzeScales, Kunai,
-    NinjaScroll, OddlySmoothStone, Shuriken, ThreadAndNeedle, TwistedFunnel, Vajra, Circlet,
-    GoldenIdol, Lantern, ClockworkSouvenir, GremlinVisage, RedMask, Nunchaku, InkBottle,
+    MarkOfTheBloom, NinjaScroll, OddlySmoothStone, Shuriken, ThreadAndNeedle, TwistedFunnel, Vajra,
+    Circlet, GoldenIdol, Lantern, ClockworkSouvenir, GremlinVisage, RedMask, Nunchaku, InkBottle,
     LetterOpener, OrnamentalFan, BirdFacedUrn, MummifiedHand, OrangePellets, StrangeSpoon,
     ChemicalX, ArtOfWar, Orichalcum, Pocketwatch, StoneCalendar, Abacus, Sundial,
     WhiteBeastStatue, DollysMirror, LeesWaffle, HappyFlower, IncenseBurner, MercuryHourglass,
