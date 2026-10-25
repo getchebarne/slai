@@ -27,6 +27,18 @@ pub fn process_effect_modifier_tick(id_target: Option<usize>, state: &mut GameSt
             });
         }
 
+        // Strength Up: a Monster gains `stacks` Strength each round end, the round it gained Strength Up included
+        if has_modifier(modifiers, ModifierKind::StrengthUp) {
+            state.effect_queue.push_front(Effect {
+                kind: EffectKind::ModifierDelta {
+                    kind: ModifierKind::Strength,
+                    stacks: modifier_stacks(modifiers, ModifierKind::StrengthUp),
+                },
+                id_source: None,
+                target: Target::Direct(Some(id_target)),
+            });
+        }
+
         // A Monster's Modifiers stop being new here; only debuffs on the Character skip a round end
         modifier_set_not_new(modifiers);
     } else {

@@ -335,11 +335,13 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEffectGremlinSummon;
     #[pymodule_export]
-    use super::ffi::PyEffectHalfDeadRevive;
+    use super::ffi::PyEffectHalfDeadRebirth;
     #[pymodule_export]
     use super::ffi::PyEffectHandOfGreedProc;
     #[pymodule_export]
     use super::ffi::PyEffectHealthDelta;
+    #[pymodule_export]
+    use super::ffi::PyEffectHealthSet;
     #[pymodule_export]
     use super::ffi::PyEffectHeelHookProc;
     #[pymodule_export]
@@ -358,6 +360,8 @@ mod slai {
     use super::ffi::PyEffectMausoleumOpen;
     #[pymodule_export]
     use super::ffi::PyEffectMaxHealthDelta;
+    #[pymodule_export]
+    use super::ffi::PyEffectMindBloomFight;
     #[pymodule_export]
     use super::ffi::PyEffectModifierDelta;
     #[pymodule_export]
@@ -400,6 +404,8 @@ mod slai {
     use super::ffi::PyEffectRewardRollRelic;
     #[pymodule_export]
     use super::ffi::PyEffectRitualDaggerProc;
+    #[pymodule_export]
+    use super::ffi::PyEffectRoomEnter;
     #[pymodule_export]
     use super::ffi::PyEffectScrapOozeReach;
     #[pymodule_export]

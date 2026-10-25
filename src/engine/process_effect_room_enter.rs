@@ -337,6 +337,9 @@ fn draw_event_special(state: &mut GameState) -> Option<EventName> {
             EventName::Designer => gold >= 75,
             EventName::Nloth => state.id_relics.iter().flatten().nth(1).is_some(),
             EventName::KnowingSkull => state.entities[state.id_character].vitals.health > 12,
+
+            // Secret Portal: always eligible, a placeholder until its gate is decided
+            EventName::SecretPortal => true,
             _ => true,
         })
         .map(|(i, _)| i)

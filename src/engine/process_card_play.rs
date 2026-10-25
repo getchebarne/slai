@@ -656,6 +656,24 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
         }
     }
 
+    // Curiosity (enemy): a played Power gives its owner Strength behind the Card's effects, ahead of Choke
+    if card.card_kind == CardKind::Power {
+        for id_monster in id_monsters.iter().flatten().copied() {
+            let mods_monster = &state.entities[id_monster].modifiers;
+            if has_modifier(mods_monster, ModifierKind::Curiosity) {
+                let stacks = modifier_stacks(mods_monster, ModifierKind::Curiosity);
+                state.effect_buf.push(Effect {
+                    kind: EffectKind::ModifierDelta {
+                        kind: ModifierKind::Strength,
+                        stacks,
+                    },
+                    id_source: Some(id_monster),
+                    target: Target::Direct(Some(id_monster)),
+                });
+            }
+        }
+    }
+
     // Choke (enemy): lands behind the played Card's effects, ahead of Skewer's hits
     for id_monster in id_monsters.iter().flatten().copied() {
         let mods_monster = &state.entities[id_monster].modifiers;

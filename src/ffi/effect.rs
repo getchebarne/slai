@@ -7,6 +7,7 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::RelicRoll;
 use crate::effect::Target;
+use crate::game::Location;
 
 use super::amount::PyAmount;
 use super::amount::PyAmountScalar;
@@ -76,6 +77,7 @@ flat_variants!(PyEffect {
     MonsterSpawn => PyEffectMonsterSpawn as "EffectMonsterSpawn" { name: PyMonsterName },
     CombatStart => PyEffectCombatStart as "EffectCombatStart",
     AdventurerSearch => PyEffectAdventurerSearch as "EffectAdventurerSearch",
+    MindBloomFight => PyEffectMindBloomFight as "EffectMindBloomFight",
     RelicGrantSpecific => PyEffectRelicGrantSpecific as "EffectRelicGrantSpecific" { name: PyRelicName },
     EventAdvanceState => PyEffectEventAdvanceState as "EffectEventAdvanceState" { delta: i8 },
     ScrapOozeReach => PyEffectScrapOozeReach as "EffectScrapOozeReach" { chance: u8, advance_on_miss: bool },
@@ -119,7 +121,9 @@ flat_variants!(PyEffect {
     DamageDeal => PyEffectDamageDeal as "EffectDamageDeal" { amount: u16, lifesteal: bool, target: PyTarget },
     MatchFlipSeen => PyEffectMatchFlipSeen as "EffectMatchFlipSeen" { target: PyTarget },
     MatchFlipUnseen => PyEffectMatchFlipUnseen as "EffectMatchFlipUnseen",
-    HalfDeadRevive => PyEffectHalfDeadRevive as "EffectHalfDeadRevive" { target: PyTarget },
+    HalfDeadRebirth => PyEffectHalfDeadRebirth as "EffectHalfDeadRebirth" { target: PyTarget },
+    HealthSet => PyEffectHealthSet as "EffectHealthSet" { amount: PyAmountScalar, target: PyTarget },
+    RoomEnter => PyEffectRoomEnter as "EffectRoomEnter",
 });
 
 // The kinds that can park in `state.effect_pending`
@@ -219,6 +223,7 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
                     | EffectKind::JoustBet { .. }
                     | EffectKind::KnowingSkullCostBump
                     | EffectKind::MausoleumOpen
+                    | EffectKind::MindBloomFight
                     | EffectKind::MonsterSpawn { .. }
                     | EffectKind::NeowCardsRoll { .. }
                     | EffectKind::PotionAddRandom { .. }
@@ -229,6 +234,7 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
                     | EffectKind::RewardRollGold { .. }
                     | EffectKind::RewardRollPotions { .. }
                     | EffectKind::RewardRollRelic { .. }
+                    | EffectKind::RoomEnter { .. }
                     | EffectKind::ScrapOozeReach { .. }
                     | EffectKind::ShuffleCardPileDiscardIntoCardPileDraw
                     | EffectKind::SneakyStrikeProc { .. }
@@ -422,6 +428,7 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
         }
         EffectKind::CombatStart { .. } => PyEffect::CombatStart(PyEffectCombatStart),
         EffectKind::AdventurerSearch => PyEffect::AdventurerSearch(PyEffectAdventurerSearch),
+        EffectKind::MindBloomFight => PyEffect::MindBloomFight(PyEffectMindBloomFight),
         EffectKind::RelicGrantSpecific { name } => {
             PyEffect::RelicGrantSpecific(PyEffectRelicGrantSpecific { name: name.into() })
         }
@@ -606,9 +613,18 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
             target: require_target(target),
         }),
         EffectKind::MatchFlipUnseen => PyEffect::MatchFlipUnseen(PyEffectMatchFlipUnseen),
-        EffectKind::HalfDeadRevive => PyEffect::HalfDeadRevive(PyEffectHalfDeadRevive {
+        EffectKind::HalfDeadRebirth => PyEffect::HalfDeadRebirth(PyEffectHalfDeadRebirth {
             target: require_target(target),
         }),
+        EffectKind::HealthSet { amount } => PyEffect::HealthSet(PyEffectHealthSet {
+            amount: amount.into(),
+            target: require_target(target),
+        }),
+        // Secret Portal's jump is the only RoomEnter in a row: the first pass into the Boss Room
+        EffectKind::RoomEnter {
+            location: Location::BossRoom,
+            landing: false,
+        } => PyEffect::RoomEnter(PyEffectRoomEnter),
         other => unreachable!(
             "snapshot_effect: unexpected EffectKind on static Card effect: {:?}",
             other

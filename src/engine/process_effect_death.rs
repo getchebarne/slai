@@ -8,6 +8,7 @@ use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
 use crate::modifier::modifier_stacks;
+use crate::monsters::awakened_one;
 use crate::monsters::monster_half_dies;
 use crate::potions::remove_potion;
 use crate::types::Combat;
@@ -16,6 +17,7 @@ use crate::types::MonsterName;
 use crate::types::PotionName;
 use crate::types::RelicName;
 use crate::utils::flush_effects_from_buf_to_queue_front;
+use crate::utils::has_relic;
 use crate::utils::resolve_health_fraction;
 
 pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState, with_leader: bool) {
@@ -28,12 +30,16 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState, wit
 
     // Character death: clear pending work, mark dead, signal game over
     if id_target == state.id_character {
+        // Mark of the Bloom: nothing revives the Character
+        let revivable = !has_relic(&state.id_relics, RelicName::MarkOfTheBloom);
+
         // Fairy in a Bottle: consumed to revive by its own heal (doubled with Sacred Bark); checked before Lizard Tail
-        if let Some(id_potion) = state
-            .id_potions
-            .iter()
-            .copied()
-            .find(|&id| state.entities[id].potion_name == PotionName::Fairy)
+        if revivable
+            && let Some(id_potion) = state
+                .id_potions
+                .iter()
+                .copied()
+                .find(|&id| state.entities[id].potion_name == PotionName::Fairy)
         {
             remove_potion(&mut state.id_potions, id_potion);
             let EffectKind::HealthDelta { amount, .. } =
@@ -48,7 +54,8 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState, wit
         }
 
         // Lizard Tail: once per run, survive at half max HP instead
-        if let Some(id_relic) = state.id_relics[RelicName::LizardTail as usize]
+        if revivable
+            && let Some(id_relic) = state.id_relics[RelicName::LizardTail as usize]
             && !state.entities[id_relic].relic_used_up
         {
             // Mark as used up
@@ -85,6 +92,37 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState, wit
         state.effect_buf.clear();
         push_on_death_triggers(state, id_target);
         state.effect_queue.extend(state.effect_buf.drain(..));
+
+        // The Awakened One's first form falls: at once the waiting Card plays are dropped, its debuffs, Curiosity and Unawakened go, and Rebirth is its move; Rebirth is set again behind everything queued
+        if state.entities[id_target].monster_name == MonsterName::AwakenedOne {
+            let effect_move_update_rebirth = Effect {
+                kind: EffectKind::MoveUpdate {
+                    move_override: Some(awakened_one::IDX_MOVE_REBIRTH),
+                },
+                id_source: None,
+                target: Target::Direct(Some(id_target)),
+            };
+            state.effect_buf.push(Effect {
+                kind: EffectKind::CardPlayQueueClear,
+                id_source: None,
+                target: Target::Direct(None),
+            });
+            state.effect_buf.push(Effect {
+                kind: EffectKind::DebuffsClear,
+                id_source: None,
+                target: Target::Direct(Some(id_target)),
+            });
+            for kind in [ModifierKind::Curiosity, ModifierKind::Unawakened] {
+                state.effect_buf.push(Effect {
+                    kind: EffectKind::ModifierRemove { kind },
+                    id_source: None,
+                    target: Target::Direct(Some(id_target)),
+                });
+            }
+            state.effect_buf.push(effect_move_update_rebirth);
+            flush_effects_from_buf_to_queue_front(state);
+            state.effect_queue.push_back(effect_move_update_rebirth);
+        }
         return;
     }
     let Combat {
@@ -114,8 +152,12 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState, wit
     state.entities[id_target].monster_gold_stolen = 0;
 
     if !any_left {
-        // The last kill ends the combat: no waiting Card play or turn phase starts, and only the queued heals, block and damage resolve, Hand of Greed and Ritual Dagger with them
-        state.card_play_queue.clear();
+        // No waiting Card play starts after the last kill, unless minions fall with their leader: then the turn end's self-plays still play, and the play gate refuses the rest
+        if !with_leader {
+            state.card_play_queue.clear();
+        }
+
+        // The last kill ends the combat: no turn phase starts, and only the queued heals, block and damage resolve, Hand of Greed and Ritual Dagger with them
         state.phase_queue.clear();
         state.effect_queue.retain(|e| {
             matches!(
@@ -200,6 +242,27 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState, wit
                 });
             }
         }
+    }
+
+    // Awakened One: its Cultists flee its final death, its on-death triggers fire again behind them, and the waiting Card plays are dropped at once
+    if state.entities[id_target].monster_name == MonsterName::AwakenedOne {
+        for id_monster in state.combat.id_monsters.iter() {
+            if let Some(id) = *id_monster
+                && state.entities[id].monster_name == MonsterName::Cultist
+            {
+                state.effect_buf.push(Effect {
+                    kind: EffectKind::MonsterEscape,
+                    id_source: None,
+                    target: Target::Direct(Some(id)),
+                });
+            }
+        }
+        push_on_death_triggers(state, id_target);
+        state.effect_queue.push_front(Effect {
+            kind: EffectKind::CardPlayQueueClear,
+            id_source: None,
+            target: Target::Direct(None),
+        });
     }
 
     // The staged effects land behind everything queued; while minions fall with their leader, its death and theirs land them at once

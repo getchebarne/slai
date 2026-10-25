@@ -94,6 +94,7 @@ pub enum EffectKind {
     LifestealHeal,
     CardPlayRelocate,
     CardPlayFromCardPileDrawTop,
+    CardPlayQueueClear,
     CardPurge,
     CardRemove,
     CardRetain,
@@ -176,8 +177,7 @@ pub enum EffectKind {
         amount: u8,
     },
     GremlinSummon,
-    #[expect(dead_code, reason = "the half-dead Monsters' revives build it")]
-    HalfDeadRevive,
+    HalfDeadRebirth,
     HandOfGreedProc {
         gold: u16,
     },
@@ -185,7 +185,7 @@ pub enum EffectKind {
         sign: DeltaSign,
         amount: Amount,
     },
-    HealthLowerTo {
+    HealthSet {
         amount: Amount,
     },
     HeelHookProc {
@@ -207,6 +207,7 @@ pub enum EffectKind {
         amount: Amount,
     },
     MayhemProc,
+    MindBloomFight,
     ModifierDelta {
         kind: ModifierKind,
         stacks: i16,
