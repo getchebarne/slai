@@ -7,6 +7,7 @@ use crate::effect::CardPlay;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::PlaySource;
+use crate::effect::TARGET_MONSTERS_ALL;
 use crate::effect::Target;
 use crate::entity::CardCostKind;
 use crate::entity::Entity;
@@ -373,16 +374,14 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
         if *panache_countdown == 0 {
             *panache_countdown = PANACHE_PLAYS;
             let stacks = modifier_stacks(char_modifiers, ModifierKind::Panache);
-            for id_monster in id_monsters.iter().flatten().copied() {
-                sweep_panache.push(Effect {
-                    kind: EffectKind::DamageDeal {
-                        amount: stacks.max(0) as u16,
-                        lifesteal: false,
-                    },
-                    id_source: None,
-                    target: Target::Direct(Some(id_monster)),
-                });
-            }
+            sweep_panache.push(Effect {
+                kind: EffectKind::DamageDeal {
+                    amount: stacks.max(0) as u16,
+                    lifesteal: false,
+                },
+                id_source: None,
+                target: TARGET_MONSTERS_ALL,
+            });
         }
     }
 
@@ -390,16 +389,14 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
     let mut sweep_thousand_cuts = Vec::new();
     if has_modifier(char_modifiers, ModifierKind::ThousandCuts) {
         let stacks = modifier_stacks(char_modifiers, ModifierKind::ThousandCuts);
-        for id_monster in id_monsters.iter().flatten().copied() {
-            sweep_thousand_cuts.push(Effect {
-                kind: EffectKind::DamageDeal {
-                    amount: stacks as u16,
-                    lifesteal: false,
-                },
-                id_source: None,
-                target: Target::Direct(Some(id_monster)),
-            });
-        }
+        sweep_thousand_cuts.push(Effect {
+            kind: EffectKind::DamageDeal {
+                amount: stacks as u16,
+                lifesteal: false,
+            },
+            id_source: None,
+            target: TARGET_MONSTERS_ALL,
+        });
     }
 
     // Skewer's hits land behind every hook its play sets off

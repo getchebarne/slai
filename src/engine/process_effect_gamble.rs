@@ -49,13 +49,17 @@ pub fn process_effect_gamble(state: &mut GameState, choose_discards: bool) {
     }
 
     // The whole hand leaves from the right, so the leftmost Card ends on top of the discard pile
-    for &id_card in id_card_pile_hand.iter() {
-        state.effect_queue.push_front(Effect {
-            kind: EffectKind::CardDiscard {
-                source: DiscardSource::Explicit, // Triggers on-discard synergies
+    state.effect_queue.push_front(Effect {
+        kind: EffectKind::CardDiscard {
+            source: DiscardSource::Explicit, // Triggers on-discard synergies
+        },
+        id_source: None,
+        target: Target::Resolve {
+            candidate_pool: CandidatePool::CardPileHand,
+            filters: &[],
+            selection_kind: SelectionKind::Input {
+                count: MAX_SIZE_CARD_PILE_HAND as u16,
             },
-            id_source: None,
-            target: Target::Direct(Some(id_card)),
-        });
-    }
+        },
+    });
 }

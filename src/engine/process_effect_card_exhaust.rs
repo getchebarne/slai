@@ -13,63 +13,66 @@ use crate::types::Combat;
 use crate::types::RelicName;
 use crate::utils::has_relic;
 
-pub fn process_effect_card_exhaust(id_target: Option<usize>, state: &mut GameState) {
+pub fn process_effect_card_exhaust(id_targets: &[usize], state: &mut GameState) {
     assert!(
         state.combat.active,
         "process_effect_card_exhaust outside the Combat frame"
     );
-    let Combat {
-        id_card_pile_hand,
-        id_card_pile_exhaust,
-        ..
-    } = &mut state.combat;
-    let id_card = id_target.expect("CardExhaust requires id_target");
-    if let Some(pos) = id_card_pile_hand.iter().position(|&id| id == id_card) {
-        id_card_pile_hand.remove(pos);
-    }
-    id_card_pile_exhaust.push(id_card);
+    assert!(!id_targets.is_empty(), "CardExhaust requires id_target");
+    for &id_card in id_targets {
+        let Combat {
+            id_card_pile_hand,
+            id_card_pile_exhaust,
+            ..
+        } = &mut state.combat;
+        if let Some(pos) = id_card_pile_hand.iter().position(|&id| id == id_card) {
+            id_card_pile_hand.remove(pos);
+        }
+        id_card_pile_exhaust.push(id_card);
 
-    // An exhausted Card's cost this turn drops back to its combat cost
-    state.entities[id_card].card_cost_override = None;
+        // An exhausted Card's cost this turn drops back to its combat cost
+        state.entities[id_card].card_cost_override = None;
 
-    // Dead Branch: every exhaust while a Monster is left conjures a random Silent Card into the hand
-    // (all green Cards are rewardable, so no kind/rarity filter is needed)
-    if has_relic(&state.id_relics, RelicName::DeadBranch)
-        && state.combat.id_monsters.iter().any(Option::is_some)
-    {
-        let card_name =
-            get_random_card_names(CardColor::Green, None, None, &[], true, 1, &mut state.rng)[0];
-        state.effect_queue.push_back(Effect {
-            kind: EffectKind::CardAdd {
-                card_name,
-                card_pile: CardPile::Hand,
-                count: 1,
-                upgraded: false,
-            },
-            id_source: None,
-            target: Target::Direct(None),
-        });
-    }
+        // Dead Branch: every exhaust while a Monster is left conjures a random Silent Card into the hand
+        // (all green Cards are rewardable, so no kind/rarity filter is needed)
+        if has_relic(&state.id_relics, RelicName::DeadBranch)
+            && state.combat.id_monsters.iter().any(Option::is_some)
+        {
+            let card_name =
+                get_random_card_names(CardColor::Green, None, None, &[], true, 1, &mut state.rng)
+                    [0];
+            state.effect_queue.push_back(Effect {
+                kind: EffectKind::CardAdd {
+                    card_name,
+                    card_pile: CardPile::Hand,
+                    count: 1,
+                    upgraded: false,
+                },
+                id_source: None,
+                target: Target::Direct(None),
+            });
+        }
 
-    // Necronomicurse: exhausting it returns a copy to hand, behind Dead Branch's Card
-    if state.entities[id_card].card_name == CardName::Necronomicurse {
-        state.effect_queue.push_back(Effect {
-            kind: EffectKind::CardAdd {
-                card_name: CardName::Necronomicurse,
-                card_pile: CardPile::Hand,
-                count: 1,
-                upgraded: false,
-            },
-            id_source: None,
-            target: Target::Direct(None),
-        });
-    }
+        // Necronomicurse: exhausting it returns a copy to hand, behind Dead Branch's Card
+        if state.entities[id_card].card_name == CardName::Necronomicurse {
+            state.effect_queue.push_back(Effect {
+                kind: EffectKind::CardAdd {
+                    card_name: CardName::Necronomicurse,
+                    card_pile: CardPile::Hand,
+                    count: 1,
+                    upgraded: false,
+                },
+                id_source: None,
+                target: Target::Direct(None),
+            });
+        }
 
-    // Accuracy: an exhaust resets every Shiv in the hand
-    if has_modifier(
-        &state.entities[state.id_character].modifiers,
-        ModifierKind::Accuracy,
-    ) {
-        state.effect_queue.push_front(EFFECT_ACCURACY_RESYNC_HAND);
+        // Accuracy: an exhaust resets every Shiv in the hand
+        if has_modifier(
+            &state.entities[state.id_character].modifiers,
+            ModifierKind::Accuracy,
+        ) {
+            state.effect_queue.push_front(EFFECT_ACCURACY_RESYNC_HAND);
+        }
     }
 }

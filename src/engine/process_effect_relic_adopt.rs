@@ -1,8 +1,11 @@
 use crate::consts::POTION_SLOTS_MAX;
+use crate::effect::CandidateFilter;
+use crate::effect::CandidatePool;
 use crate::effect::EFFECT_DU_VU_DOLL_RECOUNT;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::RelicExclusion;
+use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::potions::get_potion;
@@ -91,18 +94,15 @@ fn queue_pickup_effects(state: &mut GameState, id_relic: usize) {
 
         // Pandora's Box: every starter Strike / Defend becomes a random Card
         RelicName::PandorasBox => {
-            for &id in &state.id_card_pile_deck {
-                if matches!(
-                    state.entities[id].card_name,
-                    CardName::Strike | CardName::Defend
-                ) {
-                    state.effect_queue.push_front(Effect {
-                        kind: EffectKind::CardTransform { upgraded: false },
-                        id_source: None,
-                        target: Target::Direct(Some(id)),
-                    });
-                }
-            }
+            state.effect_queue.push_front(Effect {
+                kind: EffectKind::CardTransform { upgraded: false },
+                id_source: None,
+                target: Target::Resolve {
+                    candidate_pool: CandidatePool::CardPileDeck,
+                    filters: &[CandidateFilter::Starter],
+                    selection_kind: SelectionKind::All,
+                },
+            });
         }
 
         // Calling Bell: gain Curse of the Bell plus a Common, an Uncommon, and a Rare Relic

@@ -86,6 +86,8 @@ pub struct GameState {
 
     // Halt overlay; cleared by the action handler that supplies the selection
     pub effect_pending: Option<Effect>,
+
+    // A pick's ids until the pick ends, N'loth's Relic included
     pub id_card_pile_selected: Vec<usize>,
 
     // Location

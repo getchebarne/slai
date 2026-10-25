@@ -18,9 +18,9 @@ use crate::types::RelicName;
 use crate::utils::get_card_cost_this_turn;
 use crate::utils::has_relic;
 
-// Every source bumps the counter; the explicit ones also queue the Card's discard effects and fire the discard hooks, EndOfTurn honors retain
+// The Cards leave in the list's order, each one's discard effects and hooks set off as it goes
 pub fn process_effect_card_discard(
-    id_target: Option<usize>,
+    id_targets: &[usize],
     state: &mut GameState,
     source: DiscardSource,
 ) {
@@ -28,13 +28,20 @@ pub fn process_effect_card_discard(
         state.combat.active,
         "process_effect_card_discard outside the Combat frame"
     );
+    assert!(!id_targets.is_empty(), "CardDiscard requires id_target");
+    for &id_target in id_targets {
+        discard_card(id_target, state, source);
+    }
+}
+
+// Every source bumps the counter; the explicit ones also queue the Card's discard effects and fire the discard hooks, EndOfTurn honors retain
+fn discard_card(id_target: usize, state: &mut GameState, source: DiscardSource) {
     let Combat {
         id_card_pile_hand,
         id_card_pile_discard,
         this_turn_discards,
         ..
     } = &mut state.combat;
-    let id_target = id_target.expect("CardDiscard requires id_target");
     match source {
         DiscardSource::EndOfTurn => {
             // Clear retain flags
@@ -150,7 +157,7 @@ fn fire_discard_hooks(state: &mut GameState) {
     }
 }
 
-// On-discard effects: Tactician's energy lands right after its own discard
+// On-discard effects: Tactician's energy lands as its batch's discards finish, ahead of everything queued
 fn queue_card_effects_discard(state: &mut GameState, id_card: usize) {
     let card = &state.entities[id_card];
     for effect in card.card_effects_discard {

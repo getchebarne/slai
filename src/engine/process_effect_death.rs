@@ -3,6 +3,7 @@ use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
+use crate::effect::TARGET_MONSTERS_ALL;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
@@ -290,23 +291,19 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState, wit
 fn push_on_death_triggers(state: &mut GameState, id_target: usize) {
     let target = &state.entities[id_target];
 
-    // CorpseExplosion: max_health to every Monster in the roster, though a half-dead one takes nothing; no source scaling, no Envenom proc
+    // CorpseExplosion: max_health to every Monster but a half-dead one; no source scaling, no Envenom proc
     if has_modifier(&target.modifiers, ModifierKind::CorpseExplosion) {
         let damage = target.vitals.health_max.saturating_mul(
             modifier_stacks(&target.modifiers, ModifierKind::CorpseExplosion).max(0) as u16,
         );
-        for id_monster in state.combat.id_monsters.iter() {
-            if let Some(id) = *id_monster {
-                state.effect_buf.push(Effect {
-                    kind: EffectKind::DamageDeal {
-                        amount: damage,
-                        lifesteal: false,
-                    },
-                    id_source: None,
-                    target: Target::Direct(Some(id)),
-                });
-            }
-        }
+        state.effect_buf.push(Effect {
+            kind: EffectKind::DamageDeal {
+                amount: damage,
+                lifesteal: false,
+            },
+            id_source: None,
+            target: TARGET_MONSTERS_ALL,
+        });
     }
 
     // The on-death Relics fire in pickup order

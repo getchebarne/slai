@@ -18,31 +18,42 @@ use crate::types::DeltaSign;
 use crate::types::MonsterName;
 use crate::types::RelicName;
 use crate::utils::cards_grow_on_damage;
+use crate::utils::flush_effects_from_buf_to_queue_front;
 use crate::utils::get_id_actor;
 use crate::utils::has_relic;
 use crate::utils::resolve_health_fraction;
 
 pub fn process_effect_health_delta(
     id_source: Option<usize>,
-    id_target: Option<usize>,
+    id_targets: &[usize],
     state: &mut GameState,
     sign: DeltaSign,
     amount: Amount,
 ) {
-    let id_target = id_target.expect("HealthDelta requires id_target");
+    assert!(!id_targets.is_empty(), "HealthDelta requires id_target");
 
-    // Resolve amount
-    let amount = resolve_health_fraction(
-        state.entities[id_target].vitals.health_max,
-        state.event.health_max_at_open,
-        amount,
-    );
+    // The targets' follow-ups stage in the list's order and land ahead of everything queued once every target is done
+    state.effect_buf.clear();
+    for &id_target in id_targets {
+        let start = state.effect_buf.len();
 
-    // Apply amount
-    match sign {
-        DeltaSign::Gain => apply_gain(id_target, state, amount),
-        DeltaSign::Loss => apply_loss(id_source, id_target, state, amount),
+        // Resolve amount
+        let amount = resolve_health_fraction(
+            state.entities[id_target].vitals.health_max,
+            state.event.health_max_at_open,
+            amount,
+        );
+
+        // Apply amount
+        match sign {
+            DeltaSign::Gain => apply_gain(id_target, state, amount),
+            DeltaSign::Loss => apply_loss(id_source, id_target, state, amount),
+        }
+
+        // Within a target, the follow-up staged last resolves first
+        state.effect_buf[start..].reverse();
     }
+    flush_effects_from_buf_to_queue_front(state);
 }
 
 fn apply_gain(id_target: usize, state: &mut GameState, amount: u16) {
@@ -112,7 +123,7 @@ fn apply_loss(id_source: Option<usize>, id_target: usize, state: &mut GameState,
             ModifierKind::PainfulStabs,
         )
     {
-        state.effect_queue.push_front(Effect {
+        state.effect_buf.push(Effect {
             kind: EffectKind::CardAdd {
                 card_name: CardName::Wound,
                 card_pile: CardPile::Discard,
@@ -133,7 +144,7 @@ fn apply_loss(id_source: Option<usize>, id_target: usize, state: &mut GameState,
     {
         state.entities[id_relic].relic_counter = 1;
         if state.combat.id_monsters.iter().any(Option::is_some) {
-            state.effect_queue.push_front(Effect {
+            state.effect_buf.push(Effect {
                 kind: EffectKind::CardDraw { count: 3 },
                 id_source: None,
                 target: Target::Direct(None),
@@ -180,7 +191,7 @@ fn apply_loss(id_source: Option<usize>, id_target: usize, state: &mut GameState,
 
     // Check if the target's dead. If so, queue death effect and return early
     if target.vitals.health == 0 {
-        state.effect_queue.push_front(Effect {
+        state.effect_buf.push(Effect {
             kind: EffectKind::Death { with_leader: false },
             id_source: None,
             target: Target::Direct(Some(id_target)),
@@ -203,7 +214,7 @@ fn apply_loss(id_source: Option<usize>, id_target: usize, state: &mut GameState,
             ),
         };
         if target.monster_move_current != Some(idx_split) {
-            state.effect_queue.push_front(Effect {
+            state.effect_buf.push(Effect {
                 kind: EffectKind::MoveUpdate {
                     move_override: Some(idx_split),
                 },
@@ -225,14 +236,14 @@ fn apply_loss(id_source: Option<usize>, id_target: usize, state: &mut GameState,
         // Executes in reverse:
         //     1. ModifierRemove Asleep
         //     2. MoveUpdate (stunned)
-        state.effect_queue.push_front(Effect {
+        state.effect_buf.push(Effect {
             kind: EffectKind::MoveUpdate {
                 move_override: Some(idx_stunned),
             },
             id_source: None,
             target: Target::Direct(Some(id_target)),
         });
-        state.effect_queue.push_front(Effect {
+        state.effect_buf.push(Effect {
             kind: EffectKind::ModifierRemove {
                 kind: ModifierKind::Asleep,
             },

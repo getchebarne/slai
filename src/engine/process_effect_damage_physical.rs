@@ -28,9 +28,10 @@ pub fn process_effect_damage_physical(
     fixed: bool,       // Skewer: the amount was scaled as its play started
 ) {
     let id_source = id_source.expect("DamagePhysical requires id_source");
+    assert!(!id_targets.is_empty(), "DamagePhysical requires id_target");
     assert!(instances > 0, "DamagePhysical requires at least one hit");
     assert!(
-        instances == 1 || id_targets.len() <= 1,
+        instances == 1 || id_targets.len() == 1,
         "DamagePhysical lands several hits on one target only"
     );
 

@@ -474,7 +474,7 @@ pub const fn pool_is_cards(pool: CandidatePool) -> bool {
     )
 }
 
-// Input selections above one stage before applying; every other kind resolves at once
+// Input selections above one pick several entities, which only Card pools hold
 pub const fn is_multi_selection(selection_kind: SelectionKind) -> bool {
     match selection_kind {
         SelectionKind::Input { count } | SelectionKind::InputUpTo { count } => count > 1,
@@ -501,7 +501,7 @@ pub enum CandidateFilter {
     // Compare against `Entity` modifiers
     NotMinion,
 
-    // Starter-Card predicates (Vampires, Back to Basics)
+    // Starter-Card predicates (Vampires, Back to Basics, Pandora's Box)
     Starter, // Strike or Defend
 }
 
@@ -510,6 +510,7 @@ pub enum SelectionKind {
     All,
     Single,
     Random { count: u8 },
+    // At count 0, a pick with no Cards left: it resolves to the picked Cards, in pick order, without reading the pool or filters
     Input { count: u16 },
     InputUpTo { count: u16 },
 }
@@ -520,7 +521,7 @@ pub enum Target {
     // Known target, or `None` for targetless effects (CardDraw, EnergyGain).
     Direct(Option<usize>),
 
-    // Resolved against live state at dequeue via `resolve_selection_kind`.
+    // Resolved at dequeue: the pool and filters against live state, then the selection kind; a pick at count 0 takes its picked Cards instead
     Resolve {
         candidate_pool: CandidatePool,
         // Left to right, Costed and NotSourceUnlessAlone last; an empty list keeps every candidate
