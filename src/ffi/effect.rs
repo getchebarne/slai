@@ -7,6 +7,7 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::RelicRoll;
 use crate::effect::Target;
+use crate::game::Location;
 
 use super::amount::PyAmount;
 use super::amount::PyAmountScalar;
@@ -120,6 +121,7 @@ flat_variants!(PyEffect {
     MatchFlipSeen => PyEffectMatchFlipSeen as "EffectMatchFlipSeen" { target: PyTarget },
     MatchFlipUnseen => PyEffectMatchFlipUnseen as "EffectMatchFlipUnseen",
     HalfDeadRevive => PyEffectHalfDeadRevive as "EffectHalfDeadRevive" { target: PyTarget },
+    RoomEnter => PyEffectRoomEnter as "EffectRoomEnter",
 });
 
 // The kinds that can park in `state.effect_pending`
@@ -229,6 +231,7 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
                     | EffectKind::RewardRollGold { .. }
                     | EffectKind::RewardRollPotions { .. }
                     | EffectKind::RewardRollRelic { .. }
+                    | EffectKind::RoomEnter { .. }
                     | EffectKind::ScrapOozeReach { .. }
                     | EffectKind::ShuffleCardPileDiscardIntoCardPileDraw
                     | EffectKind::SneakyStrikeProc { .. }
@@ -609,6 +612,11 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
         EffectKind::HalfDeadRevive => PyEffect::HalfDeadRevive(PyEffectHalfDeadRevive {
             target: require_target(target),
         }),
+        // Secret Portal's jump is the only RoomEnter in a row: the first pass into the Boss Room
+        EffectKind::RoomEnter {
+            location: Location::BossRoom,
+            landing: false,
+        } => PyEffect::RoomEnter(PyEffectRoomEnter),
         other => unreachable!(
             "snapshot_effect: unexpected EffectKind on static Card effect: {:?}",
             other
