@@ -273,7 +273,7 @@ EffectRewardRollRelic = _rs.EffectRewardRollRelic
 EffectDamageDeal = _rs.EffectDamageDeal
 EffectMatchFlipSeen = _rs.EffectMatchFlipSeen
 EffectMatchFlipUnseen = _rs.EffectMatchFlipUnseen
-EffectHalfDeadRevive = _rs.EffectHalfDeadRevive
+EffectHalfDeadRebirth = _rs.EffectHalfDeadRebirth
 EffectHealthSet = _rs.EffectHealthSet
 RewardRollTrigger = _rs.RewardRollTrigger
 Effect = (
@@ -363,7 +363,7 @@ Effect = (
     | EffectDamageDeal
     | EffectMatchFlipSeen
     | EffectMatchFlipUnseen
-    | EffectHalfDeadRevive
+    | EffectHalfDeadRebirth
     | EffectHealthSet
 )
 
@@ -634,7 +634,7 @@ __all__ = [
     "EffectDamageDeal",
     "EffectMatchFlipSeen",
     "EffectMatchFlipUnseen",
-    "EffectHalfDeadRevive",
+    "EffectHalfDeadRebirth",
     "EffectHealthSet",
     "RewardRollTrigger",
     "Amount",
