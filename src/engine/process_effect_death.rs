@@ -16,6 +16,7 @@ use crate::types::MonsterName;
 use crate::types::PotionName;
 use crate::types::RelicName;
 use crate::utils::flush_effects_from_buf_to_queue_front;
+use crate::utils::has_relic;
 use crate::utils::resolve_health_fraction;
 
 pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState, with_leader: bool) {
@@ -28,12 +29,16 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState, wit
 
     // Character death: clear pending work, mark dead, signal game over
     if id_target == state.id_character {
+        // Mark of the Bloom: nothing revives the Character
+        let revivable = !has_relic(&state.id_relics, RelicName::MarkOfTheBloom);
+
         // Fairy in a Bottle: consumed to revive by its own heal (doubled with Sacred Bark); checked before Lizard Tail
-        if let Some(id_potion) = state
-            .id_potions
-            .iter()
-            .copied()
-            .find(|&id| state.entities[id].potion_name == PotionName::Fairy)
+        if revivable
+            && let Some(id_potion) = state
+                .id_potions
+                .iter()
+                .copied()
+                .find(|&id| state.entities[id].potion_name == PotionName::Fairy)
         {
             remove_potion(&mut state.id_potions, id_potion);
             let EffectKind::HealthDelta { amount, .. } =
@@ -48,7 +53,8 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState, wit
         }
 
         // Lizard Tail: once per run, survive at half max HP instead
-        if let Some(id_relic) = state.id_relics[RelicName::LizardTail as usize]
+        if revivable
+            && let Some(id_relic) = state.id_relics[RelicName::LizardTail as usize]
             && !state.entities[id_relic].relic_used_up
         {
             // Mark as used up
@@ -114,8 +120,12 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState, wit
     state.entities[id_target].monster_gold_stolen = 0;
 
     if !any_left {
-        // The last kill ends the combat: no waiting Card play or turn phase starts, and only the queued heals, block and damage resolve, Hand of Greed and Ritual Dagger with them
-        state.card_play_queue.clear();
+        // No waiting Card play starts after the last kill, unless minions fall with their leader: then the turn end's self-plays still play, and the play gate refuses the rest
+        if !with_leader {
+            state.card_play_queue.clear();
+        }
+
+        // The last kill ends the combat: no turn phase starts, and only the queued heals, block and damage resolve, Hand of Greed and Ritual Dagger with them
         state.phase_queue.clear();
         state.effect_queue.retain(|e| {
             matches!(

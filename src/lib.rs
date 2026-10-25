@@ -359,6 +359,8 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEffectMaxHealthDelta;
     #[pymodule_export]
+    use super::ffi::PyEffectMindBloomFight;
+    #[pymodule_export]
     use super::ffi::PyEffectModifierDelta;
     #[pymodule_export]
     use super::ffi::PyEffectModifierMultiply;

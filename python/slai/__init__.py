@@ -235,6 +235,7 @@ EffectBonfireOffer = _rs.EffectBonfireOffer
 EffectMonsterSpawn = _rs.EffectMonsterSpawn
 EffectCombatStart = _rs.EffectCombatStart
 EffectAdventurerSearch = _rs.EffectAdventurerSearch
+EffectMindBloomFight = _rs.EffectMindBloomFight
 EffectRelicGrantSpecific = _rs.EffectRelicGrantSpecific
 EffectEventAdvanceState = _rs.EffectEventAdvanceState
 EffectScrapOozeReach = _rs.EffectScrapOozeReach
@@ -323,6 +324,7 @@ Effect = (
     | EffectMonsterSpawn
     | EffectCombatStart
     | EffectAdventurerSearch
+    | EffectMindBloomFight
     | EffectRelicGrantSpecific
     | EffectEventAdvanceState
     | EffectScrapOozeReach
@@ -592,6 +594,7 @@ __all__ = [
     "EffectMonsterSpawn",
     "EffectCombatStart",
     "EffectAdventurerSearch",
+    "EffectMindBloomFight",
     "EffectRelicGrantSpecific",
     "EffectEventAdvanceState",
     "EffectScrapOozeReach",

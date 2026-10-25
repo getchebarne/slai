@@ -83,7 +83,7 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
         queue_combat_end_relics(state);
 
         // A fled event fight spends its event; an unpaid bout resumes it as a won one does
-        if state.event.active && fight_loot(&state.event).is_some() {
+        if state.event.active && fight_loot(&state.event, state.ascension).is_some() {
             state.event.consumed = true;
         }
         return;
@@ -92,7 +92,7 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
     // Queue order is RNG stream order: Cards, Relics, Potion, then gold
     if state.event.active {
         // Colosseum's unpaid bout: the potion roll drifts, the stage is cleared
-        if fight_loot(&state.event).is_none() {
+        if fight_loot(&state.event, state.ascension).is_none() {
             queue_effect_untargeted(
                 state,
                 EffectKind::RewardRollPotions {
@@ -103,7 +103,7 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
         }
 
         // The fight belongs to the event it stacked over
-        if let Some(loot) = fight_loot(&state.event) {
+        if let Some(loot) = fight_loot(&state.event, state.ascension) {
             queue_effect_untargeted(
                 state,
                 EffectKind::RewardRollCards {
@@ -208,7 +208,7 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
 // The Relics a fight drops: its event's staked loot, or an Elite's
 fn relic_drops(state: &GameState) -> Vec<(RelicRoll, RelicExclusion)> {
     if state.event.active {
-        let Some(loot) = fight_loot(&state.event) else {
+        let Some(loot) = fight_loot(&state.event, state.ascension) else {
             return Vec::new();
         };
         return loot

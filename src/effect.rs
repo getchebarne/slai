@@ -204,6 +204,7 @@ pub enum EffectKind {
         amount: Amount,
     },
     MayhemProc,
+    MindBloomFight,
     ModifierDelta {
         kind: ModifierKind,
         stacks: i16,
