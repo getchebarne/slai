@@ -613,6 +613,7 @@ pub enum EventName {
     OminousForge,
     Purifier,
     ScrapOoze,
+    SecretPortal,
     ShiningLight,
     TheCleric,
     TheDivineFountain,
