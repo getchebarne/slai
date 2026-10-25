@@ -446,6 +446,7 @@ pub enum MonsterName {
     LouseDefensive,
     LouseNormal,
     Maw,
+    OrbWalker,
     Sentry,
     SlaverBlue,
     SlaverRed,
@@ -519,6 +520,7 @@ pub enum MonsterEncounter {
     // Event-only (never pooled)
     ThreeFungiBeasts,
     LagavulinEvent,
+    TwoOrbWalkers,
 
     // Act 2 easy
     SphericGuardian,
@@ -546,6 +548,9 @@ pub enum MonsterEncounter {
     BronzeAutomaton,
     TheCollector,
     Champ,
+
+    // Act 3 easy
+    OrbWalker,
 
     // Act 3 hard
     JawWormHorde,
