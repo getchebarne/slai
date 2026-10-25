@@ -182,7 +182,7 @@ pub enum EffectKind {
         sign: DeltaSign,
         amount: Amount,
     },
-    HealthLowerTo {
+    HealthSet {
         amount: Amount,
     },
     HeelHookProc {
@@ -204,6 +204,7 @@ pub enum EffectKind {
         amount: Amount,
     },
     MayhemProc,
+    MindBloomFight,
     ModifierDelta {
         kind: ModifierKind,
         stacks: i16,
