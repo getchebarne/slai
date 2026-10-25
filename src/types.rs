@@ -431,6 +431,8 @@ pub enum CardRarity {
 #[repr(u8)]
 pub enum MonsterName {
     Cultist,
+    Deca,
+    Donu,
     FungiBeast,
     GremlinFat,
     GremlinNob,
@@ -550,6 +552,9 @@ pub enum MonsterEncounter {
     // Act 3 hard
     JawWormHorde,
     Maw,
+
+    // Act 3 boss
+    DonuAndDeca,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

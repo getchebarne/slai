@@ -497,6 +497,10 @@ pub fn spawn_encounter_monsters(state: &mut GameState, encounter: MonsterEncount
             }
         }
         MonsterEncounter::Maw => push_monster_spawn(effects, MonsterName::Maw, 0),
+        MonsterEncounter::DonuAndDeca => {
+            push_monster_spawn(effects, MonsterName::Deca, 0);
+            push_monster_spawn(effects, MonsterName::Donu, 1);
+        }
     }
 
     effects.push(Effect {
