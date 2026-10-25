@@ -1,3 +1,4 @@
+use crate::consts::MAX_MONSTER_MOVES;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::TARGET_CHARACTER;
@@ -146,7 +147,7 @@ pub static WRITHING_MASS: MonsterTemplate = MonsterTemplate {
 pub fn get_next_move_writhing_mass(
     move_current: Option<usize>,
     move_history: &[u8],
-    implant_executed: bool,
+    move_uses: &[u8; MAX_MONSTER_MOVES],
     rng: &mut impl Rng,
 ) -> usize {
     // The opening move is never Big Hit or Implant
@@ -160,7 +161,7 @@ pub fn get_next_move_writhing_mass(
             IDX_MOVE_ATTACK_DEBUFF
         };
     }
-    let last = move_history
+    let move_last = move_history
         .last()
         .copied()
         .map(|idx_move| idx_move as usize);
@@ -169,13 +170,13 @@ pub fn get_next_move_writhing_mass(
     let mut roll = rng.random_range(0..=99);
     loop {
         roll = if roll < 10 {
-            if last != Some(IDX_MOVE_BIG_HIT) {
+            if move_last != Some(IDX_MOVE_BIG_HIT) {
                 return IDX_MOVE_BIG_HIT;
             }
             rng.random_range(10..=99)
         } else if roll < 20 {
             // Implant comes once per combat, spent when it executes, and never twice in a row
-            if !implant_executed && last != Some(IDX_MOVE_IMPLANT) {
+            if move_uses[IDX_MOVE_IMPLANT] == 0 && move_last != Some(IDX_MOVE_IMPLANT) {
                 return IDX_MOVE_IMPLANT;
             }
 
@@ -185,7 +186,7 @@ pub fn get_next_move_writhing_mass(
             }
             rng.random_range(20..=99)
         } else if roll < 40 {
-            if last != Some(IDX_MOVE_ATTACK_DEBUFF) {
+            if move_last != Some(IDX_MOVE_ATTACK_DEBUFF) {
                 return IDX_MOVE_ATTACK_DEBUFF;
             }
             if rng.random_bool(0.4) {
@@ -194,7 +195,7 @@ pub fn get_next_move_writhing_mass(
                 rng.random_range(40..=99)
             }
         } else if roll < 70 {
-            if last != Some(IDX_MOVE_MULTI_HIT) {
+            if move_last != Some(IDX_MOVE_MULTI_HIT) {
                 return IDX_MOVE_MULTI_HIT;
             }
             if rng.random_bool(0.3) {
@@ -202,7 +203,7 @@ pub fn get_next_move_writhing_mass(
             }
             rng.random_range(0..=39)
         } else {
-            if last != Some(IDX_MOVE_ATTACK_BLOCK) {
+            if move_last != Some(IDX_MOVE_ATTACK_BLOCK) {
                 return IDX_MOVE_ATTACK_BLOCK;
             }
             rng.random_range(0..=69)

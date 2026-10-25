@@ -82,12 +82,12 @@ pub fn get_next_move_bandit_bear(move_current: Option<usize>, move_history: &[u8
     if move_current.is_none() {
         return IDX_MOVE_BEAR_HUG;
     }
-    let last = *move_history
+    let move_last = *move_history
         .last()
         .expect("`move_history` cannot be empty here") as usize;
-    match last {
+    match move_last {
         IDX_MOVE_BEAR_HUG | IDX_MOVE_MAUL => IDX_MOVE_LUNGE,
         IDX_MOVE_LUNGE => IDX_MOVE_MAUL,
-        _ => unreachable!("Bandit Bear unexpected move idx: {last}"),
+        _ => unreachable!("Bandit Bear unexpected move idx: {move_last}"),
     }
 }

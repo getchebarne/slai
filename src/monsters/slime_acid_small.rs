@@ -47,10 +47,10 @@ pub fn get_next_move_slime_acid_small(
             IDX_MOVE_LICK
         };
     }
-    let last = *move_history
+    let move_last = *move_history
         .last()
         .expect("`move_history` cannot be empty here") as usize;
-    if last == IDX_MOVE_TACKLE {
+    if move_last == IDX_MOVE_TACKLE {
         IDX_MOVE_LICK
     } else {
         IDX_MOVE_TACKLE

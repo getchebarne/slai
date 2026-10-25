@@ -79,13 +79,13 @@ pub fn get_next_move_maw(
     if move_current.is_none() {
         return IDX_MOVE_ROAR;
     }
-    let last = move_history
+    let move_last = move_history
         .last()
         .copied()
         .map(|idx_move| idx_move as usize);
-    if last != Some(IDX_MOVE_NOM) && rng.random_range(0..=99) < 50 {
+    if move_last != Some(IDX_MOVE_NOM) && rng.random_range(0..=99) < 50 {
         IDX_MOVE_NOM
-    } else if last == Some(IDX_MOVE_SLAM) || last == Some(IDX_MOVE_NOM) {
+    } else if move_last == Some(IDX_MOVE_SLAM) || move_last == Some(IDX_MOVE_NOM) {
         IDX_MOVE_DROOL
     } else {
         IDX_MOVE_SLAM

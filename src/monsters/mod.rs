@@ -371,10 +371,6 @@ pub fn push_move_history(entity: &mut Entity, move_idx: u8) {
         entity.monster_move_history_exec.copy_within(1.., 0);
         entity.monster_move_history_exec[MAX_MOVE_HISTORY - 1] = false;
     }
-
-    // Use counts tally every choice, a re-rolled one included, and never drop a move
-    entity.monster_move_uses[move_idx as usize] =
-        entity.monster_move_uses[move_idx as usize].saturating_add(1);
 }
 
 fn get_move_history_slice(entity: &Entity) -> &[u8] {
@@ -582,7 +578,7 @@ pub fn get_next_move(
         MonsterName::WrithingMass => writhing_mass::get_next_move_writhing_mass(
             entity.monster_move_current,
             history,
-            entity.monster_implant_executed,
+            &entity.monster_move_uses,
             rng,
         ),
     }

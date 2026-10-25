@@ -173,11 +173,11 @@ pub fn get_next_move_hexaghost(move_current: Option<usize>, move_history: &[u8])
     if move_current.is_none() {
         return IDX_MOVE_ACTIVATE;
     }
-    let last = *move_history
+    let move_last = *move_history
         .last()
         .expect("`move_history` cannot be empty here") as usize;
 
-    if last == IDX_MOVE_ACTIVATE {
+    if move_last == IDX_MOVE_ACTIVATE {
         return IDX_MOVE_DIVIDER;
     }
 
@@ -187,7 +187,7 @@ pub fn get_next_move_hexaghost(move_current: Option<usize>, move_history: &[u8])
         .any(|&idx_move| idx_move == IDX_MOVE_INFERNO as u8);
 
     // Cycle start
-    if last == IDX_MOVE_DIVIDER || last == IDX_MOVE_INFERNO {
+    if move_last == IDX_MOVE_DIVIDER || move_last == IDX_MOVE_INFERNO {
         return cycle_slot(0, has_inferno);
     }
 

@@ -31,12 +31,12 @@ pub static BOOK_OF_STABBING: MonsterTemplate = MonsterTemplate {
 };
 
 pub fn get_next_move_book_of_stabbing(move_history: &[u8], rng: &mut impl Rng) -> usize {
-    let last = move_history
+    let move_last = move_history
         .last()
         .copied()
         .map(|idx_move| idx_move as usize);
     if rng.random_range(0..=99) < 15 {
-        if last == Some(IDX_MOVE_SINGLE_STAB) {
+        if move_last == Some(IDX_MOVE_SINGLE_STAB) {
             IDX_MOVE_MULTI_STAB
         } else {
             IDX_MOVE_SINGLE_STAB

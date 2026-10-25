@@ -80,14 +80,14 @@ pub fn get_next_move_slime_boss(move_current: Option<usize>, move_history: &[u8]
     if move_current.is_none() {
         return IDX_MOVE_GOOP_SPRAY;
     }
-    let last = *move_history
+    let move_last = *move_history
         .last()
         .expect("`move_history` cannot be empty here") as usize;
-    match last {
+    match move_last {
         IDX_MOVE_GOOP_SPRAY => IDX_MOVE_PREPARING,
         IDX_MOVE_PREPARING => IDX_MOVE_SLAM,
         IDX_MOVE_SLAM => IDX_MOVE_GOOP_SPRAY,
         IDX_MOVE_SPLIT => IDX_MOVE_SPLIT,
-        _ => unreachable!("SlimeBoss unexpected move idx: {last}"),
+        _ => unreachable!("SlimeBoss unexpected move idx: {move_last}"),
     }
 }
