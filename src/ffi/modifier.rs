@@ -14,10 +14,11 @@ mirror_enum!(PyModifierKind from ModifierKind, "ModifierKind", {
     CurlUp, Dexterity, DoubleDamage, DrawCardNextTurn, DrawReduction, Enrage, Entangled, Envenom,
     Explosive, Fading, Frail, InfiniteBlades, Intangible, Metallicize, ModeShift, NextTurnBlock,
     NextTurnEnergy, NoDraw, NoxiousFumes, Phantasmal, PlatedArmor, Poison, Retain, Ritual, Shackled,
-    SharpHide, Splittable, SporeCloud, Strength, StrengthUp, Thievery, Thorns, ThousandCuts,
-    TimeWarp, ToolsOfTheTrade, Unawakened, Vigor, Vulnerable, Weak, WraithForm, Buffer, PenNib,
-    Magnetism, NoBlock, Panache, SadisticNature, Mayhem, Regeneration, LoseStrength, LoseDexterity,
-    DuplicateNextCardPlay, Flight, Malleable, Barricade, Hex, Confusion, PainfulStabs, Minion,
+    SharpHide, Shifting, Splittable, SporeCloud, Strength, StrengthUp, Thievery, Thorns,
+    ThousandCuts, TimeWarp, ToolsOfTheTrade, Unawakened, Vigor, Vulnerable, Weak, WraithForm,
+    Buffer, PenNib, Magnetism, NoBlock, Panache, SadisticNature, Mayhem, Regeneration, LoseStrength,
+    LoseDexterity, DuplicateNextCardPlay, Flight, Malleable, Barricade, Hex, Confusion,
+    PainfulStabs, Minion,
 }, {
     #[getter]
     fn is_buff(&self) -> bool {

@@ -50,6 +50,7 @@ pub mod the_collector;
 pub mod the_guardian;
 pub mod time_eater;
 pub mod torch_head;
+pub mod transient;
 
 use crate::consts::MAX_EFFECTS_PER_MOVE;
 use crate::consts::MAX_MONSTER_MOVES;
@@ -171,6 +172,7 @@ pub const ALL_MONSTERS: &[&'static MonsterTemplate] = &[
     &the_guardian::THE_GUARDIAN,
     &time_eater::TIME_EATER,
     &torch_head::TORCH_HEAD,
+    &transient::TRANSIENT,
 ];
 const _: () = assert!(ALL_MONSTERS.len() == MonsterName::COUNT);
 
@@ -331,6 +333,7 @@ pub fn monster_template(monster_name: MonsterName) -> &'static MonsterTemplate {
         MonsterName::Donu => &donu::DONU,
         MonsterName::OrbWalker => &orb_walker::ORB_WALKER,
         MonsterName::TimeEater => &time_eater::TIME_EATER,
+        MonsterName::Transient => &transient::TRANSIENT,
     }
 }
 
@@ -403,6 +406,7 @@ pub fn get_next_move(
         | MonsterName::GremlinFat
         | MonsterName::GremlinThief
         | MonsterName::GremlinWarrior => 0,
+        MonsterName::Transient => transient::get_next_move_transient(history),
         MonsterName::AwakenedOne => awakened_one::get_next_move_awakened_one(
             entity.monster_move_current,
             history,

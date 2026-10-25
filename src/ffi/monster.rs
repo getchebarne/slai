@@ -34,7 +34,7 @@ mirror_enum!(PyMonsterName from MonsterName, "MonsterName", {
     GremlinTsundere, GremlinWarrior, GremlinWizard, Hexaghost, JawWorm, JawWormHard, Lagavulin,
     Looter, LouseDefensive, LouseNormal, Maw, OrbWalker, Sentry, SlaverBlue, SlaverRed,
     SlimeAcidLarge, SlimeAcidMedium, SlimeAcidSmall, SlimeBoss, SlimeSpikeLarge, SlimeSpikeMedium,
-    SlimeSpikeSmall, TheGuardian, TimeEater, Byrd, Centurion, Chosen, Healer, Mugger,
+    SlimeSpikeSmall, TheGuardian, TimeEater, Transient, Byrd, Centurion, Chosen, Healer, Mugger,
     ShelledParasite, SnakePlant, Snecko, SphericGuardian, BookOfStabbing, GremlinLeader, Taskmaster,
     BronzeAutomaton, BronzeOrb, Champ, TheCollector, TorchHead, BanditBear, BanditLeader,
     BanditPointy,
@@ -47,7 +47,8 @@ mirror_enum!(PyMonsterEncounter from MonsterEncounter, "MonsterEncounter", {
     TwoOrbWalkers, SphericGuardian, Chosen, ShelledParasite, ThreeByrds, TwoThieves, SnakePlant,
     CenturionAndHealer, Snecko, CultistAndChosen, ThreeCultists, ShelledParasiteAndFungi,
     ChosenAndByrds, SentryAndSphere, GremlinLeader, Slavers, BookOfStabbing, BronzeAutomaton,
-    TheCollector, Champ, OrbWalker, JawWormHorde, Maw, AwakenedOne, DonuAndDeca, TimeEater,
+    TheCollector, Champ, OrbWalker, JawWormHorde, Maw, Transient, AwakenedOne, DonuAndDeca,
+    TimeEater,
 });
 
 #[pyclass(
@@ -207,7 +208,7 @@ pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
                     | Intent::Unknown => (None, None),
                 };
 
-                // The Monster's copy of the move holds the hit as chosen: Divider's locked damage, Multi-Stab's and Nom's locked counts
+                // The Monster's copy of the move holds the hit as chosen: Divider's and the Transient's locked damage, Multi-Stab's and Nom's locked counts
                 let move_effects =
                     &monster.monster_move_effects[..monster.monster_move_effects_len as usize];
                 let hit = move_effects.iter().find_map(|effect| match effect.kind {

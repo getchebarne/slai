@@ -1768,6 +1768,7 @@ class ModifierKind:
     SadisticNature: Final[ModifierKind]
     Shackled: Final[ModifierKind]
     SharpHide: Final[ModifierKind]
+    Shifting: Final[ModifierKind]
     Splittable: Final[ModifierKind]
     SporeCloud: Final[ModifierKind]
     Strength: Final[ModifierKind]
@@ -1882,6 +1883,7 @@ class MonsterEncounter:
     ThreeLouse: Final[MonsterEncounter]
     ThreeSentries: Final[MonsterEncounter]
     TimeEater: Final[MonsterEncounter]
+    Transient: Final[MonsterEncounter]
     TwoFungiBeasts: Final[MonsterEncounter]
     TwoLouse: Final[MonsterEncounter]
     TwoOrbWalkers: Final[MonsterEncounter]
@@ -1977,6 +1979,7 @@ class MonsterName:
     TheGuardian: Final[MonsterName]
     TimeEater: Final[MonsterName]
     TorchHead: Final[MonsterName]
+    Transient: Final[MonsterName]
     def __eq__(self, other: object) -> bool: ...
     def __hash__(self, /) -> int: ...
     def __int__(self, /) -> int: ...
