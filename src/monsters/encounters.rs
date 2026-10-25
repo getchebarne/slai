@@ -497,6 +497,7 @@ pub fn spawn_encounter_monsters(state: &mut GameState, encounter: MonsterEncount
             }
         }
         MonsterEncounter::Maw => push_monster_spawn(effects, MonsterName::Maw, 0),
+        MonsterEncounter::WrithingMass => push_monster_spawn(effects, MonsterName::WrithingMass, 0),
     }
 
     effects.push(Effect {

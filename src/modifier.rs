@@ -35,6 +35,7 @@ pub enum ModifierKind {
     Phantasmal,
     PlatedArmor,
     Poison,
+    Reactive,
     Retain,
     Ritual,
     Shackled,
@@ -340,6 +341,14 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
         stacks_duration: false,
         stacks_min: 1,
         stacks_max: i16::MAX,
+    },
+    ModifierDef {
+        kind: ModifierKind::Reactive,
+        priority: 50,
+        is_buff: true,
+        stacks_duration: false,
+        stacks_min: 1,
+        stacks_max: 1,
     },
     ModifierDef {
         kind: ModifierKind::Retain,

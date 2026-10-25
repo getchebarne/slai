@@ -33,8 +33,8 @@ mirror_enum!(PyMonsterName from MonsterName, "MonsterName", {
     Cultist, FungiBeast, GremlinFat, GremlinNob, GremlinThief, GremlinTsundere, GremlinWarrior,
     GremlinWizard, Hexaghost, JawWorm, JawWormHard, Lagavulin, Looter, LouseDefensive, LouseNormal,
     Maw, Sentry, SlaverBlue, SlaverRed, SlimeAcidLarge, SlimeAcidMedium, SlimeAcidSmall, SlimeBoss,
-    SlimeSpikeLarge, SlimeSpikeMedium, SlimeSpikeSmall, TheGuardian, Byrd, Centurion, Chosen,
-    Healer, Mugger, ShelledParasite, SnakePlant, Snecko, SphericGuardian, BookOfStabbing,
+    SlimeSpikeLarge, SlimeSpikeMedium, SlimeSpikeSmall, TheGuardian, WrithingMass, Byrd, Centurion,
+    Chosen, Healer, Mugger, ShelledParasite, SnakePlant, Snecko, SphericGuardian, BookOfStabbing,
     GremlinLeader, Taskmaster, BronzeAutomaton, BronzeOrb, Champ, TheCollector, TorchHead,
     BanditBear, BanditLeader, BanditPointy,
 });
@@ -46,7 +46,7 @@ mirror_enum!(PyMonsterEncounter from MonsterEncounter, "MonsterEncounter", {
     LagavulinEvent, SphericGuardian, Chosen, ShelledParasite, ThreeByrds, TwoThieves, SnakePlant,
     CenturionAndHealer, Snecko, CultistAndChosen, ThreeCultists, ShelledParasiteAndFungi,
     ChosenAndByrds, SentryAndSphere, GremlinLeader, Slavers, BookOfStabbing, BronzeAutomaton,
-    TheCollector, Champ, JawWormHorde, Maw,
+    TheCollector, Champ, JawWormHorde, Maw, WrithingMass,
 });
 
 #[pyclass(
@@ -148,7 +148,8 @@ pub struct PyMonster {
     pub move_current: Option<u8>,    // Index into the spawn-rolled moveset; None when hidden
     pub move_history: Vec<u8>, // Selection-ordered move indices; the last entry IS the current move, and under Runic Dome only executed moves
     pub gold_stolen: u16,      // Only relevant for Looters and Muggers
-    pub replay_target: bool,   // A waiting replay aims at this Monster
+    pub implant_executed: bool, // Only relevant for Writhing Mass: its Implant has executed this combat and won't come again
+    pub replay_target: bool,    // A waiting replay aims at this Monster
 }
 
 pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
@@ -289,6 +290,7 @@ pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
                 },
                 move_history,
                 gold_stolen: monster.monster_gold_stolen,
+                implant_executed: monster.monster_implant_executed,
                 replay_target,
             }
         })

@@ -110,6 +110,7 @@ pub struct Entity {
     pub monster_move_uses: [u8; MAX_MONSTER_MOVES],
     pub monster_gold_stolen: u16, // Only used by "Looter" and "Mugger"
     pub monster_curl_up_triggered: bool, // Only used by "Green Louse" and "Red Louse"
+    pub monster_implant_executed: bool, // Only used by "Writhing Mass"
     pub monster_half_dead: bool, // At 0 HP but still in its slot and taking its turns; no Card, hit, HP loss or Power reaches it until its own rule revives or kills it
 
     // Card-only
@@ -177,6 +178,7 @@ pub const ENTITY_ZERO: Entity = Entity {
     character_gold: 0,
     monster_gold_stolen: 0,
     monster_curl_up_triggered: false,
+    monster_implant_executed: false,
     monster_half_dead: false,
     monster_name: MonsterName::Cultist,
     monster_kind: MonsterKind::Normal,

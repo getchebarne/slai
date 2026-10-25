@@ -45,6 +45,7 @@ pub mod taskmaster;
 pub mod the_collector;
 pub mod the_guardian;
 pub mod torch_head;
+pub mod writhing_mass;
 
 use crate::consts::MAX_EFFECTS_PER_MOVE;
 use crate::consts::MAX_MONSTER_MOVES;
@@ -160,6 +161,7 @@ pub const ALL_MONSTERS: &[&'static MonsterTemplate] = &[
     &the_collector::THE_COLLECTOR,
     &the_guardian::THE_GUARDIAN,
     &torch_head::TORCH_HEAD,
+    &writhing_mass::WRITHING_MASS,
 ];
 const _: () = assert!(ALL_MONSTERS.len() == MonsterName::COUNT);
 
@@ -315,6 +317,7 @@ pub fn monster_template(monster_name: MonsterName) -> &'static MonsterTemplate {
         MonsterName::BanditLeader => &bandit_leader::BANDIT_LEADER,
         MonsterName::BanditPointy => &bandit_pointy::BANDIT_POINTY,
         MonsterName::Maw => &maw::MAW,
+        MonsterName::WrithingMass => &writhing_mass::WRITHING_MASS,
     }
 }
 
@@ -343,14 +346,14 @@ pub fn push_move_history(entity: &mut Entity, move_idx: u8) {
         entity.monster_move_history_exec[len] = false;
         entity.monster_move_history_len += 1;
     } else {
-        // Marathon combat: drop the oldest, keep the last `MAX_MOVE_HISTORY` moves
+        // Past `MAX_MOVE_HISTORY` choices the oldest drops out; Reactive's re-rolls get there in an ordinary fight
         entity.monster_move_history.copy_within(1.., 0);
         entity.monster_move_history[MAX_MOVE_HISTORY - 1] = move_idx;
         entity.monster_move_history_exec.copy_within(1.., 0);
         entity.monster_move_history_exec[MAX_MOVE_HISTORY - 1] = false;
     }
 
-    // Use counts never drop a move: once-per-combat latches read them
+    // Use counts tally every choice, a re-rolled one included, and never drop a move
     entity.monster_move_uses[move_idx as usize] =
         entity.monster_move_uses[move_idx as usize].saturating_add(1);
 }
@@ -540,6 +543,12 @@ pub fn get_next_move(
         ),
         MonsterName::BanditPointy => 0,
         MonsterName::Maw => maw::get_next_move_maw(entity.monster_move_current, history, rng),
+        MonsterName::WrithingMass => writhing_mass::get_next_move_writhing_mass(
+            entity.monster_move_current,
+            history,
+            entity.monster_implant_executed,
+            rng,
+        ),
     }
 }
 

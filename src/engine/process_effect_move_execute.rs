@@ -5,6 +5,8 @@ use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
 use crate::modifier::modifier_stacks;
+use crate::monsters::writhing_mass;
+use crate::types::MonsterName;
 use crate::utils::flush_effects_from_buf_to_queue_front;
 
 // Reads the current move's effects at dispatch (late binding); mid-turn overrides (split, wake) take effect
@@ -33,6 +35,13 @@ pub fn process_effect_move_execute(id_target: Option<usize>, state: &mut GameSta
     // The current move is the history's last entry, and it executes now
     let entity = &mut state.entities[id_monster];
     entity.monster_move_history_exec[entity.monster_move_history_len as usize - 1] = true;
+
+    // Writhing Mass's Implant spends its once-per-combat latch as it executes, never when it is rolled
+    if entity.monster_name == MonsterName::WrithingMass
+        && entity.monster_move_current == Some(writhing_mass::IDX_MOVE_IMPLANT)
+    {
+        entity.monster_implant_executed = true;
+    }
 
     // Copy the Monster's move effects out so effect_buf/queue mutations below don't hold `entities` borrowed
     let move_effects = state.entities[id_monster].monster_move_effects;
