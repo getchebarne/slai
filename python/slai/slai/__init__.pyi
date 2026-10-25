@@ -1750,6 +1750,7 @@ class ModifierKind:
     Splittable: Final[ModifierKind]
     SporeCloud: Final[ModifierKind]
     Strength: Final[ModifierKind]
+    StrengthUp: Final[ModifierKind]
     Thievery: Final[ModifierKind]
     Thorns: Final[ModifierKind]
     ThousandCuts: Final[ModifierKind]
@@ -1839,6 +1840,7 @@ class MonsterEncounter:
     Looter: Final[MonsterEncounter]
     LotsOfSlimes: Final[MonsterEncounter]
     Maw: Final[MonsterEncounter]
+    OrbWalker: Final[MonsterEncounter]
     RedSlaver: Final[MonsterEncounter]
     SentryAndSphere: Final[MonsterEncounter]
     ShelledParasite: Final[MonsterEncounter]
@@ -1858,6 +1860,7 @@ class MonsterEncounter:
     ThreeSentries: Final[MonsterEncounter]
     TwoFungiBeasts: Final[MonsterEncounter]
     TwoLouse: Final[MonsterEncounter]
+    TwoOrbWalkers: Final[MonsterEncounter]
     TwoThieves: Final[MonsterEncounter]
     def __eq__(self, other: object) -> bool: ...
     def __hash__(self, /) -> int: ...
@@ -1929,6 +1932,7 @@ class MonsterName:
     LouseNormal: Final[MonsterName]
     Maw: Final[MonsterName]
     Mugger: Final[MonsterName]
+    OrbWalker: Final[MonsterName]
     Sentry: Final[MonsterName]
     ShelledParasite: Final[MonsterName]
     SlaverBlue: Final[MonsterName]

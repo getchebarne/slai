@@ -29,6 +29,7 @@ pub mod louse_green;
 pub mod louse_red;
 pub mod maw;
 pub mod mugger;
+pub mod orb_walker;
 pub mod sentry;
 pub mod shelled_parasite;
 pub mod slaver_blue;
@@ -146,6 +147,7 @@ pub const ALL_MONSTERS: &[&'static MonsterTemplate] = &[
     &louse_red::LOUSE_NORMAL,
     &maw::MAW,
     &mugger::MUGGER,
+    &orb_walker::ORB_WALKER,
     &sentry::SENTRY,
     &shelled_parasite::SHELLED_PARASITE,
     &slaver_blue::SLAVER_BLUE,
@@ -321,6 +323,7 @@ pub fn monster_template(monster_name: MonsterName) -> &'static MonsterTemplate {
         MonsterName::Maw => &maw::MAW,
         MonsterName::Deca => &deca::DECA,
         MonsterName::Donu => &donu::DONU,
+        MonsterName::OrbWalker => &orb_walker::ORB_WALKER,
     }
 }
 
@@ -548,6 +551,7 @@ pub fn get_next_move(
         MonsterName::Maw => maw::get_next_move_maw(entity.monster_move_current, history, rng),
         MonsterName::Deca => deca::get_next_move_deca(entity.monster_move_current),
         MonsterName::Donu => donu::get_next_move_donu(entity.monster_move_current),
+        MonsterName::OrbWalker => orb_walker::get_next_move_orb_walker(history, rng),
     }
 }
 
