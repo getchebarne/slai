@@ -15,7 +15,6 @@ pub fn process_effect_event_advance_state(state: &mut GameState, delta: i8) {
                 | EventName::Colosseum
                 | EventName::ScrapOoze
                 | EventName::CursedTome
-                | EventName::SecretPortal
         ),
         "EventAdvanceState on stateless event: {:?}",
         state.event.name
