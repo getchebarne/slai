@@ -174,7 +174,7 @@ pub enum EffectKind {
         amount: u8,
     },
     GremlinSummon,
-    HalfDeadRevive,
+    HalfDeadRebirth,
     HandOfGreedProc {
         gold: u16,
     },

@@ -30,7 +30,7 @@ static MOVE_REBIRTH: Move = make_move(
     "Rebirth",
     &[
         Effect {
-            kind: EffectKind::HalfDeadRevive,
+            kind: EffectKind::HalfDeadRebirth,
             id_source: None,
             target: TARGET_SOURCE,
         },
@@ -108,7 +108,7 @@ pub static AWAKENED_ONE: MonsterTemplate = MonsterTemplate {
         (
             0,
             &[
-                modifier_fixed(ModifierKind::Regenerate, 10),
+                modifier_fixed(ModifierKind::Regeneration, 10),
                 modifier_fixed(ModifierKind::Curiosity, 1),
                 modifier_fixed(ModifierKind::Unawakened, 1),
             ],
@@ -116,7 +116,7 @@ pub static AWAKENED_ONE: MonsterTemplate = MonsterTemplate {
         (
             4,
             &[
-                modifier_fixed(ModifierKind::Regenerate, 10),
+                modifier_fixed(ModifierKind::Regeneration, 10),
                 modifier_fixed(ModifierKind::Curiosity, 1),
                 modifier_fixed(ModifierKind::Unawakened, 1),
                 modifier_fixed(ModifierKind::Strength, 2),
@@ -125,7 +125,7 @@ pub static AWAKENED_ONE: MonsterTemplate = MonsterTemplate {
         (
             19,
             &[
-                modifier_fixed(ModifierKind::Regenerate, 15),
+                modifier_fixed(ModifierKind::Regeneration, 15),
                 modifier_fixed(ModifierKind::Curiosity, 2),
                 modifier_fixed(ModifierKind::Unawakened, 1),
                 modifier_fixed(ModifierKind::Strength, 2),

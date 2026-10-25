@@ -95,7 +95,7 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState, wit
 
         // The Awakened One's first form falls: at once the waiting Card plays are dropped, its debuffs, Curiosity and Unawakened go, and Rebirth is its move; Rebirth is set again behind everything queued
         if state.entities[id_target].monster_name == MonsterName::AwakenedOne {
-            let rebirth = Effect {
+            let effect_move_update_rebirth = Effect {
                 kind: EffectKind::MoveUpdate {
                     move_override: Some(awakened_one::IDX_MOVE_REBIRTH),
                 },
@@ -119,9 +119,9 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState, wit
                     target: Target::Direct(Some(id_target)),
                 });
             }
-            state.effect_buf.push(rebirth);
+            state.effect_buf.push(effect_move_update_rebirth);
             flush_effects_from_buf_to_queue_front(state);
-            state.effect_queue.push_back(rebirth);
+            state.effect_queue.push_back(effect_move_update_rebirth);
         }
         return;
     }

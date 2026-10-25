@@ -144,7 +144,7 @@ pub struct PyMonster {
     pub health: u16,
     pub health_max: u16,
     pub block: u16,
-    pub half_dead: bool, // At 0 HP, out of every Card's, hit's and Power's reach until its own rule revives or kills it
+    pub half_dead: bool, // At 0 HP, out of every Card's, hit's and Power's reach until its rebirth or its next Death
     pub modifiers: Vec<PyModifier>,
     pub intent: Option<PyIntent>,    // None while Runic Dome hides it
     pub move_effects: Vec<PyEffect>, // The current move's Effect payload; empty when the intent is hidden

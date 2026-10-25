@@ -67,11 +67,11 @@ pub fn process_effect_turn_end_monster(id_target: Option<usize>, state: &mut Gam
         });
     }
 
-    // Regenerate: the owner heals its stacks at its turn end unless it's half-dead; the stacks never wear off
-    if has_modifier(modifiers, ModifierKind::Regenerate)
+    // Regeneration: a Monster heals its stacks at its turn end unless it's half-dead; on a Monster the stacks never wear off
+    if has_modifier(modifiers, ModifierKind::Regeneration)
         && !state.entities[id_monster].monster_half_dead
     {
-        let stacks = modifier_stacks(modifiers, ModifierKind::Regenerate);
+        let stacks = modifier_stacks(modifiers, ModifierKind::Regeneration);
         state.effect_queue.push_front(Effect {
             kind: EffectKind::HealthDelta {
                 sign: DeltaSign::Gain,
