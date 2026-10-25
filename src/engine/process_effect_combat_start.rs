@@ -131,7 +131,7 @@ pub fn process_effect_combat_start(state: &mut GameState, elite: bool) {
     if has_relic(&state.id_relics, RelicName::PreservedInsect) && elite {
         for id in id_monsters.iter().flatten().copied() {
             state.effect_queue.push_back(Effect {
-                kind: EffectKind::HealthLowerTo {
+                kind: EffectKind::HealthSet {
                     amount: Amount::Relative {
                         numerator: 3,
                         denominator: 4,
@@ -158,7 +158,7 @@ pub fn process_effect_combat_start(state: &mut GameState, elite: bool) {
         // One effect for every spawned Monster
         for id_monster in id_monsters.iter().flatten().copied() {
             state.effect_queue.push_back(Effect {
-                kind: EffectKind::HealthLowerTo {
+                kind: EffectKind::HealthSet {
                     amount: Amount::Absolute(1),
                 },
                 id_source: None,

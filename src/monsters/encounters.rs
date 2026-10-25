@@ -506,6 +506,7 @@ pub fn spawn_encounter_monsters(state: &mut GameState, encounter: MonsterEncount
             push_monster_spawn(effects, MonsterName::Deca, 0);
             push_monster_spawn(effects, MonsterName::Donu, 1);
         }
+        MonsterEncounter::TimeEater => push_monster_spawn(effects, MonsterName::TimeEater, 0),
     }
 
     effects.push(Effect {

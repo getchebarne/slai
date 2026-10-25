@@ -65,6 +65,7 @@ pub enum Intent {
     AttackDebuff { damage: u16, instances: u8 },
     Block,
     BlockBuff,
+    BlockDebuff,
     Buff,
     Debuff,
     DebuffPowerful,
