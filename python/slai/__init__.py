@@ -235,6 +235,7 @@ EffectBonfireOffer = _rs.EffectBonfireOffer
 EffectMonsterSpawn = _rs.EffectMonsterSpawn
 EffectCombatStart = _rs.EffectCombatStart
 EffectAdventurerSearch = _rs.EffectAdventurerSearch
+EffectMindBloomFight = _rs.EffectMindBloomFight
 EffectRelicGrantSpecific = _rs.EffectRelicGrantSpecific
 EffectEventAdvanceState = _rs.EffectEventAdvanceState
 EffectScrapOozeReach = _rs.EffectScrapOozeReach
@@ -272,7 +273,9 @@ EffectRewardRollRelic = _rs.EffectRewardRollRelic
 EffectDamageDeal = _rs.EffectDamageDeal
 EffectMatchFlipSeen = _rs.EffectMatchFlipSeen
 EffectMatchFlipUnseen = _rs.EffectMatchFlipUnseen
-EffectHalfDeadRevive = _rs.EffectHalfDeadRevive
+EffectHalfDeadRebirth = _rs.EffectHalfDeadRebirth
+EffectHealthSet = _rs.EffectHealthSet
+EffectRoomEnter = _rs.EffectRoomEnter
 RewardRollTrigger = _rs.RewardRollTrigger
 Effect = (
     EffectDamagePhysical
@@ -323,6 +326,7 @@ Effect = (
     | EffectMonsterSpawn
     | EffectCombatStart
     | EffectAdventurerSearch
+    | EffectMindBloomFight
     | EffectRelicGrantSpecific
     | EffectEventAdvanceState
     | EffectScrapOozeReach
@@ -360,7 +364,9 @@ Effect = (
     | EffectDamageDeal
     | EffectMatchFlipSeen
     | EffectMatchFlipUnseen
-    | EffectHalfDeadRevive
+    | EffectHalfDeadRebirth
+    | EffectHealthSet
+    | EffectRoomEnter
 )
 
 # The kinds that can park in GameState.effect_pending. A halt only happens on a
@@ -592,6 +598,7 @@ __all__ = [
     "EffectMonsterSpawn",
     "EffectCombatStart",
     "EffectAdventurerSearch",
+    "EffectMindBloomFight",
     "EffectRelicGrantSpecific",
     "EffectEventAdvanceState",
     "EffectScrapOozeReach",
@@ -629,7 +636,9 @@ __all__ = [
     "EffectDamageDeal",
     "EffectMatchFlipSeen",
     "EffectMatchFlipUnseen",
-    "EffectHalfDeadRevive",
+    "EffectHalfDeadRebirth",
+    "EffectHealthSet",
+    "EffectRoomEnter",
     "RewardRollTrigger",
     "Amount",
     "AmountAbsolute",

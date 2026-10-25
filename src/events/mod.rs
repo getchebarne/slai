@@ -19,6 +19,7 @@ mod knowing_skull;
 mod living_wall;
 mod masked_bandits;
 mod match_and_keep;
+mod mind_bloom;
 mod mushrooms;
 mod neow;
 mod nest;
@@ -26,6 +27,7 @@ mod nloth;
 mod ominous_forge;
 mod purifier;
 mod scrap_ooze;
+mod secret_portal;
 mod shining_light;
 mod the_cleric;
 mod the_divine_fountain;
@@ -193,6 +195,7 @@ pub fn spawn_event(state: &mut GameState, name: EventName) -> Vec<usize> {
         EventName::Mushrooms => mushrooms::spawn(state),
         EventName::GoldenIdol => golden_idol::spawn(state),
         EventName::ScrapOoze => scrap_ooze::spawn(state),
+        EventName::SecretPortal => secret_portal::spawn(state),
         EventName::WeMeetAgain => we_meet_again::spawn(state),
         EventName::DeadAdventurer => dead_adventurer::spawn(state),
         EventName::Neow => neow::spawn(state),
@@ -214,6 +217,7 @@ pub fn spawn_event(state: &mut GameState, name: EventName) -> Vec<usize> {
         EventName::ForgottenAltar => forgotten_altar::spawn(state),
         EventName::Nloth => nloth::spawn(state),
         EventName::MatchAndKeep => match_and_keep::spawn(state),
+        EventName::MindBloom => mind_bloom::spawn(state),
         EventName::TombOfLordRedMask => tomb_of_lord_red_mask::spawn(state),
     }
 }
@@ -246,6 +250,7 @@ pub fn options_catalog(name: EventName, ascension: u8) -> &'static [EventOptionT
         EventName::Mushrooms => mushrooms::catalog(ascension),
         EventName::GoldenIdol => golden_idol::catalog(ascension),
         EventName::ScrapOoze => scrap_ooze::catalog(ascension),
+        EventName::SecretPortal => secret_portal::catalog(ascension),
         EventName::WeMeetAgain => we_meet_again::catalog(ascension),
         EventName::DeadAdventurer => dead_adventurer::catalog(ascension),
         EventName::Neow => neow::catalog(ascension),
@@ -267,6 +272,7 @@ pub fn options_catalog(name: EventName, ascension: u8) -> &'static [EventOptionT
         EventName::ForgottenAltar => forgotten_altar::catalog(ascension),
         EventName::Nloth => nloth::catalog(ascension),
         EventName::MatchAndKeep => match_and_keep::catalog(ascension),
+        EventName::MindBloom => mind_bloom::catalog(ascension),
         EventName::TombOfLordRedMask => tomb_of_lord_red_mask::catalog(ascension),
     }
 }
@@ -289,7 +295,7 @@ pub struct EventLoot {
     pub relics: [Option<RelicRoll>; 2],
 }
 
-pub fn fight_loot(event: &Event) -> Option<EventLoot> {
+pub fn fight_loot(event: &Event, ascension: u8) -> Option<EventLoot> {
     match event.name {
         EventName::Mushrooms => Some(mushrooms::FIGHT_LOOT),
         EventName::MaskedBandits => Some(masked_bandits::FIGHT_LOOT),
@@ -313,6 +319,11 @@ pub fn fight_loot(event: &Event) -> Option<EventLoot> {
                 ],
             })
         }
+        EventName::MindBloom => Some(if ascension < 13 {
+            mind_bloom::FIGHT_LOOT_BASE
+        } else {
+            mind_bloom::FIGHT_LOOT_A13
+        }),
 
         // Every fight-hosting event must claim an arm; None is reserved for
         // deliberate unpaid bouts (Colosseum's first)
@@ -348,6 +359,7 @@ pub fn event_option_available(state: &GameState, idx: usize) -> bool {
         EventName::Mushrooms => mushrooms::option_available(state, idx),
         EventName::GoldenIdol => golden_idol::option_available(state, idx),
         EventName::ScrapOoze => scrap_ooze::option_available(state, idx),
+        EventName::SecretPortal => secret_portal::option_available(state, idx),
         EventName::WeMeetAgain => we_meet_again::option_available(state, idx),
         EventName::DeadAdventurer => dead_adventurer::option_available(state, idx),
         EventName::Neow => neow::option_available(state, idx),
@@ -369,6 +381,7 @@ pub fn event_option_available(state: &GameState, idx: usize) -> bool {
         EventName::ForgottenAltar => forgotten_altar::option_available(state, idx),
         EventName::Nloth => nloth::option_available(state, idx),
         EventName::MatchAndKeep => match_and_keep::option_available(state, idx),
+        EventName::MindBloom => mind_bloom::option_available(state, idx),
         EventName::TombOfLordRedMask => tomb_of_lord_red_mask::option_available(state, idx),
     }
 }

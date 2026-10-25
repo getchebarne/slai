@@ -420,6 +420,10 @@ pub fn spawn_encounter_monsters(state: &mut GameState, encounter: MonsterEncount
                 });
             }
         }
+        MonsterEncounter::TwoOrbWalkers => {
+            push_monster_spawn(effects, MonsterName::OrbWalker, 0);
+            push_monster_spawn(effects, MonsterName::OrbWalker, 1);
+        }
         MonsterEncounter::SphericGuardian => {
             push_monster_spawn(effects, MonsterName::SphericGuardian, 0)
         }
@@ -491,12 +495,23 @@ pub fn spawn_encounter_monsters(state: &mut GameState, encounter: MonsterEncount
             push_monster_spawn(effects, MonsterName::TheCollector, 2)
         }
         MonsterEncounter::Champ => push_monster_spawn(effects, MonsterName::Champ, 0),
+        MonsterEncounter::OrbWalker => push_monster_spawn(effects, MonsterName::OrbWalker, 0),
         MonsterEncounter::JawWormHorde => {
             for slot in 0..3 {
                 push_monster_spawn(effects, MonsterName::JawWormHard, slot);
             }
         }
         MonsterEncounter::Maw => push_monster_spawn(effects, MonsterName::Maw, 0),
+        MonsterEncounter::DonuAndDeca => {
+            push_monster_spawn(effects, MonsterName::Deca, 0);
+            push_monster_spawn(effects, MonsterName::Donu, 1);
+        }
+        MonsterEncounter::TimeEater => push_monster_spawn(effects, MonsterName::TimeEater, 0),
+        MonsterEncounter::AwakenedOne => {
+            push_monster_spawn(effects, MonsterName::Cultist, 0);
+            push_monster_spawn(effects, MonsterName::Cultist, 1);
+            push_monster_spawn(effects, MonsterName::AwakenedOne, 2);
+        }
         MonsterEncounter::WrithingMass => push_monster_spawn(effects, MonsterName::WrithingMass, 0),
     }
 
