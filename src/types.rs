@@ -457,6 +457,7 @@ pub enum MonsterName {
     SlimeSpikeMedium,
     SlimeSpikeSmall,
     TheGuardian,
+    TimeEater,
     Byrd,
     Centurion,
     Chosen,
@@ -550,6 +551,9 @@ pub enum MonsterEncounter {
     // Act 3 hard
     JawWormHorde,
     Maw,
+
+    // Act 3 boss
+    TimeEater,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

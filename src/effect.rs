@@ -185,6 +185,9 @@ pub enum EffectKind {
     HealthLowerTo {
         amount: Amount,
     },
+    HealthRaiseTo {
+        amount: Amount,
+    },
     HeelHookProc {
         damage: u16,
     },

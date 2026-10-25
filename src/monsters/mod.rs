@@ -44,6 +44,7 @@ pub mod spheric_guardian;
 pub mod taskmaster;
 pub mod the_collector;
 pub mod the_guardian;
+pub mod time_eater;
 pub mod torch_head;
 
 use crate::consts::MAX_EFFECTS_PER_MOVE;
@@ -159,6 +160,7 @@ pub const ALL_MONSTERS: &[&'static MonsterTemplate] = &[
     &taskmaster::TASKMASTER,
     &the_collector::THE_COLLECTOR,
     &the_guardian::THE_GUARDIAN,
+    &time_eater::TIME_EATER,
     &torch_head::TORCH_HEAD,
 ];
 const _: () = assert!(ALL_MONSTERS.len() == MonsterName::COUNT);
@@ -315,6 +317,7 @@ pub fn monster_template(monster_name: MonsterName) -> &'static MonsterTemplate {
         MonsterName::BanditLeader => &bandit_leader::BANDIT_LEADER,
         MonsterName::BanditPointy => &bandit_pointy::BANDIT_POINTY,
         MonsterName::Maw => &maw::MAW,
+        MonsterName::TimeEater => &time_eater::TIME_EATER,
     }
 }
 
@@ -540,6 +543,13 @@ pub fn get_next_move(
         ),
         MonsterName::BanditPointy => 0,
         MonsterName::Maw => maw::get_next_move_maw(entity.monster_move_current, history, rng),
+        MonsterName::TimeEater => time_eater::get_next_move_time_eater(
+            history,
+            &entity.monster_move_uses,
+            entity.vitals.health,
+            entity.vitals.health_max,
+            rng,
+        ),
     }
 }
 

@@ -33,8 +33,8 @@ mirror_enum!(PyMonsterName from MonsterName, "MonsterName", {
     Cultist, FungiBeast, GremlinFat, GremlinNob, GremlinThief, GremlinTsundere, GremlinWarrior,
     GremlinWizard, Hexaghost, JawWorm, JawWormHard, Lagavulin, Looter, LouseDefensive, LouseNormal,
     Maw, Sentry, SlaverBlue, SlaverRed, SlimeAcidLarge, SlimeAcidMedium, SlimeAcidSmall, SlimeBoss,
-    SlimeSpikeLarge, SlimeSpikeMedium, SlimeSpikeSmall, TheGuardian, Byrd, Centurion, Chosen,
-    Healer, Mugger, ShelledParasite, SnakePlant, Snecko, SphericGuardian, BookOfStabbing,
+    SlimeSpikeLarge, SlimeSpikeMedium, SlimeSpikeSmall, TheGuardian, TimeEater, Byrd, Centurion,
+    Chosen, Healer, Mugger, ShelledParasite, SnakePlant, Snecko, SphericGuardian, BookOfStabbing,
     GremlinLeader, Taskmaster, BronzeAutomaton, BronzeOrb, Champ, TheCollector, TorchHead,
     BanditBear, BanditLeader, BanditPointy,
 });
@@ -46,7 +46,7 @@ mirror_enum!(PyMonsterEncounter from MonsterEncounter, "MonsterEncounter", {
     LagavulinEvent, SphericGuardian, Chosen, ShelledParasite, ThreeByrds, TwoThieves, SnakePlant,
     CenturionAndHealer, Snecko, CultistAndChosen, ThreeCultists, ShelledParasiteAndFungi,
     ChosenAndByrds, SentryAndSphere, GremlinLeader, Slavers, BookOfStabbing, BronzeAutomaton,
-    TheCollector, Champ, JawWormHorde, Maw,
+    TheCollector, Champ, JawWormHorde, Maw, TimeEater,
 });
 
 #[pyclass(
@@ -65,6 +65,7 @@ pub enum PyIntentKind {
     AttackDebuff,
     Block,
     BlockBuff,
+    BlockDebuff,
     Buff,
     Debuff,
     DebuffPowerful,
@@ -98,6 +99,7 @@ impl From<Intent> for PyIntentKind {
             Intent::AttackDebuff { .. } => Self::AttackDebuff,
             Intent::Block => Self::Block,
             Intent::BlockBuff => Self::BlockBuff,
+            Intent::BlockDebuff => Self::BlockDebuff,
             Intent::Buff => Self::Buff,
             Intent::Debuff => Self::Debuff,
             Intent::DebuffPowerful => Self::DebuffPowerful,
@@ -194,6 +196,7 @@ pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
                     | Intent::AttackDebuff { damage, instances } => (Some(damage), Some(instances)),
                     Intent::Block
                     | Intent::BlockBuff
+                    | Intent::BlockDebuff
                     | Intent::Buff
                     | Intent::Debuff
                     | Intent::DebuffPowerful
