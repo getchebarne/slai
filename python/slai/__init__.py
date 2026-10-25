@@ -274,7 +274,7 @@ EffectDamageDeal = _rs.EffectDamageDeal
 EffectMatchFlipSeen = _rs.EffectMatchFlipSeen
 EffectMatchFlipUnseen = _rs.EffectMatchFlipUnseen
 EffectHalfDeadRevive = _rs.EffectHalfDeadRevive
-EffectHealthRaiseTo = _rs.EffectHealthRaiseTo
+EffectHealthSet = _rs.EffectHealthSet
 RewardRollTrigger = _rs.RewardRollTrigger
 Effect = (
     EffectDamagePhysical
@@ -364,7 +364,7 @@ Effect = (
     | EffectMatchFlipSeen
     | EffectMatchFlipUnseen
     | EffectHalfDeadRevive
-    | EffectHealthRaiseTo
+    | EffectHealthSet
 )
 
 # The kinds that can park in GameState.effect_pending. A halt only happens on a
@@ -635,7 +635,7 @@ __all__ = [
     "EffectMatchFlipSeen",
     "EffectMatchFlipUnseen",
     "EffectHalfDeadRevive",
-    "EffectHealthRaiseTo",
+    "EffectHealthSet",
     "RewardRollTrigger",
     "Amount",
     "AmountAbsolute",

@@ -341,7 +341,7 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEffectHealthDelta;
     #[pymodule_export]
-    use super::ffi::PyEffectHealthRaiseTo;
+    use super::ffi::PyEffectHealthSet;
     #[pymodule_export]
     use super::ffi::PyEffectHeelHookProc;
     #[pymodule_export]

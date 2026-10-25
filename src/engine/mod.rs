@@ -64,8 +64,7 @@ pub mod process_effect_gremlin_summon;
 pub mod process_effect_half_dead_revive;
 pub mod process_effect_hand_of_greed_proc;
 pub mod process_effect_health_delta;
-pub mod process_effect_health_lower_to;
-pub mod process_effect_health_raise_to;
+pub mod process_effect_health_set;
 pub mod process_effect_heel_hook_proc;
 pub mod process_effect_hexaghost_burn_increase;
 pub mod process_effect_joust_bet;
@@ -199,8 +198,7 @@ use self::process_effect_gremlin_summon::process_effect_gremlin_summon;
 use self::process_effect_half_dead_revive::process_effect_half_dead_revive;
 use self::process_effect_hand_of_greed_proc::process_effect_hand_of_greed_proc;
 use self::process_effect_health_delta::process_effect_health_delta;
-use self::process_effect_health_lower_to::process_effect_health_lower_to;
-use self::process_effect_health_raise_to::process_effect_health_raise_to;
+use self::process_effect_health_set::process_effect_health_set;
 use self::process_effect_heel_hook_proc::process_effect_heel_hook_proc;
 use self::process_effect_hexaghost_burn_increase::process_effect_hexaghost_burn_increase;
 use self::process_effect_joust_bet::process_effect_joust_bet;
@@ -648,12 +646,7 @@ fn dispatch_by_kind(
         EffectKind::HealthDelta { sign, amount } => {
             process_effect_health_delta(id_source, id_target, state, sign, amount)
         }
-        EffectKind::HealthLowerTo { amount } => {
-            process_effect_health_lower_to(id_target, state, amount)
-        }
-        EffectKind::HealthRaiseTo { amount } => {
-            process_effect_health_raise_to(id_target, state, amount)
-        }
+        EffectKind::HealthSet { amount } => process_effect_health_set(id_target, state, amount),
         EffectKind::BlockGain { amount } => {
             process_effect_block_gain(id_source, id_target, state, amount)
         }

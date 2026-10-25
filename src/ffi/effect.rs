@@ -121,7 +121,7 @@ flat_variants!(PyEffect {
     MatchFlipSeen => PyEffectMatchFlipSeen as "EffectMatchFlipSeen" { target: PyTarget },
     MatchFlipUnseen => PyEffectMatchFlipUnseen as "EffectMatchFlipUnseen",
     HalfDeadRevive => PyEffectHalfDeadRevive as "EffectHalfDeadRevive" { target: PyTarget },
-    HealthRaiseTo => PyEffectHealthRaiseTo as "EffectHealthRaiseTo" { amount: PyAmountScalar, target: PyTarget },
+    HealthSet => PyEffectHealthSet as "EffectHealthSet" { amount: PyAmountScalar, target: PyTarget },
 });
 
 // The kinds that can park in `state.effect_pending`
@@ -613,7 +613,7 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
         EffectKind::HalfDeadRevive => PyEffect::HalfDeadRevive(PyEffectHalfDeadRevive {
             target: require_target(target),
         }),
-        EffectKind::HealthRaiseTo { amount } => PyEffect::HealthRaiseTo(PyEffectHealthRaiseTo {
+        EffectKind::HealthSet { amount } => PyEffect::HealthSet(PyEffectHealthSet {
             amount: amount.into(),
             target: require_target(target),
         }),

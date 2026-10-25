@@ -87,8 +87,70 @@ static MOVE_RIPPLE_A19: Move = make_move(
     Intent::BlockDebuff,
 );
 
+// Haste: shed every debuff, then heal to half max HP
+static MOVE_HASTE: Move = make_move(
+    "Haste",
+    &[
+        Effect {
+            kind: EffectKind::DebuffsClear,
+            id_source: None,
+            target: TARGET_SOURCE,
+        },
+        Effect {
+            kind: EffectKind::HealthSet {
+                amount: Amount::Relative {
+                    numerator: 1,
+                    denominator: 2,
+                    rounding: Rounding::Truncate,
+                    read_at: ReadAt::Now,
+                },
+            },
+            id_source: None,
+            target: TARGET_SOURCE,
+        },
+    ],
+    Intent::Buff,
+);
+
+// A19+ Haste also gains 32 block
+static MOVE_HASTE_A19: Move = make_move(
+    "Haste",
+    &[
+        Effect {
+            kind: EffectKind::DebuffsClear,
+            id_source: None,
+            target: TARGET_SOURCE,
+        },
+        Effect {
+            kind: EffectKind::HealthSet {
+                amount: Amount::Relative {
+                    numerator: 1,
+                    denominator: 2,
+                    rounding: Rounding::Truncate,
+                    read_at: ReadAt::Now,
+                },
+            },
+            id_source: None,
+            target: TARGET_SOURCE,
+        },
+        Effect {
+            kind: EffectKind::BlockGain { amount: 32 },
+            id_source: None,
+            target: TARGET_SOURCE,
+        },
+    ],
+    Intent::Buff,
+);
+
+static MOVE_REVERBERATE_7: Move = move_attack("Reverberate", 7, 3);
+static MOVE_REVERBERATE_8: Move = move_attack("Reverberate", 8, 3);
+static MOVE_HEAD_SLAM_26: Move =
+    move_attack_debuff("Head Slam", 26, ModifierKind::DrawReduction, 1);
+static MOVE_HEAD_SLAM_32: Move =
+    move_attack_debuff("Head Slam", 32, ModifierKind::DrawReduction, 1);
+
 // A19+ Head Slam also adds two Slimed to the discard pile
-static MOVE_HEAD_SLAM_A19: Move = make_move(
+static MOVE_HEAD_SLAM_32_A19: Move = make_move(
     "Head Slam",
     &[
         Effect {
@@ -125,68 +187,6 @@ static MOVE_HEAD_SLAM_A19: Move = make_move(
     },
 );
 
-// Haste: shed every debuff, then heal to half max HP
-static MOVE_HASTE: Move = make_move(
-    "Haste",
-    &[
-        Effect {
-            kind: EffectKind::DebuffsClear,
-            id_source: None,
-            target: TARGET_SOURCE,
-        },
-        Effect {
-            kind: EffectKind::HealthRaiseTo {
-                amount: Amount::Relative {
-                    numerator: 1,
-                    denominator: 2,
-                    rounding: Rounding::Truncate,
-                    read_at: ReadAt::Now,
-                },
-            },
-            id_source: None,
-            target: TARGET_SOURCE,
-        },
-    ],
-    Intent::Buff,
-);
-
-// A19+ Haste also gains 32 block
-static MOVE_HASTE_A19: Move = make_move(
-    "Haste",
-    &[
-        Effect {
-            kind: EffectKind::DebuffsClear,
-            id_source: None,
-            target: TARGET_SOURCE,
-        },
-        Effect {
-            kind: EffectKind::HealthRaiseTo {
-                amount: Amount::Relative {
-                    numerator: 1,
-                    denominator: 2,
-                    rounding: Rounding::Truncate,
-                    read_at: ReadAt::Now,
-                },
-            },
-            id_source: None,
-            target: TARGET_SOURCE,
-        },
-        Effect {
-            kind: EffectKind::BlockGain { amount: 32 },
-            id_source: None,
-            target: TARGET_SOURCE,
-        },
-    ],
-    Intent::Buff,
-);
-
-static MOVE_REVERBERATE_7: Move = move_attack("Reverberate", 7, 3);
-static MOVE_REVERBERATE_8: Move = move_attack("Reverberate", 8, 3);
-static MOVE_HEAD_SLAM_26: Move =
-    move_attack_debuff("Head Slam", 26, ModifierKind::DrawReduction, 1);
-static MOVE_HEAD_SLAM_32: Move =
-    move_attack_debuff("Head Slam", 32, ModifierKind::DrawReduction, 1);
-
 static MOVES_ASC0: [Move; 4] = [
     MOVE_REVERBERATE_7,
     MOVE_RIPPLE,
@@ -202,7 +202,7 @@ static MOVES_ASC4: [Move; 4] = [
 static MOVES_ASC19: [Move; 4] = [
     MOVE_REVERBERATE_8,
     MOVE_RIPPLE_A19,
-    MOVE_HEAD_SLAM_A19,
+    MOVE_HEAD_SLAM_32_A19,
     MOVE_HASTE_A19,
 ];
 
