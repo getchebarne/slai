@@ -65,6 +65,7 @@ mod lees_waffle;
 mod letter_opener;
 mod lizard_tail;
 mod mango;
+mod mark_of_the_bloom;
 mod matryoshka;
 mod maw_bank;
 mod meal_ticket;
@@ -310,6 +311,7 @@ pub const ALL_RELICS: &[&'static RelicTemplate] = &[
     &letter_opener::LETTER_OPENER,
     &lizard_tail::LIZARD_TAIL,
     &mango::MANGO,
+    &mark_of_the_bloom::MARK_OF_THE_BLOOM,
     &maw_bank::MAW_BANK,
     &meal_ticket::MEAL_TICKET,
     &meat_on_the_bone::MEAT_ON_THE_BONE,
