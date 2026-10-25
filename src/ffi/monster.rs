@@ -30,23 +30,25 @@ mirror_enum!(PyMonsterKind from MonsterKind, "MonsterKind", {
 });
 
 mirror_enum!(PyMonsterName from MonsterName, "MonsterName", {
-    Cultist, FungiBeast, GremlinFat, GremlinNob, GremlinThief, GremlinTsundere, GremlinWarrior,
-    GremlinWizard, Hexaghost, JawWorm, JawWormHard, Lagavulin, Looter, LouseDefensive, LouseNormal,
-    Maw, Sentry, SlaverBlue, SlaverRed, SlimeAcidLarge, SlimeAcidMedium, SlimeAcidSmall, SlimeBoss,
-    SlimeSpikeLarge, SlimeSpikeMedium, SlimeSpikeSmall, TheGuardian, Transient, Byrd, Centurion,
-    Chosen, Healer, Mugger, ShelledParasite, SnakePlant, Snecko, SphericGuardian, BookOfStabbing,
-    GremlinLeader, Taskmaster, BronzeAutomaton, BronzeOrb, Champ, TheCollector, TorchHead,
-    BanditBear, BanditLeader, BanditPointy,
+    AwakenedOne, Cultist, Deca, Donu, FungiBeast, GremlinFat, GremlinNob, GremlinThief,
+    GremlinTsundere, GremlinWarrior, GremlinWizard, Hexaghost, JawWorm, JawWormHard, Lagavulin,
+    Looter, LouseDefensive, LouseNormal, Maw, OrbWalker, Sentry, SlaverBlue, SlaverRed,
+    SlimeAcidLarge, SlimeAcidMedium, SlimeAcidSmall, SlimeBoss, SlimeSpikeLarge, SlimeSpikeMedium,
+    SlimeSpikeSmall, TheGuardian, TimeEater, Transient, Byrd, Centurion, Chosen, Healer, Mugger,
+    ShelledParasite, SnakePlant, Snecko, SphericGuardian, BookOfStabbing, GremlinLeader, Taskmaster,
+    BronzeAutomaton, BronzeOrb, Champ, TheCollector, TorchHead, BanditBear, BanditLeader,
+    BanditPointy,
 });
 
 mirror_enum!(PyMonsterEncounter from MonsterEncounter, "MonsterEncounter", {
     Cultist, JawWorm, TwoLouse, SmallSlimes, BlueSlaver, RedSlaver, Looter, TwoFungiBeasts,
-    ThreeLouse, LargeSlime, LotsOfSlimes, GremlinGang, ExordiumThugs, ExordiumWildlife,
-    GremlinNob, Lagavulin, ThreeSentries, TheGuardian, Hexaghost, SlimeBoss, ThreeFungiBeasts,
-    LagavulinEvent, SphericGuardian, Chosen, ShelledParasite, ThreeByrds, TwoThieves, SnakePlant,
+    ThreeLouse, LargeSlime, LotsOfSlimes, GremlinGang, ExordiumThugs, ExordiumWildlife, GremlinNob,
+    Lagavulin, ThreeSentries, TheGuardian, Hexaghost, SlimeBoss, ThreeFungiBeasts, LagavulinEvent,
+    TwoOrbWalkers, SphericGuardian, Chosen, ShelledParasite, ThreeByrds, TwoThieves, SnakePlant,
     CenturionAndHealer, Snecko, CultistAndChosen, ThreeCultists, ShelledParasiteAndFungi,
     ChosenAndByrds, SentryAndSphere, GremlinLeader, Slavers, BookOfStabbing, BronzeAutomaton,
-    TheCollector, Champ, JawWormHorde, Maw, Transient,
+    TheCollector, Champ, OrbWalker, JawWormHorde, Maw, Transient, AwakenedOne, DonuAndDeca,
+    TimeEater,
 });
 
 #[pyclass(
@@ -65,6 +67,7 @@ pub enum PyIntentKind {
     AttackDebuff,
     Block,
     BlockBuff,
+    BlockDebuff,
     Buff,
     Debuff,
     DebuffPowerful,
@@ -98,6 +101,7 @@ impl From<Intent> for PyIntentKind {
             Intent::AttackDebuff { .. } => Self::AttackDebuff,
             Intent::Block => Self::Block,
             Intent::BlockBuff => Self::BlockBuff,
+            Intent::BlockDebuff => Self::BlockDebuff,
             Intent::Buff => Self::Buff,
             Intent::Debuff => Self::Debuff,
             Intent::DebuffPowerful => Self::DebuffPowerful,
@@ -141,7 +145,7 @@ pub struct PyMonster {
     pub health: u16,
     pub health_max: u16,
     pub block: u16,
-    pub half_dead: bool, // At 0 HP, out of every Card's, hit's and Power's reach until its own rule revives or kills it
+    pub half_dead: bool, // At 0 HP, out of every Card's, hit's and Power's reach until its rebirth or its next Death
     pub modifiers: Vec<PyModifier>,
     pub intent: Option<PyIntent>,    // None while Runic Dome hides it
     pub move_effects: Vec<PyEffect>, // The current move's Effect payload; empty when the intent is hidden
@@ -194,6 +198,7 @@ pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
                     | Intent::AttackDebuff { damage, instances } => (Some(damage), Some(instances)),
                     Intent::Block
                     | Intent::BlockBuff
+                    | Intent::BlockDebuff
                     | Intent::Buff
                     | Intent::Debuff
                     | Intent::DebuffPowerful

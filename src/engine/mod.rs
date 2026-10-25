@@ -27,6 +27,7 @@ pub mod process_effect_card_nightmare_spawn;
 pub mod process_effect_card_pile_event_roll_clear;
 pub mod process_effect_card_place;
 pub mod process_effect_card_play_from_card_pile_draw_top;
+pub mod process_effect_card_play_queue_clear;
 pub mod process_effect_card_play_relocate;
 pub mod process_effect_card_purge;
 pub mod process_effect_card_remove;
@@ -61,10 +62,10 @@ pub mod process_effect_glass_knife_decay;
 pub mod process_effect_gold_delta;
 pub mod process_effect_gold_steal;
 pub mod process_effect_gremlin_summon;
-pub mod process_effect_half_dead_revive;
+pub mod process_effect_half_dead_rebirth;
 pub mod process_effect_hand_of_greed_proc;
 pub mod process_effect_health_delta;
-pub mod process_effect_health_lower_to;
+pub mod process_effect_health_set;
 pub mod process_effect_heel_hook_proc;
 pub mod process_effect_hexaghost_burn_increase;
 pub mod process_effect_joust_bet;
@@ -76,6 +77,7 @@ pub mod process_effect_match_flip_unseen;
 pub mod process_effect_mausoleum_open;
 pub mod process_effect_max_health_delta;
 pub mod process_effect_mayhem_proc;
+pub mod process_effect_mind_bloom_fight;
 pub mod process_effect_modifier_delta;
 pub mod process_effect_modifier_multiply;
 pub mod process_effect_modifier_remove;
@@ -160,6 +162,7 @@ use self::process_effect_card_nightmare_spawn::process_effect_card_nightmare_spa
 use self::process_effect_card_pile_event_roll_clear::process_effect_card_pile_event_roll_clear;
 use self::process_effect_card_place::process_effect_card_place;
 use self::process_effect_card_play_from_card_pile_draw_top::process_effect_card_play_from_card_pile_draw_top;
+use self::process_effect_card_play_queue_clear::process_effect_card_play_queue_clear;
 use self::process_effect_card_play_relocate::process_effect_card_play_relocate;
 use self::process_effect_card_purge::process_effect_card_purge;
 use self::process_effect_card_remove::process_effect_card_remove;
@@ -194,10 +197,10 @@ use self::process_effect_glass_knife_decay::process_effect_glass_knife_decay;
 use self::process_effect_gold_delta::process_effect_gold_delta;
 use self::process_effect_gold_steal::process_effect_gold_steal;
 use self::process_effect_gremlin_summon::process_effect_gremlin_summon;
-use self::process_effect_half_dead_revive::process_effect_half_dead_revive;
+use self::process_effect_half_dead_rebirth::process_effect_half_dead_rebirth;
 use self::process_effect_hand_of_greed_proc::process_effect_hand_of_greed_proc;
 use self::process_effect_health_delta::process_effect_health_delta;
-use self::process_effect_health_lower_to::process_effect_health_lower_to;
+use self::process_effect_health_set::process_effect_health_set;
 use self::process_effect_heel_hook_proc::process_effect_heel_hook_proc;
 use self::process_effect_hexaghost_burn_increase::process_effect_hexaghost_burn_increase;
 use self::process_effect_joust_bet::process_effect_joust_bet;
@@ -209,6 +212,7 @@ use self::process_effect_match_flip_unseen::process_effect_match_flip_unseen;
 use self::process_effect_mausoleum_open::process_effect_mausoleum_open;
 use self::process_effect_max_health_delta::process_effect_max_health_delta;
 use self::process_effect_mayhem_proc::process_effect_mayhem_proc;
+use self::process_effect_mind_bloom_fight::process_effect_mind_bloom_fight;
 use self::process_effect_modifier_delta::process_effect_modifier_delta;
 use self::process_effect_modifier_multiply::process_effect_modifier_multiply;
 use self::process_effect_modifier_remove::process_effect_modifier_remove;
@@ -558,6 +562,7 @@ fn dispatch_by_kind(
         EffectKind::CardPlayFromCardPileDrawTop => {
             process_effect_card_play_from_card_pile_draw_top(id_target, state)
         }
+        EffectKind::CardPlayQueueClear => process_effect_card_play_queue_clear(state),
         EffectKind::BombArm { turns, damage } => process_effect_bomb_arm(state, turns, damage),
         EffectKind::BombTick { seq } => process_effect_bomb_tick(state, seq),
         EffectKind::LifestealHeal => process_effect_lifesteal_heal(id_target, state),
@@ -565,6 +570,7 @@ fn dispatch_by_kind(
         EffectKind::CardRemove => process_effect_card_remove(id_target, state),
         EffectKind::ActTransition => process_effect_act_transition(state),
         EffectKind::AdventurerSearch => process_effect_adventurer_search(state),
+        EffectKind::MindBloomFight => process_effect_mind_bloom_fight(state),
         EffectKind::BonfireOffer => process_effect_bonfire_offer(id_target, state),
         EffectKind::CardBottle => process_effect_card_bottle(id_target, state),
         EffectKind::CardCostMinusDiscards => {
@@ -643,9 +649,7 @@ fn dispatch_by_kind(
         EffectKind::HealthDelta { sign, amount } => {
             process_effect_health_delta(id_source, id_target, state, sign, amount)
         }
-        EffectKind::HealthLowerTo { amount } => {
-            process_effect_health_lower_to(id_target, state, amount)
-        }
+        EffectKind::HealthSet { amount } => process_effect_health_set(id_target, state, amount),
         EffectKind::BlockGain { amount } => {
             process_effect_block_gain(id_source, id_target, state, amount)
         }
@@ -668,7 +672,7 @@ fn dispatch_by_kind(
             // Character can die outside Combat; empty Monster slots make iter a no-op
             process_effect_death(id_target, state, with_leader)
         }
-        EffectKind::HalfDeadRevive => process_effect_half_dead_revive(id_target, state),
+        EffectKind::HalfDeadRebirth => process_effect_half_dead_rebirth(id_target, state),
         EffectKind::DefensiveMode => process_effect_defensive_mode(id_target, state),
         EffectKind::LagavulinWake => process_effect_lagavulin_wake(id_target, state),
         EffectKind::CombatStart { elite } => process_effect_combat_start(state, elite),

@@ -65,6 +65,7 @@ pub enum Intent {
     AttackDebuff { damage: u16, instances: u8 },
     Block,
     BlockBuff,
+    BlockDebuff,
     Buff,
     Debuff,
     DebuffPowerful,
@@ -110,7 +111,7 @@ pub struct Entity {
     pub monster_move_uses: [u8; MAX_MONSTER_MOVES],
     pub monster_gold_stolen: u16, // Only used by "Looter" and "Mugger"
     pub monster_curl_up_triggered: bool, // Only used by "Green Louse" and "Red Louse"
-    pub monster_half_dead: bool, // At 0 HP but still in its slot and taking its turns; no Card, hit, HP loss or Power reaches it until its own rule revives or kills it
+    pub monster_half_dead: bool, // At 0 HP but still in its slot and taking its turns; no Card, hit, HP loss or Power reaches it until its rebirth or its next Death
 
     // Card-only
     pub card_name: CardName,
