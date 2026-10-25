@@ -1,3 +1,4 @@
+pub mod awakened_one;
 pub mod bandit_bear;
 pub mod bandit_leader;
 pub mod bandit_pointy;
@@ -64,6 +65,7 @@ use crate::entity::Move;
 use crate::modifier::MODIFIERS_ZERO;
 use crate::modifier::ModifierKind;
 use crate::modifier::Modifiers;
+use crate::modifier::has_modifier;
 use crate::modifier::modifier_apply;
 use crate::types::CardName;
 use crate::types::CardPile;
@@ -113,6 +115,7 @@ pub struct MonsterTemplate {
 
 // Every MonsterTemplate, for compile-time validation and template enumeration
 pub const ALL_MONSTERS: &[&'static MonsterTemplate] = &[
+    &awakened_one::AWAKENED_ONE,
     &bandit_bear::BANDIT_BEAR,
     &bandit_leader::BANDIT_LEADER,
     &bandit_pointy::BANDIT_POINTY,
@@ -268,6 +271,7 @@ pub fn spawn_monster(monster_name: MonsterName, ascension_level: u8, rng: &mut i
 // Named arms: a new MonsterName fails compilation here until it has a template
 pub fn monster_template(monster_name: MonsterName) -> &'static MonsterTemplate {
     match monster_name {
+        MonsterName::AwakenedOne => &awakened_one::AWAKENED_ONE,
         MonsterName::Cultist => &cultist::CULTIST,
         MonsterName::JawWorm => &jaw_worm::JAW_WORM,
         MonsterName::JawWormHard => &jaw_worm::JAW_WORM_HARD,
@@ -387,6 +391,12 @@ pub fn get_next_move(
         | MonsterName::GremlinFat
         | MonsterName::GremlinThief
         | MonsterName::GremlinWarrior => 0,
+        MonsterName::AwakenedOne => awakened_one::get_next_move_awakened_one(
+            entity.monster_move_current,
+            history,
+            &entity.modifiers,
+            rng,
+        ),
         MonsterName::Cultist => cultist::get_next_move_cultist(entity.monster_move_current),
         MonsterName::JawWorm => {
             jaw_worm::get_next_move_jaw_worm(entity.monster_move_current, history, rng)
@@ -543,9 +553,13 @@ pub fn get_next_move(
     }
 }
 
-// A Monster brought to 0 HP dies unless its own rule makes it half-dead; no Monster has one yet
-pub fn monster_half_dies(_entity: &Entity) -> bool {
-    false
+// A Monster brought to 0 HP dies unless its own rule makes it half-dead
+pub fn monster_half_dies(entity: &Entity) -> bool {
+    match entity.monster_name {
+        // The Awakened One's first form, which holds Unawakened
+        MonsterName::AwakenedOne => has_modifier(&entity.modifiers, ModifierKind::Unawakened),
+        _ => false,
+    }
 }
 
 // The repeated Monster move shapes; each spells out one Effect array longhand

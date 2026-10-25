@@ -27,6 +27,7 @@ pub mod process_effect_card_nightmare_spawn;
 pub mod process_effect_card_pile_event_roll_clear;
 pub mod process_effect_card_place;
 pub mod process_effect_card_play_from_card_pile_draw_top;
+pub mod process_effect_card_play_queue_clear;
 pub mod process_effect_card_play_relocate;
 pub mod process_effect_card_purge;
 pub mod process_effect_card_remove;
@@ -160,6 +161,7 @@ use self::process_effect_card_nightmare_spawn::process_effect_card_nightmare_spa
 use self::process_effect_card_pile_event_roll_clear::process_effect_card_pile_event_roll_clear;
 use self::process_effect_card_place::process_effect_card_place;
 use self::process_effect_card_play_from_card_pile_draw_top::process_effect_card_play_from_card_pile_draw_top;
+use self::process_effect_card_play_queue_clear::process_effect_card_play_queue_clear;
 use self::process_effect_card_play_relocate::process_effect_card_play_relocate;
 use self::process_effect_card_purge::process_effect_card_purge;
 use self::process_effect_card_remove::process_effect_card_remove;
@@ -558,6 +560,7 @@ fn dispatch_by_kind(
         EffectKind::CardPlayFromCardPileDrawTop => {
             process_effect_card_play_from_card_pile_draw_top(id_target, state)
         }
+        EffectKind::CardPlayQueueClear => process_effect_card_play_queue_clear(state),
         EffectKind::BombArm { turns, damage } => process_effect_bomb_arm(state, turns, damage),
         EffectKind::BombTick { seq } => process_effect_bomb_tick(state, seq),
         EffectKind::LifestealHeal => process_effect_lifesteal_heal(id_target, state),

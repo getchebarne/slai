@@ -333,6 +333,7 @@ pub enum CardName {
     Terror,
     ToolsOfTheTrade,
     Unload,
+    Void,
     WellLaidPlans,
     WraithForm,
 
@@ -430,6 +431,7 @@ pub enum CardRarity {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumCount, EnumIter)]
 #[repr(u8)]
 pub enum MonsterName {
+    AwakenedOne,
     Cultist,
     FungiBeast,
     GremlinFat,
@@ -550,6 +552,9 @@ pub enum MonsterEncounter {
     // Act 3 hard
     JawWormHorde,
     Maw,
+
+    // Act 3 boss
+    AwakenedOne,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

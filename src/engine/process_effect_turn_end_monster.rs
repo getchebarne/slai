@@ -1,3 +1,4 @@
+use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
@@ -6,6 +7,7 @@ use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
 use crate::modifier::modifier_stacks;
 use crate::monsters::snake_plant;
+use crate::types::DeltaSign;
 
 // A Monster unwinds its per-turn kit at its turn end
 pub fn process_effect_turn_end_monster(id_target: Option<usize>, state: &mut GameState) {
@@ -59,6 +61,21 @@ pub fn process_effect_turn_end_monster(id_target: Option<usize>, state: &mut Gam
             kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::Malleable,
                 stacks: snake_plant::MALLEABLE_BASE - stacks,
+            },
+            id_source: None,
+            target: Target::Direct(Some(id_monster)),
+        });
+    }
+
+    // Regenerate: the owner heals its stacks at its turn end unless it's half-dead; the stacks never wear off
+    if has_modifier(modifiers, ModifierKind::Regenerate)
+        && !state.entities[id_monster].monster_half_dead
+    {
+        let stacks = modifier_stacks(modifiers, ModifierKind::Regenerate);
+        state.effect_queue.push_front(Effect {
+            kind: EffectKind::HealthDelta {
+                sign: DeltaSign::Gain,
+                amount: Amount::Absolute(stacks as u16),
             },
             id_source: None,
             target: Target::Direct(Some(id_monster)),
