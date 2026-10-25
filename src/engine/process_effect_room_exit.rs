@@ -52,7 +52,7 @@ pub fn process_effect_room_exit(state: &mut GameState) {
         _ => {}
     }
 
-    // Final-row rest Room enters the boss instead of returning to the map
+    // The final-row rest site's exit enters the boss; Secret Portal enters it from its event
     if matches!(state.location, Location::Overworld { y, .. } if y == MAP_HEIGHT - 1)
         && get_active_room_kind(&state.id_rooms, state.location, &state.entities)
             == Some(RoomKind::RestSite)
