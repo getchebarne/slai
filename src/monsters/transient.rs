@@ -6,18 +6,43 @@ use crate::monsters::move_attack;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
 
-// The damage is the first attack's; 10 per earlier attack is added when the move is chosen
-static MOVES_ASC0: [Move; 1] = [move_attack("Attack", 30, 1)];
-static MOVES_ASC2: [Move; 1] = [move_attack("Attack", 40, 1)];
-
-pub const IDX_MOVE_ATTACK: usize = 0;
+// 10 more per attack; Fading ends it after its fifth (sixth from A17), just after it picks the last entry
+static MOVES_ASC0: [Move; 6] = [
+    move_attack("Attack", 30, 1),
+    move_attack("Attack", 40, 1),
+    move_attack("Attack", 50, 1),
+    move_attack("Attack", 60, 1),
+    move_attack("Attack", 70, 1),
+    move_attack("Attack", 80, 1),
+];
+static MOVES_ASC2: [Move; 6] = [
+    move_attack("Attack", 40, 1),
+    move_attack("Attack", 50, 1),
+    move_attack("Attack", 60, 1),
+    move_attack("Attack", 70, 1),
+    move_attack("Attack", 80, 1),
+    move_attack("Attack", 90, 1),
+];
+static MOVES_ASC17: [Move; 7] = [
+    move_attack("Attack", 40, 1),
+    move_attack("Attack", 50, 1),
+    move_attack("Attack", 60, 1),
+    move_attack("Attack", 70, 1),
+    move_attack("Attack", 80, 1),
+    move_attack("Attack", 90, 1),
+    move_attack("Attack", 100, 1),
+];
 
 pub static TRANSIENT: MonsterTemplate = MonsterTemplate {
     name: MonsterName::Transient,
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (999, 999))],
     block_tiers: &[],
-    move_tiers: &[(0, &[&MOVES_ASC0]), (2, &[&MOVES_ASC2])],
+    move_tiers: &[
+        (0, &[&MOVES_ASC0]),
+        (2, &[&MOVES_ASC2]),
+        (17, &[&MOVES_ASC17]),
+    ],
     modifier_tiers: &[
         (
             0,
@@ -35,3 +60,8 @@ pub static TRANSIENT: MonsterTemplate = MonsterTemplate {
         ),
     ],
 };
+
+// Each turn takes the table's next attack
+pub fn get_next_move_transient(move_history: &[u8]) -> usize {
+    move_history.len()
+}

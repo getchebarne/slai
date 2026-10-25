@@ -405,8 +405,8 @@ pub fn get_next_move(
         MonsterName::SlimeSpikeSmall
         | MonsterName::GremlinFat
         | MonsterName::GremlinThief
-        | MonsterName::GremlinWarrior
-        | MonsterName::Transient => 0,
+        | MonsterName::GremlinWarrior => 0,
+        MonsterName::Transient => transient::get_next_move_transient(history),
         MonsterName::AwakenedOne => awakened_one::get_next_move_awakened_one(
             entity.monster_move_current,
             history,
