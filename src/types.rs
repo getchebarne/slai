@@ -446,6 +446,7 @@ pub enum MonsterName {
     LouseDefensive,
     LouseNormal,
     Maw,
+    Nemesis,
     Sentry,
     SlaverBlue,
     SlaverRed,
@@ -550,6 +551,9 @@ pub enum MonsterEncounter {
     // Act 3 hard
     JawWormHorde,
     Maw,
+
+    // Act 3 elite
+    Nemesis,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

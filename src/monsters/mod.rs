@@ -27,6 +27,7 @@ pub mod louse_green;
 pub mod louse_red;
 pub mod maw;
 pub mod mugger;
+pub mod nemesis;
 pub mod sentry;
 pub mod shelled_parasite;
 pub mod slaver_blue;
@@ -142,6 +143,7 @@ pub const ALL_MONSTERS: &[&'static MonsterTemplate] = &[
     &louse_red::LOUSE_NORMAL,
     &maw::MAW,
     &mugger::MUGGER,
+    &nemesis::NEMESIS,
     &sentry::SENTRY,
     &shelled_parasite::SHELLED_PARASITE,
     &slaver_blue::SLAVER_BLUE,
@@ -315,6 +317,7 @@ pub fn monster_template(monster_name: MonsterName) -> &'static MonsterTemplate {
         MonsterName::BanditLeader => &bandit_leader::BANDIT_LEADER,
         MonsterName::BanditPointy => &bandit_pointy::BANDIT_POINTY,
         MonsterName::Maw => &maw::MAW,
+        MonsterName::Nemesis => &nemesis::NEMESIS,
     }
 }
 
@@ -540,6 +543,9 @@ pub fn get_next_move(
         ),
         MonsterName::BanditPointy => 0,
         MonsterName::Maw => maw::get_next_move_maw(entity.monster_move_current, history, rng),
+        MonsterName::Nemesis => {
+            nemesis::get_next_move_nemesis(entity.monster_move_current, history, rng)
+        }
     }
 }
 

@@ -362,6 +362,9 @@ fn entity_matches(filter: CandidateFilter, entity: &Entity) -> bool {
         | CandidateFilter::NotSourceUnlessAlone => {
             unreachable!("{filter:?} is set-level; filter_candidates handles it")
         }
+        CandidateFilter::NotIntangible => {
+            !has_modifier(&entity.modifiers, ModifierKind::Intangible)
+        }
         CandidateFilter::NotMinion => !has_modifier(&entity.modifiers, ModifierKind::Minion),
         CandidateFilter::Starter => matches!(entity.card_name, CardName::Strike | CardName::Defend),
     }

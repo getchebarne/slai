@@ -495,6 +495,7 @@ pub enum CandidateFilter {
     NotSourceUnlessAlone,
 
     // Compare against `Entity` modifiers
+    NotIntangible,
     NotMinion,
 
     // Starter-Card predicates (Vampires, Back to Basics)
