@@ -419,13 +419,24 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> bool {
                 selection_kind,
             );
             if resolved {
-                // Targets are in `effect_candidate_buf`
-                enqueue_direct_targets(
-                    effect.id_source,
-                    &state.effect_candidate_buf,
+                // Targets are in `effect_candidate_buf`: DamagePhysical's processor takes them as one list, every other kind gets one queued copy per target
+                if matches!(
                     effect.kind,
-                    &mut state.effect_queue,
-                );
+                    EffectKind::DamagePhysical { .. }
+                        | EffectKind::DamagePhysicalFixed { .. }
+                        | EffectKind::DamagePhysicalIfPoisoned { .. }
+                ) {
+                    let id_targets = std::mem::take(&mut state.effect_candidate_buf);
+                    dispatch_damage_physical(state, effect.kind, effect.id_source, &id_targets);
+                    state.effect_candidate_buf = id_targets;
+                } else {
+                    enqueue_direct_targets(
+                        effect.id_source,
+                        &state.effect_candidate_buf,
+                        effect.kind,
+                        &mut state.effect_queue,
+                    );
+                }
             } else {
                 // A hand selection drops the waiting plays of Cards still in the hand; a replay is kept wherever its Card lies
                 if candidate_pool == CandidatePool::CardPileHand {
@@ -502,6 +513,31 @@ fn resolve_or_halt(
         state.effect_candidate_buf.reverse();
     }
     resolved
+}
+
+// DamagePhysical's processor serves three kinds, each taking its targets as one list
+fn dispatch_damage_physical(
+    state: &mut GameState,
+    kind: EffectKind,
+    id_source: Option<usize>,
+    id_targets: &[usize],
+) {
+    match kind {
+        EffectKind::DamagePhysical {
+            amount,
+            instances,
+            lifesteal,
+        } => process_effect_damage_physical(
+            id_source, id_targets, state, amount, instances, false, lifesteal, false,
+        ),
+        EffectKind::DamagePhysicalFixed { amount } => process_effect_damage_physical(
+            id_source, id_targets, state, amount, 1, false, false, true,
+        ),
+        EffectKind::DamagePhysicalIfPoisoned { amount } => process_effect_damage_physical(
+            id_source, id_targets, state, amount, 1, true, false, false,
+        ),
+        other => unreachable!("DamagePhysical's processor doesn't serve {other:?}"),
+    }
 }
 
 fn dispatch_by_kind(
@@ -596,15 +632,11 @@ fn dispatch_by_kind(
         EffectKind::RestSiteConsume => process_effect_rest_site_consume(state),
         EffectKind::RestSmith => process_effect_rest_smith(id_target, state),
         EffectKind::RestToke => process_effect_rest_toke(id_target, state),
-        EffectKind::DamagePhysical {
-            amount,
-            instances,
-            lifesteal,
-        } => process_effect_damage_physical(
-            id_source, id_target, state, amount, instances, false, lifesteal,
-        ),
-        EffectKind::DamagePhysicalIfPoisoned { amount } => {
-            process_effect_damage_physical(id_source, id_target, state, amount, 1, true, false)
+        EffectKind::DamagePhysical { .. }
+        | EffectKind::DamagePhysicalFixed { .. }
+        | EffectKind::DamagePhysicalIfPoisoned { .. } => {
+            let id_target = id_target.expect("DamagePhysical requires id_target");
+            dispatch_damage_physical(state, kind, id_source, &[id_target])
         }
         EffectKind::GlassKnifeDecay { delta } => {
             process_effect_glass_knife_decay(id_target, state, delta)

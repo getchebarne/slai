@@ -132,6 +132,9 @@ pub enum EffectKind {
         instances: u16, // Hits on one target, resolved one at a time; an X-cost Card's X can pass 255
         lifesteal: bool, // Life Suck
     },
+    DamagePhysicalFixed {
+        amount: u16,
+    }, // One of Skewer's hits, its damage fixed as its play started; nothing scales it as it lands
     DamagePhysicalIfPoisoned {
         amount: u16,
     },
