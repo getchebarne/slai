@@ -77,6 +77,7 @@ pub mod process_effect_match_flip_unseen;
 pub mod process_effect_mausoleum_open;
 pub mod process_effect_max_health_delta;
 pub mod process_effect_mayhem_proc;
+pub mod process_effect_mind_bloom_fight;
 pub mod process_effect_modifier_delta;
 pub mod process_effect_modifier_multiply;
 pub mod process_effect_modifier_remove;
@@ -211,6 +212,7 @@ use self::process_effect_match_flip_unseen::process_effect_match_flip_unseen;
 use self::process_effect_mausoleum_open::process_effect_mausoleum_open;
 use self::process_effect_max_health_delta::process_effect_max_health_delta;
 use self::process_effect_mayhem_proc::process_effect_mayhem_proc;
+use self::process_effect_mind_bloom_fight::process_effect_mind_bloom_fight;
 use self::process_effect_modifier_delta::process_effect_modifier_delta;
 use self::process_effect_modifier_multiply::process_effect_modifier_multiply;
 use self::process_effect_modifier_remove::process_effect_modifier_remove;
@@ -567,6 +569,7 @@ fn dispatch_by_kind(
         EffectKind::CardRemove => process_effect_card_remove(id_target, state),
         EffectKind::ActTransition => process_effect_act_transition(state),
         EffectKind::AdventurerSearch => process_effect_adventurer_search(state),
+        EffectKind::MindBloomFight => process_effect_mind_bloom_fight(state),
         EffectKind::BonfireOffer => process_effect_bonfire_offer(id_target, state),
         EffectKind::CardBottle => process_effect_card_bottle(id_target, state),
         EffectKind::CardCostMinusDiscards => {

@@ -76,6 +76,7 @@ flat_variants!(PyEffect {
     MonsterSpawn => PyEffectMonsterSpawn as "EffectMonsterSpawn" { name: PyMonsterName },
     CombatStart => PyEffectCombatStart as "EffectCombatStart",
     AdventurerSearch => PyEffectAdventurerSearch as "EffectAdventurerSearch",
+    MindBloomFight => PyEffectMindBloomFight as "EffectMindBloomFight",
     RelicGrantSpecific => PyEffectRelicGrantSpecific as "EffectRelicGrantSpecific" { name: PyRelicName },
     EventAdvanceState => PyEffectEventAdvanceState as "EffectEventAdvanceState" { delta: i8 },
     ScrapOozeReach => PyEffectScrapOozeReach as "EffectScrapOozeReach" { chance: u8, advance_on_miss: bool },
@@ -220,6 +221,7 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
                     | EffectKind::JoustBet { .. }
                     | EffectKind::KnowingSkullCostBump
                     | EffectKind::MausoleumOpen
+                    | EffectKind::MindBloomFight
                     | EffectKind::MonsterSpawn { .. }
                     | EffectKind::NeowCardsRoll { .. }
                     | EffectKind::PotionAddRandom { .. }
@@ -423,6 +425,7 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
         }
         EffectKind::CombatStart { .. } => PyEffect::CombatStart(PyEffectCombatStart),
         EffectKind::AdventurerSearch => PyEffect::AdventurerSearch(PyEffectAdventurerSearch),
+        EffectKind::MindBloomFight => PyEffect::MindBloomFight(PyEffectMindBloomFight),
         EffectKind::RelicGrantSpecific { name } => {
             PyEffect::RelicGrantSpecific(PyEffectRelicGrantSpecific { name: name.into() })
         }

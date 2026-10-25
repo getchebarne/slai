@@ -431,6 +431,8 @@ pub enum CardRarity {
 #[repr(u8)]
 pub enum MonsterName {
     Cultist,
+    Deca,
+    Donu,
     FungiBeast,
     GremlinFat,
     GremlinNob,
@@ -446,6 +448,7 @@ pub enum MonsterName {
     LouseDefensive,
     LouseNormal,
     Maw,
+    OrbWalker,
     Sentry,
     SlaverBlue,
     SlaverRed,
@@ -520,6 +523,7 @@ pub enum MonsterEncounter {
     // Event-only (never pooled)
     ThreeFungiBeasts,
     LagavulinEvent,
+    TwoOrbWalkers,
 
     // Act 2 easy
     SphericGuardian,
@@ -548,11 +552,15 @@ pub enum MonsterEncounter {
     TheCollector,
     Champ,
 
+    // Act 3 easy
+    OrbWalker,
+
     // Act 3 hard
     JawWormHorde,
     Maw,
 
     // Act 3 boss
+    DonuAndDeca,
     TimeEater,
 }
 
@@ -592,6 +600,7 @@ pub enum EventName {
     LivingWall,
     MaskedBandits,
     MatchAndKeep,
+    MindBloom,
     Mushrooms,
     Neow,
     Nest,
@@ -700,6 +709,7 @@ pub enum RelicName {
     BloodVial,
     BronzeScales,
     Kunai,
+    MarkOfTheBloom,
     NinjaScroll,
     OddlySmoothStone,
     Shuriken,

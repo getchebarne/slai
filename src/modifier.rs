@@ -43,6 +43,7 @@ pub enum ModifierKind {
     Splittable,
     SporeCloud,
     Strength,
+    StrengthUp,
     Thievery,
     Thorns,
     ThousandCuts,
@@ -405,6 +406,14 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
         stacks_duration: false,
         stacks_min: -999, // Sums clamp here; Strength is removed at exactly 0 instead
         stacks_max: 999,
+    },
+    ModifierDef {
+        kind: ModifierKind::StrengthUp,
+        priority: PRIORITY_DEFAULT,
+        is_buff: true,
+        stacks_duration: false,
+        stacks_min: 1,
+        stacks_max: i16::MAX,
     },
     ModifierDef {
         kind: ModifierKind::Thievery,
