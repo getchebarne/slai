@@ -333,6 +333,7 @@ pub enum CardName {
     Terror,
     ToolsOfTheTrade,
     Unload,
+    Void,
     WellLaidPlans,
     WraithForm,
 
@@ -430,7 +431,10 @@ pub enum CardRarity {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumCount, EnumIter)]
 #[repr(u8)]
 pub enum MonsterName {
+    AwakenedOne,
     Cultist,
+    Deca,
+    Donu,
     FungiBeast,
     GremlinFat,
     GremlinNob,
@@ -447,6 +451,7 @@ pub enum MonsterName {
     LouseNormal,
     Maw,
     Nemesis,
+    OrbWalker,
     Sentry,
     SlaverBlue,
     SlaverRed,
@@ -458,6 +463,9 @@ pub enum MonsterName {
     SlimeSpikeMedium,
     SlimeSpikeSmall,
     TheGuardian,
+    TimeEater,
+    Transient,
+    WrithingMass,
     Byrd,
     Centurion,
     Chosen,
@@ -520,6 +528,7 @@ pub enum MonsterEncounter {
     // Event-only (never pooled)
     ThreeFungiBeasts,
     LagavulinEvent,
+    TwoOrbWalkers,
 
     // Act 2 easy
     SphericGuardian,
@@ -548,12 +557,22 @@ pub enum MonsterEncounter {
     TheCollector,
     Champ,
 
+    // Act 3 easy
+    OrbWalker,
+
     // Act 3 hard
     JawWormHorde,
     Maw,
+    Transient,
+    WrithingMass,
 
     // Act 3 elite
     Nemesis,
+
+    // Act 3 boss
+    AwakenedOne,
+    DonuAndDeca,
+    TimeEater,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -592,6 +611,7 @@ pub enum EventName {
     LivingWall,
     MaskedBandits,
     MatchAndKeep,
+    MindBloom,
     Mushrooms,
     Neow,
     Nest,
@@ -599,6 +619,7 @@ pub enum EventName {
     OminousForge,
     Purifier,
     ScrapOoze,
+    SecretPortal,
     ShiningLight,
     TheCleric,
     TheDivineFountain,
@@ -700,6 +721,7 @@ pub enum RelicName {
     BloodVial,
     BronzeScales,
     Kunai,
+    MarkOfTheBloom,
     NinjaScroll,
     OddlySmoothStone,
     Shuriken,

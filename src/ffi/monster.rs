@@ -12,6 +12,7 @@ use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
 use crate::modifier::modifier_stacks;
+use crate::monsters::move_ultimate;
 use crate::types::MonsterEncounter;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
@@ -30,23 +31,25 @@ mirror_enum!(PyMonsterKind from MonsterKind, "MonsterKind", {
 });
 
 mirror_enum!(PyMonsterName from MonsterName, "MonsterName", {
-    Cultist, FungiBeast, GremlinFat, GremlinNob, GremlinThief, GremlinTsundere, GremlinWarrior,
-    GremlinWizard, Hexaghost, JawWorm, JawWormHard, Lagavulin, Looter, LouseDefensive, LouseNormal,
-    Maw, Nemesis, Sentry, SlaverBlue, SlaverRed, SlimeAcidLarge, SlimeAcidMedium, SlimeAcidSmall,
-    SlimeBoss, SlimeSpikeLarge, SlimeSpikeMedium, SlimeSpikeSmall, TheGuardian, Byrd, Centurion,
-    Chosen, Healer, Mugger, ShelledParasite, SnakePlant, Snecko, SphericGuardian, BookOfStabbing,
+    AwakenedOne, Cultist, Deca, Donu, FungiBeast, GremlinFat, GremlinNob, GremlinThief,
+    GremlinTsundere, GremlinWarrior, GremlinWizard, Hexaghost, JawWorm, JawWormHard, Lagavulin,
+    Looter, LouseDefensive, LouseNormal, Maw, Nemesis, OrbWalker, Sentry, SlaverBlue, SlaverRed,
+    SlimeAcidLarge, SlimeAcidMedium, SlimeAcidSmall, SlimeBoss, SlimeSpikeLarge, SlimeSpikeMedium,
+    SlimeSpikeSmall, TheGuardian, TimeEater, Transient, WrithingMass, Byrd, Centurion, Chosen,
+    Healer, Mugger, ShelledParasite, SnakePlant, Snecko, SphericGuardian, BookOfStabbing,
     GremlinLeader, Taskmaster, BronzeAutomaton, BronzeOrb, Champ, TheCollector, TorchHead,
     BanditBear, BanditLeader, BanditPointy,
 });
 
 mirror_enum!(PyMonsterEncounter from MonsterEncounter, "MonsterEncounter", {
     Cultist, JawWorm, TwoLouse, SmallSlimes, BlueSlaver, RedSlaver, Looter, TwoFungiBeasts,
-    ThreeLouse, LargeSlime, LotsOfSlimes, GremlinGang, ExordiumThugs, ExordiumWildlife,
-    GremlinNob, Lagavulin, ThreeSentries, TheGuardian, Hexaghost, SlimeBoss, ThreeFungiBeasts,
-    LagavulinEvent, SphericGuardian, Chosen, ShelledParasite, ThreeByrds, TwoThieves, SnakePlant,
+    ThreeLouse, LargeSlime, LotsOfSlimes, GremlinGang, ExordiumThugs, ExordiumWildlife, GremlinNob,
+    Lagavulin, ThreeSentries, TheGuardian, Hexaghost, SlimeBoss, ThreeFungiBeasts, LagavulinEvent,
+    TwoOrbWalkers, SphericGuardian, Chosen, ShelledParasite, ThreeByrds, TwoThieves, SnakePlant,
     CenturionAndHealer, Snecko, CultistAndChosen, ThreeCultists, ShelledParasiteAndFungi,
     ChosenAndByrds, SentryAndSphere, GremlinLeader, Slavers, BookOfStabbing, BronzeAutomaton,
-    TheCollector, Champ, JawWormHorde, Maw, Nemesis,
+    TheCollector, Champ, OrbWalker, JawWormHorde, Maw, Transient, WrithingMass, Nemesis,
+    AwakenedOne, DonuAndDeca, TimeEater,
 });
 
 #[pyclass(
@@ -65,6 +68,7 @@ pub enum PyIntentKind {
     AttackDebuff,
     Block,
     BlockBuff,
+    BlockDebuff,
     Buff,
     Debuff,
     DebuffPowerful,
@@ -98,6 +102,7 @@ impl From<Intent> for PyIntentKind {
             Intent::AttackDebuff { .. } => Self::AttackDebuff,
             Intent::Block => Self::Block,
             Intent::BlockBuff => Self::BlockBuff,
+            Intent::BlockDebuff => Self::BlockDebuff,
             Intent::Buff => Self::Buff,
             Intent::Debuff => Self::Debuff,
             Intent::DebuffPowerful => Self::DebuffPowerful,
@@ -141,14 +146,15 @@ pub struct PyMonster {
     pub health: u16,
     pub health_max: u16,
     pub block: u16,
-    pub half_dead: bool, // At 0 HP, out of every Card's, hit's and Power's reach until its own rule revives or kills it
+    pub half_dead: bool, // At 0 HP, out of every Card's, hit's and Power's reach until its rebirth or its next Death
     pub modifiers: Vec<PyModifier>,
     pub intent: Option<PyIntent>,    // None while Runic Dome hides it
     pub move_effects: Vec<PyEffect>, // The current move's Effect payload; empty when the intent is hidden
     pub move_current: Option<u8>,    // Index into the spawn-rolled moveset; None when hidden
     pub move_history: Vec<u8>, // Selection-ordered move indices; the last entry IS the current move, and under Runic Dome only executed moves
     pub gold_stolen: u16,      // Only relevant for Looters and Muggers
-    pub replay_target: bool,   // A waiting replay aims at this Monster
+    pub ultimate_used: bool, // The Monster's once-per-combat move has been used: Red Slaver's Entangle, Champ's Anger, Bronze Orb's Stasis, the Collector's Mega Debuff, Time Eater's Haste, Writhing Mass's Implant
+    pub replay_target: bool, // A waiting replay aims at this Monster
 }
 
 pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
@@ -194,6 +200,7 @@ pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
                     | Intent::AttackDebuff { damage, instances } => (Some(damage), Some(instances)),
                     Intent::Block
                     | Intent::BlockBuff
+                    | Intent::BlockDebuff
                     | Intent::Buff
                     | Intent::Debuff
                     | Intent::DebuffPowerful
@@ -203,7 +210,7 @@ pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
                     | Intent::Unknown => (None, None),
                 };
 
-                // The Monster's copy of the move holds the hit as chosen: Divider's locked damage, Multi-Stab's and Nom's locked counts
+                // The Monster's copy of the move holds the hit as chosen: Divider's and the Transient's locked damage, Multi-Stab's and Nom's locked counts
                 let move_effects =
                     &monster.monster_move_effects[..monster.monster_move_effects_len as usize];
                 let hit = move_effects.iter().find_map(|effect| match effect.kind {
@@ -289,6 +296,8 @@ pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
                 },
                 move_history,
                 gold_stolen: monster.monster_gold_stolen,
+                ultimate_used: move_ultimate(monster.monster_name)
+                    .is_some_and(|idx_move| monster.monster_move_uses[idx_move] > 0),
                 replay_target,
             }
         })

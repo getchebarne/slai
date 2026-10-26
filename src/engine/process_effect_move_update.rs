@@ -55,7 +55,7 @@ pub fn process_effect_move_update(
         && move_next == hexaghost::IDX_MOVE_DIVIDER)
         .then(|| character_health / HEXAGHOST_DIVIDER_DIVISOR + 1);
 
-    // Multi-Stab's and Nom's hit counts lock in at selection, from the moves chosen before them
+    // Multi-Stab's and Nom's hit counts lock in at selection, from the moves used before them
     let instances_locked = match (entity.monster_name, move_next) {
         (MonsterName::BookOfStabbing, book_of_stabbing::IDX_MOVE_MULTI_STAB) => Some(
             book_of_stabbing::multi_stab_instances(&entity.monster_move_uses, state.ascension),

@@ -46,6 +46,11 @@ pub fn process_effect_health_delta(
 }
 
 fn apply_gain(id_target: usize, state: &mut GameState, amount: u16) {
+    // Mark of the Bloom: the Character can't heal
+    if id_target == state.id_character && has_relic(&state.id_relics, RelicName::MarkOfTheBloom) {
+        return;
+    }
+
     let vitals = &mut state.entities[id_target].vitals;
     vitals.health = (vitals.health + amount).min(vitals.health_max);
 }
@@ -256,5 +261,16 @@ fn apply_loss(id_source: Option<usize>, id_target: usize, state: &mut GameState,
                 });
             }
         }
+    }
+
+    // Shifting: every HP loss lowers Strength until the owner's turn end
+    if amount > 0 && has_modifier(&target.modifiers, ModifierKind::Shifting) {
+        state.effect_queue.push_front(Effect {
+            kind: EffectKind::StrengthLoseTemp {
+                stacks: amount as i16,
+            },
+            id_source: Some(id_target),
+            target: Target::Direct(Some(id_target)),
+        });
     }
 }

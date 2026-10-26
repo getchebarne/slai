@@ -37,10 +37,10 @@ pub fn get_next_move_gremlin_wizard(
     if move_current.is_none() {
         return IDX_MOVE_CHARGE;
     }
-    let last = *move_history
+    let move_last = *move_history
         .last()
         .expect("`move_history` cannot be empty here") as usize;
-    if last == IDX_MOVE_ULTIMATE_BLAST {
+    if move_last == IDX_MOVE_ULTIMATE_BLAST {
         return if ascension_level >= 17 {
             IDX_MOVE_ULTIMATE_BLAST
         } else {

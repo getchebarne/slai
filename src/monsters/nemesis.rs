@@ -114,12 +114,12 @@ pub fn get_next_move_nemesis(
     }
 
     // Scythe and Tri Burn never come twice in a row, Tri Attack never three times
-    let last = move_history
+    let move_last = move_history
         .last()
         .copied()
         .map(|idx_move| idx_move as usize);
     if roll < 30 {
-        if last != Some(IDX_MOVE_SCYTHE) {
+        if move_last != Some(IDX_MOVE_SCYTHE) {
             IDX_MOVE_SCYTHE
         } else if rng.random_bool(0.5) {
             IDX_MOVE_TRI_ATTACK
@@ -134,7 +134,7 @@ pub fn get_next_move_nemesis(
         } else {
             IDX_MOVE_TRI_BURN
         }
-    } else if last != Some(IDX_MOVE_TRI_BURN) {
+    } else if move_last != Some(IDX_MOVE_TRI_BURN) {
         IDX_MOVE_TRI_BURN
     } else if rng.random_bool(0.5) {
         IDX_MOVE_SCYTHE

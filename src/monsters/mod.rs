@@ -1,3 +1,4 @@
+pub mod awakened_one;
 pub mod bandit_bear;
 pub mod bandit_leader;
 pub mod bandit_pointy;
@@ -9,6 +10,8 @@ pub mod centurion;
 pub mod champ;
 pub mod chosen;
 pub mod cultist;
+pub mod deca;
+pub mod donu;
 pub mod encounters;
 pub mod fungi_beast;
 pub mod gremlin_fat;
@@ -28,6 +31,7 @@ pub mod louse_red;
 pub mod maw;
 pub mod mugger;
 pub mod nemesis;
+pub mod orb_walker;
 pub mod sentry;
 pub mod shelled_parasite;
 pub mod slaver_blue;
@@ -45,7 +49,10 @@ pub mod spheric_guardian;
 pub mod taskmaster;
 pub mod the_collector;
 pub mod the_guardian;
+pub mod time_eater;
 pub mod torch_head;
+pub mod transient;
+pub mod writhing_mass;
 
 use crate::consts::MAX_EFFECTS_PER_MOVE;
 use crate::consts::MAX_MONSTER_MOVES;
@@ -65,6 +72,7 @@ use crate::entity::Move;
 use crate::modifier::MODIFIERS_ZERO;
 use crate::modifier::ModifierKind;
 use crate::modifier::Modifiers;
+use crate::modifier::has_modifier;
 use crate::modifier::modifier_apply;
 use crate::types::CardName;
 use crate::types::CardPile;
@@ -114,6 +122,7 @@ pub struct MonsterTemplate {
 
 // Every MonsterTemplate, for compile-time validation and template enumeration
 pub const ALL_MONSTERS: &[&'static MonsterTemplate] = &[
+    &awakened_one::AWAKENED_ONE,
     &bandit_bear::BANDIT_BEAR,
     &bandit_leader::BANDIT_LEADER,
     &bandit_pointy::BANDIT_POINTY,
@@ -125,6 +134,8 @@ pub const ALL_MONSTERS: &[&'static MonsterTemplate] = &[
     &champ::CHAMP,
     &chosen::CHOSEN,
     &cultist::CULTIST,
+    &deca::DECA,
+    &donu::DONU,
     &fungi_beast::FUNGI_BEAST,
     &gremlin_fat::GREMLIN_FAT,
     &gremlin_leader::GREMLIN_LEADER,
@@ -143,6 +154,7 @@ pub const ALL_MONSTERS: &[&'static MonsterTemplate] = &[
     &louse_red::LOUSE_NORMAL,
     &maw::MAW,
     &mugger::MUGGER,
+    &orb_walker::ORB_WALKER,
     &nemesis::NEMESIS,
     &sentry::SENTRY,
     &shelled_parasite::SHELLED_PARASITE,
@@ -161,7 +173,10 @@ pub const ALL_MONSTERS: &[&'static MonsterTemplate] = &[
     &taskmaster::TASKMASTER,
     &the_collector::THE_COLLECTOR,
     &the_guardian::THE_GUARDIAN,
+    &time_eater::TIME_EATER,
     &torch_head::TORCH_HEAD,
+    &transient::TRANSIENT,
+    &writhing_mass::WRITHING_MASS,
 ];
 const _: () = assert!(ALL_MONSTERS.len() == MonsterName::COUNT);
 
@@ -267,9 +282,23 @@ pub fn spawn_monster(monster_name: MonsterName, ascension_level: u8, rng: &mut i
     instance_monster_from_template(monster_template(monster_name), ascension_level, rng)
 }
 
+// The once-per-combat move that `Monster.ultimate_used` reports; an opener every fight starts with isn't one
+pub fn move_ultimate(monster_name: MonsterName) -> Option<usize> {
+    match monster_name {
+        MonsterName::SlaverRed => Some(slaver_red::IDX_MOVE_ENTANGLE),
+        MonsterName::Champ => Some(champ::IDX_MOVE_ANGER),
+        MonsterName::BronzeOrb => Some(bronze_orb::IDX_MOVE_STASIS),
+        MonsterName::TheCollector => Some(the_collector::IDX_MOVE_MEGA_DEBUFF),
+        MonsterName::TimeEater => Some(time_eater::IDX_MOVE_HASTE),
+        MonsterName::WrithingMass => Some(writhing_mass::IDX_MOVE_IMPLANT),
+        _ => None,
+    }
+}
+
 // Named arms: a new MonsterName fails compilation here until it has a template
 pub fn monster_template(monster_name: MonsterName) -> &'static MonsterTemplate {
     match monster_name {
+        MonsterName::AwakenedOne => &awakened_one::AWAKENED_ONE,
         MonsterName::Cultist => &cultist::CULTIST,
         MonsterName::JawWorm => &jaw_worm::JAW_WORM,
         MonsterName::JawWormHard => &jaw_worm::JAW_WORM_HARD,
@@ -317,6 +346,12 @@ pub fn monster_template(monster_name: MonsterName) -> &'static MonsterTemplate {
         MonsterName::BanditLeader => &bandit_leader::BANDIT_LEADER,
         MonsterName::BanditPointy => &bandit_pointy::BANDIT_POINTY,
         MonsterName::Maw => &maw::MAW,
+        MonsterName::Deca => &deca::DECA,
+        MonsterName::Donu => &donu::DONU,
+        MonsterName::OrbWalker => &orb_walker::ORB_WALKER,
+        MonsterName::TimeEater => &time_eater::TIME_EATER,
+        MonsterName::Transient => &transient::TRANSIENT,
+        MonsterName::WrithingMass => &writhing_mass::WRITHING_MASS,
         MonsterName::Nemesis => &nemesis::NEMESIS,
     }
 }
@@ -346,16 +381,12 @@ pub fn push_move_history(entity: &mut Entity, move_idx: u8) {
         entity.monster_move_history_exec[len] = false;
         entity.monster_move_history_len += 1;
     } else {
-        // Marathon combat: drop the oldest, keep the last `MAX_MOVE_HISTORY` moves
+        // Past `MAX_MOVE_HISTORY` choices the oldest drops out; Reactive's re-rolls get there in an ordinary fight
         entity.monster_move_history.copy_within(1.., 0);
         entity.monster_move_history[MAX_MOVE_HISTORY - 1] = move_idx;
         entity.monster_move_history_exec.copy_within(1.., 0);
         entity.monster_move_history_exec[MAX_MOVE_HISTORY - 1] = false;
     }
-
-    // Use counts never drop a move: once-per-combat latches read them
-    entity.monster_move_uses[move_idx as usize] =
-        entity.monster_move_uses[move_idx as usize].saturating_add(1);
 }
 
 fn get_move_history_slice(entity: &Entity) -> &[u8] {
@@ -390,6 +421,13 @@ pub fn get_next_move(
         | MonsterName::GremlinFat
         | MonsterName::GremlinThief
         | MonsterName::GremlinWarrior => 0,
+        MonsterName::Transient => transient::get_next_move_transient(history),
+        MonsterName::AwakenedOne => awakened_one::get_next_move_awakened_one(
+            entity.monster_move_current,
+            history,
+            &entity.modifiers,
+            rng,
+        ),
         MonsterName::Cultist => cultist::get_next_move_cultist(entity.monster_move_current),
         MonsterName::JawWorm => {
             jaw_worm::get_next_move_jaw_worm(entity.monster_move_current, history, rng)
@@ -543,15 +581,35 @@ pub fn get_next_move(
         ),
         MonsterName::BanditPointy => 0,
         MonsterName::Maw => maw::get_next_move_maw(entity.monster_move_current, history, rng),
+        MonsterName::Deca => deca::get_next_move_deca(entity.monster_move_current),
+        MonsterName::Donu => donu::get_next_move_donu(entity.monster_move_current),
+        MonsterName::OrbWalker => orb_walker::get_next_move_orb_walker(history, rng),
+        MonsterName::TimeEater => time_eater::get_next_move_time_eater(
+            history,
+            &entity.monster_move_uses,
+            entity.vitals.health,
+            entity.vitals.health_max,
+            rng,
+        ),
+        MonsterName::WrithingMass => writhing_mass::get_next_move_writhing_mass(
+            entity.monster_move_current,
+            history,
+            &entity.monster_move_uses,
+            rng,
+        ),
         MonsterName::Nemesis => {
             nemesis::get_next_move_nemesis(entity.monster_move_current, history, rng)
         }
     }
 }
 
-// A Monster brought to 0 HP dies unless its own rule makes it half-dead; no Monster has one yet
-pub fn monster_half_dies(_entity: &Entity) -> bool {
-    false
+// A Monster brought to 0 HP dies unless its own rule makes it half-dead
+pub fn monster_half_dies(entity: &Entity) -> bool {
+    match entity.monster_name {
+        // The Awakened One's first form, which holds Unawakened
+        MonsterName::AwakenedOne => has_modifier(&entity.modifiers, ModifierKind::Unawakened),
+        _ => false,
+    }
 }
 
 // The repeated Monster move shapes; each spells out one Effect array longhand

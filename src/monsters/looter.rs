@@ -63,11 +63,11 @@ pub fn get_next_move_looter(
     if move_current.is_none() {
         return IDX_MOVE_MUG;
     }
-    let last = *move_history
+    let move_last = *move_history
         .last()
         .expect("`move_history` cannot be empty here") as usize;
 
-    match last {
+    match move_last {
         IDX_MOVE_MUG => {
             // Count of Mug + Lunge in history (the "slash_count")
             let slash_count = move_history
@@ -85,6 +85,6 @@ pub fn get_next_move_looter(
         IDX_MOVE_LUNGE => IDX_MOVE_SMOKE_BOMB,
         IDX_MOVE_SMOKE_BOMB => IDX_MOVE_ESCAPE,
         IDX_MOVE_ESCAPE => IDX_MOVE_ESCAPE,
-        _ => unreachable!("Looter unexpected move idx: {last}"),
+        _ => unreachable!("Looter unexpected move idx: {move_last}"),
     }
 }
