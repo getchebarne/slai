@@ -10,15 +10,15 @@ use crate::modifier::modifier_kind_from_u8;
 use crate::modifier::stacks_max_for;
 
 mirror_enum!(PyModifierKind from ModifierKind, "ModifierKind", {
-    Accuracy, AfterImage, Angry, Artifact, Asleep, Blur, Burst, Choke, CorpseExplosion, Curiosity,
-    CurlUp, Dexterity, DoubleDamage, DrawCardNextTurn, DrawReduction, Enrage, Entangled, Envenom,
-    Explosive, Fading, Frail, InfiniteBlades, Intangible, Metallicize, ModeShift, NextTurnBlock,
-    NextTurnEnergy, NoDraw, NoxiousFumes, Phantasmal, PlatedArmor, Poison, Reactive, Retain, Ritual,
-    Shackled, SharpHide, Shifting, Splittable, SporeCloud, Strength, StrengthUp, Thievery, Thorns,
-    ThousandCuts, TimeWarp, ToolsOfTheTrade, Unawakened, Vigor, Vulnerable, Weak, WraithForm,
-    Buffer, PenNib, Magnetism, NoBlock, Panache, SadisticNature, Mayhem, Regeneration, LoseStrength,
-    LoseDexterity, DuplicateNextCardPlay, Flight, Malleable, Barricade, Hex, Confusion,
-    PainfulStabs, Minion,
+    Accuracy, AfterImage, Angry, Artifact, Asleep, Blur, Burst, Choke, Constricted, CorpseExplosion,
+    Curiosity, CurlUp, Dexterity, DoubleDamage, DrawCardNextTurn, DrawReduction, Enrage, Entangled,
+    Envenom, Explosive, Fading, Frail, InfiniteBlades, Intangible, Metallicize, ModeShift,
+    NextTurnBlock, NextTurnEnergy, NoDraw, NoxiousFumes, Phantasmal, PlatedArmor, Poison, Reactive,
+    Retain, Ritual, Shackled, SharpHide, Shifting, Splittable, SporeCloud, Strength, StrengthUp,
+    Thievery, Thorns, ThousandCuts, TimeWarp, ToolsOfTheTrade, Unawakened, Vigor, Vulnerable, Weak,
+    WraithForm, Buffer, PenNib, Magnetism, NoBlock, Panache, SadisticNature, Mayhem, Regeneration,
+    LoseStrength, LoseDexterity, DuplicateNextCardPlay, Flight, Malleable, Barricade, Hex,
+    Confusion, PainfulStabs, Minion,
 }, {
     #[getter]
     fn is_buff(&self) -> bool {

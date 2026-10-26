@@ -37,6 +37,7 @@ pub fn process_effect_move_update(
             &state.entities,
             id_target,
             &id_monsters,
+            state.id_character,
             state.ascension,
             &mut state.rng,
         ),

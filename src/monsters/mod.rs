@@ -46,6 +46,7 @@ pub mod slime_spike_small;
 pub mod snake_plant;
 pub mod snecko;
 pub mod spheric_guardian;
+pub mod spire_growth;
 pub mod taskmaster;
 pub mod the_collector;
 pub mod the_guardian;
@@ -170,6 +171,7 @@ pub const ALL_MONSTERS: &[&'static MonsterTemplate] = &[
     &snake_plant::SNAKE_PLANT,
     &snecko::SNECKO,
     &spheric_guardian::SPHERIC_GUARDIAN,
+    &spire_growth::SPIRE_GROWTH,
     &taskmaster::TASKMASTER,
     &the_collector::THE_COLLECTOR,
     &the_guardian::THE_GUARDIAN,
@@ -353,6 +355,7 @@ pub fn monster_template(monster_name: MonsterName) -> &'static MonsterTemplate {
         MonsterName::Transient => &transient::TRANSIENT,
         MonsterName::WrithingMass => &writhing_mass::WRITHING_MASS,
         MonsterName::Nemesis => &nemesis::NEMESIS,
+        MonsterName::SpireGrowth => &spire_growth::SPIRE_GROWTH,
     }
 }
 
@@ -405,11 +408,12 @@ pub fn count_monsters_named(
         .count()
 }
 
-// Takes the whole arena: some AIs read other Monsters' state (ally counts, party HP)
+// Takes the whole arena: some AIs read other Monsters' state (ally counts, party HP) or the Character's Modifiers
 pub fn get_next_move(
     entities: &[Entity],
     entity_id: usize,
     id_monsters: &[Option<usize>; MAX_MONSTERS],
+    id_character: usize,
     ascension_level: u8,
     rng: &mut impl Rng,
 ) -> usize {
@@ -600,6 +604,12 @@ pub fn get_next_move(
         MonsterName::Nemesis => {
             nemesis::get_next_move_nemesis(entity.monster_move_current, history, rng)
         }
+        MonsterName::SpireGrowth => spire_growth::get_next_move_spire_growth(
+            history,
+            has_modifier(&entities[id_character].modifiers, ModifierKind::Constricted),
+            ascension_level,
+            rng,
+        ),
     }
 }
 

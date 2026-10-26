@@ -13,6 +13,7 @@ pub enum ModifierKind {
     Blur,
     Burst,
     Choke,
+    Constricted,
     CorpseExplosion,
     Curiosity,
     CurlUp,
@@ -166,6 +167,14 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     ModifierDef {
         kind: ModifierKind::Choke,
         priority: PRIORITY_DEFAULT,
+        is_buff: false,
+        stacks_duration: false,
+        stacks_min: 1,
+        stacks_max: i16::MAX,
+    },
+    ModifierDef {
+        kind: ModifierKind::Constricted,
+        priority: 105,
         is_buff: false,
         stacks_duration: false,
         stacks_min: 1,

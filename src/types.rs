@@ -462,6 +462,7 @@ pub enum MonsterName {
     SlimeSpikeLarge,
     SlimeSpikeMedium,
     SlimeSpikeSmall,
+    SpireGrowth,
     TheGuardian,
     TimeEater,
     Transient,
@@ -563,6 +564,7 @@ pub enum MonsterEncounter {
     // Act 3 hard
     JawWormHorde,
     Maw,
+    SpireGrowth,
     Transient,
     WrithingMass,
 
