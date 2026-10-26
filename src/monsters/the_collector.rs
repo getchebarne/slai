@@ -140,7 +140,7 @@ static MOVES_ASC19: [Move; 5] = [
 const IDX_MOVE_SPAWN: usize = 0;
 const IDX_MOVE_FIREBALL: usize = 1;
 const IDX_MOVE_BUFF: usize = 2;
-const IDX_MOVE_MEGA_DEBUFF: usize = 3;
+pub const IDX_MOVE_MEGA_DEBUFF: usize = 3;
 const IDX_MOVE_REVIVE: usize = 4;
 
 pub static THE_COLLECTOR: MonsterTemplate = MonsterTemplate {

@@ -209,7 +209,7 @@ static MOVES_ASC19: [Move; 4] = [
 const IDX_MOVE_REVERBERATE: usize = 0;
 const IDX_MOVE_RIPPLE: usize = 1;
 const IDX_MOVE_HEAD_SLAM: usize = 2;
-const IDX_MOVE_HASTE: usize = 3;
+pub const IDX_MOVE_HASTE: usize = 3;
 
 pub static TIME_EATER: MonsterTemplate = MonsterTemplate {
     name: MonsterName::TimeEater,

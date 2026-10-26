@@ -94,6 +94,6 @@ pub fn get_next_move_maw(
 
 // Nom as the Maw's k-th move hits (k + 1) / 2 times
 pub fn nom_instances(move_uses: &[u8; MAX_MONSTER_MOVES]) -> u8 {
-    let moves_chosen_before: u16 = move_uses.iter().map(|&uses| u16::from(uses)).sum();
-    ((moves_chosen_before + 2) / 2).min(u8::MAX as u16) as u8
+    let moves_used_before: u16 = move_uses.iter().map(|&uses| u16::from(uses)).sum();
+    ((moves_used_before + 2) / 2).min(u8::MAX as u16) as u8
 }

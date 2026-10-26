@@ -27,7 +27,7 @@ static MOVES_ASC2: [Move; 3] = [MOVE_STAB_14, MOVE_ENTANGLE, MOVE_SCRAPE_9_VULN_
 static MOVES_ASC17: [Move; 3] = [MOVE_STAB_14, MOVE_ENTANGLE, MOVE_SCRAPE_9_VULN_2];
 
 const IDX_MOVE_STAB: usize = 0;
-const IDX_MOVE_ENTANGLE: usize = 1;
+pub const IDX_MOVE_ENTANGLE: usize = 1;
 const IDX_MOVE_SCRAPE: usize = 2;
 
 pub static SLAVER_RED: MonsterTemplate = MonsterTemplate {

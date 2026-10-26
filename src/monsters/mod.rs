@@ -280,6 +280,19 @@ pub fn spawn_monster(monster_name: MonsterName, ascension_level: u8, rng: &mut i
     instance_monster_from_template(monster_template(monster_name), ascension_level, rng)
 }
 
+// The once-per-combat move that `Monster.ultimate_used` reports; an opener every fight starts with isn't one
+pub fn move_ultimate(monster_name: MonsterName) -> Option<usize> {
+    match monster_name {
+        MonsterName::SlaverRed => Some(slaver_red::IDX_MOVE_ENTANGLE),
+        MonsterName::Champ => Some(champ::IDX_MOVE_ANGER),
+        MonsterName::BronzeOrb => Some(bronze_orb::IDX_MOVE_STASIS),
+        MonsterName::TheCollector => Some(the_collector::IDX_MOVE_MEGA_DEBUFF),
+        MonsterName::TimeEater => Some(time_eater::IDX_MOVE_HASTE),
+        MonsterName::WrithingMass => Some(writhing_mass::IDX_MOVE_IMPLANT),
+        _ => None,
+    }
+}
+
 // Named arms: a new MonsterName fails compilation here until it has a template
 pub fn monster_template(monster_name: MonsterName) -> &'static MonsterTemplate {
     match monster_name {

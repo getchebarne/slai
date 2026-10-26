@@ -12,7 +12,7 @@ use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
 use crate::modifier::modifier_stacks;
-use crate::monsters::writhing_mass;
+use crate::monsters::move_ultimate;
 use crate::types::MonsterEncounter;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
@@ -153,8 +153,8 @@ pub struct PyMonster {
     pub move_current: Option<u8>,    // Index into the spawn-rolled moveset; None when hidden
     pub move_history: Vec<u8>, // Selection-ordered move indices; the last entry IS the current move, and under Runic Dome only executed moves
     pub gold_stolen: u16,      // Only relevant for Looters and Muggers
-    pub implant_executed: bool, // Only relevant for Writhing Mass: its Implant has executed this combat and won't come again
-    pub replay_target: bool,    // A waiting replay aims at this Monster
+    pub ultimate_used: bool, // The Monster's once-per-combat move has been used: Red Slaver's Entangle, Champ's Anger, Bronze Orb's Stasis, the Collector's Mega Debuff, Time Eater's Haste, Writhing Mass's Implant
+    pub replay_target: bool, // A waiting replay aims at this Monster
 }
 
 pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
@@ -296,8 +296,8 @@ pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
                 },
                 move_history,
                 gold_stolen: monster.monster_gold_stolen,
-                implant_executed: monster.monster_name == MonsterName::WrithingMass
-                    && monster.monster_move_uses[writhing_mass::IDX_MOVE_IMPLANT] > 0,
+                ultimate_used: move_ultimate(monster.monster_name)
+                    .is_some_and(|idx_move| monster.monster_move_uses[idx_move] > 0),
                 replay_target,
             }
         })

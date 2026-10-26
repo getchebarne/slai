@@ -169,7 +169,7 @@ const IDX_MOVE_EXECUTE: usize = 2;
 const IDX_MOVE_FACE_SLAP: usize = 3;
 const IDX_MOVE_GLOAT: usize = 4;
 const IDX_MOVE_TAUNT: usize = 5;
-const IDX_MOVE_ANGER: usize = 6;
+pub const IDX_MOVE_ANGER: usize = 6;
 
 pub static CHAMP: MonsterTemplate = MonsterTemplate {
     name: MonsterName::Champ,
