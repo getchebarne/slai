@@ -120,16 +120,16 @@ pub fn get_next_move_byrd(
             IDX_MOVE_PECK
         };
     }
-    let last = *move_history
+    let move_last = *move_history
         .last()
         .expect("`move_history` cannot be empty here") as usize;
 
     // Grounded cycle: Stunned -> Headbutt -> Go Airborne -> (flying again)
     if !flying {
-        return match last {
+        return match move_last {
             IDX_MOVE_STUNNED => IDX_MOVE_HEADBUTT,
             IDX_MOVE_HEADBUTT => IDX_MOVE_GO_AIRBORNE,
-            _ => unreachable!("Byrd grounded with unexpected last move: {last}"),
+            _ => unreachable!("Byrd grounded with unexpected move_last move: {move_last}"),
         };
     }
 
@@ -145,7 +145,7 @@ pub fn get_next_move_byrd(
             IDX_MOVE_PECK
         }
     } else if roll < 70 {
-        if last == IDX_MOVE_SWOOP {
+        if move_last == IDX_MOVE_SWOOP {
             if rng.random_bool(0.375) {
                 IDX_MOVE_CAW
             } else {
@@ -154,7 +154,7 @@ pub fn get_next_move_byrd(
         } else {
             IDX_MOVE_SWOOP
         }
-    } else if last == IDX_MOVE_CAW {
+    } else if move_last == IDX_MOVE_CAW {
         if rng.random_bool(0.2857) {
             IDX_MOVE_SWOOP
         } else {

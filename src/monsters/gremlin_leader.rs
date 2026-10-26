@@ -101,7 +101,7 @@ pub fn get_next_move_gremlin_leader(
         .flatten()
         .filter(|&&id| id != entity_id)
         .count();
-    let last = move_history
+    let move_last = move_history
         .last()
         .copied()
         .map(|idx_move| idx_move as usize);
@@ -110,7 +110,7 @@ pub fn get_next_move_gremlin_leader(
     if gremlins_alive == 1 {
         // A repeat-blocked band re-rolls into the complementary range (source recursion)
         let roll = if roll < 50 {
-            if last != Some(IDX_MOVE_RALLY) {
+            if move_last != Some(IDX_MOVE_RALLY) {
                 return IDX_MOVE_RALLY;
             }
             rng.random_range(50..=99)
@@ -118,12 +118,12 @@ pub fn get_next_move_gremlin_leader(
             roll
         };
         return if roll < 80 {
-            if last == Some(IDX_MOVE_ENCOURAGE) {
+            if move_last == Some(IDX_MOVE_ENCOURAGE) {
                 IDX_MOVE_STAB
             } else {
                 IDX_MOVE_ENCOURAGE
             }
-        } else if last == Some(IDX_MOVE_STAB) {
+        } else if move_last == Some(IDX_MOVE_STAB) {
             if rng.random_range(0..=79) < 50 {
                 IDX_MOVE_RALLY
             } else {
@@ -141,12 +141,12 @@ pub fn get_next_move_gremlin_leader(
         (66, IDX_MOVE_ENCOURAGE)
     };
     if roll < threshold {
-        if last == Some(primary) {
+        if move_last == Some(primary) {
             IDX_MOVE_STAB
         } else {
             primary
         }
-    } else if last == Some(IDX_MOVE_STAB) {
+    } else if move_last == Some(IDX_MOVE_STAB) {
         primary
     } else {
         IDX_MOVE_STAB

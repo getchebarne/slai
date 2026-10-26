@@ -29,8 +29,9 @@ use super::target::PyTarget;
 use crate::effect::RewardRollTrigger;
 
 mirror_enum!(PyRewardRollTrigger from RewardRollTrigger, "RewardRollTrigger", {
-    CombatMonster, CombatElite, CombatBoss, EventFight, EventFightUnpaid, SmokeBomb, DreamCatcher,
-    Orrery, Library, NeowPotions, Cauldron, WomanInBlue, Lab, TinyHouse, CallingBell,
+    CallingBell, Cauldron, CombatBoss, CombatElite, CombatMonster, DreamCatcher, EventFight,
+    EventFightUnpaid, Lab, Library, NeowPotions, Orrery, SensoryStone, SmokeBomb, TinyHouse,
+    WomanInBlue,
 });
 
 // Mirrors only EffectKind variants reachable from static Card/Monster defs or a halted selection; snapshot_effect panics on runtime-only variants

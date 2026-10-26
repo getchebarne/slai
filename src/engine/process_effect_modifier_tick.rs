@@ -39,11 +39,15 @@ pub fn process_effect_modifier_tick(id_target: Option<usize>, state: &mut GameSt
             });
         }
 
-        // A Monster's Modifiers stop being new here; only debuffs on the Character skip a round end
+        // A Monster's Intangible skips the round end it landed in; its other Modifiers stop being new here
+        let intangible_new = modifiers.is_new[ModifierKind::Intangible as usize];
         modifier_set_not_new(modifiers);
+        modifiers.is_new[ModifierKind::Intangible as usize] = intangible_new;
+        modifier_tick(modifiers);
+        modifiers.is_new[ModifierKind::Intangible as usize] = false;
     } else {
         // The Character's Intangible ticks at every round end, however late it landed
         modifiers.is_new[ModifierKind::Intangible as usize] = false;
+        modifier_tick(modifiers);
     }
-    modifier_tick(modifiers);
 }

@@ -209,7 +209,7 @@ static MOVES_ASC19: [Move; 4] = [
 const IDX_MOVE_REVERBERATE: usize = 0;
 const IDX_MOVE_RIPPLE: usize = 1;
 const IDX_MOVE_HEAD_SLAM: usize = 2;
-const IDX_MOVE_HASTE: usize = 3;
+pub const IDX_MOVE_HASTE: usize = 3;
 
 pub static TIME_EATER: MonsterTemplate = MonsterTemplate {
     name: MonsterName::TimeEater,
@@ -239,7 +239,7 @@ pub fn get_next_move_time_eater(
         return IDX_MOVE_HASTE;
     }
 
-    let last = move_history
+    let move_last = move_history
         .last()
         .copied()
         .map(|idx_move| idx_move as usize);
@@ -256,7 +256,7 @@ pub fn get_next_move_time_eater(
 
     // Head Slam never repeats: a repeat becomes Reverberate or Ripple
     if roll < 80 {
-        return if last != Some(IDX_MOVE_HEAD_SLAM) {
+        return if move_last != Some(IDX_MOVE_HEAD_SLAM) {
             IDX_MOVE_HEAD_SLAM
         } else if rng.random_bool(0.66) {
             IDX_MOVE_REVERBERATE
@@ -266,7 +266,7 @@ pub fn get_next_move_time_eater(
     }
 
     // Ripple never repeats: its band re-rolls into the two below it, where the last move blocks nothing
-    if last != Some(IDX_MOVE_RIPPLE) {
+    if move_last != Some(IDX_MOVE_RIPPLE) {
         IDX_MOVE_RIPPLE
     } else if rng.random_range(0..=74) < 45 {
         IDX_MOVE_REVERBERATE

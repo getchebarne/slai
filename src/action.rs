@@ -12,6 +12,7 @@ use crate::effect::ReadAt;
 use crate::effect::Rounding;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
+use crate::effect::TurnEndCharacterStage;
 use crate::engine::fill_buf_candidates;
 use crate::events::event_option_available;
 use crate::game::GameState;
@@ -546,7 +547,9 @@ fn handle_room_select(state: &mut GameState, id_room: usize) {
 
 fn handle_turn_end(state: &mut GameState) {
     state.effect_buf.push(Effect {
-        kind: EffectKind::TurnEndCharacter { landing: false },
+        kind: EffectKind::TurnEndCharacter {
+            stage: TurnEndCharacterStage::FirstPass,
+        },
         id_source: None,
         target: Target::Direct(None),
     });

@@ -50,13 +50,13 @@ pub fn get_next_move_gremlin_nob(
 
     if ascension_level >= 18 {
         // Skull Bash if neither of the last two moves was Skull Bash
-        let last = move_history.last().copied();
+        let move_last = move_history.last().copied();
         let last_before = if move_history.len() >= 2 {
             Some(move_history[move_history.len() - 2])
         } else {
             None
         };
-        let recent_skull_bash = last == Some(IDX_MOVE_SKULL_BASH as u8)
+        let recent_skull_bash = move_last == Some(IDX_MOVE_SKULL_BASH as u8)
             || last_before == Some(IDX_MOVE_SKULL_BASH as u8);
         if !recent_skull_bash {
             return IDX_MOVE_SKULL_BASH;

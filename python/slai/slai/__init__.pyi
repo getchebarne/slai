@@ -157,6 +157,7 @@ class CandidateFilter:
     Costed: Final[CandidateFilter]
     NotBottled: Final[CandidateFilter]
     NotBoundCurse: Final[CandidateFilter]
+    NotIntangible: Final[CandidateFilter]
     NotMinion: Final[CandidateFilter]
     NotSource: Final[CandidateFilter]
     NotSourceUnlessAlone: Final[CandidateFilter]
@@ -1513,6 +1514,7 @@ class EventName:
     Purifier: Final[EventName]
     ScrapOoze: Final[EventName]
     SecretPortal: Final[EventName]
+    SensoryStone: Final[EventName]
     ShiningLight: Final[EventName]
     TheCleric: Final[EventName]
     TheDivineFountain: Final[EventName]
@@ -1725,6 +1727,7 @@ class ModifierKind:
     Burst: Final[ModifierKind]
     Choke: Final[ModifierKind]
     Confusion: Final[ModifierKind]
+    Constricted: Final[ModifierKind]
     CorpseExplosion: Final[ModifierKind]
     Curiosity: Final[ModifierKind]
     CurlUp: Final[ModifierKind]
@@ -1762,12 +1765,14 @@ class ModifierKind:
     Phantasmal: Final[ModifierKind]
     PlatedArmor: Final[ModifierKind]
     Poison: Final[ModifierKind]
+    Reactive: Final[ModifierKind]
     Regeneration: Final[ModifierKind]
     Retain: Final[ModifierKind]
     Ritual: Final[ModifierKind]
     SadisticNature: Final[ModifierKind]
     Shackled: Final[ModifierKind]
     SharpHide: Final[ModifierKind]
+    Shifting: Final[ModifierKind]
     Splittable: Final[ModifierKind]
     SporeCloud: Final[ModifierKind]
     Strength: Final[ModifierKind]
@@ -1835,6 +1840,8 @@ class Monster:
     def name(self, /) -> MonsterName: ...
     @property
     def replay_target(self, /) -> bool: ...
+    @property
+    def ultimate_used(self, /) -> bool: ...
 
 @final
 class MonsterEncounter:
@@ -1863,6 +1870,7 @@ class MonsterEncounter:
     Looter: Final[MonsterEncounter]
     LotsOfSlimes: Final[MonsterEncounter]
     Maw: Final[MonsterEncounter]
+    Nemesis: Final[MonsterEncounter]
     OrbWalker: Final[MonsterEncounter]
     RedSlaver: Final[MonsterEncounter]
     SentryAndSphere: Final[MonsterEncounter]
@@ -1874,6 +1882,7 @@ class MonsterEncounter:
     SnakePlant: Final[MonsterEncounter]
     Snecko: Final[MonsterEncounter]
     SphericGuardian: Final[MonsterEncounter]
+    SpireGrowth: Final[MonsterEncounter]
     TheCollector: Final[MonsterEncounter]
     TheGuardian: Final[MonsterEncounter]
     ThreeByrds: Final[MonsterEncounter]
@@ -1882,10 +1891,12 @@ class MonsterEncounter:
     ThreeLouse: Final[MonsterEncounter]
     ThreeSentries: Final[MonsterEncounter]
     TimeEater: Final[MonsterEncounter]
+    Transient: Final[MonsterEncounter]
     TwoFungiBeasts: Final[MonsterEncounter]
     TwoLouse: Final[MonsterEncounter]
     TwoOrbWalkers: Final[MonsterEncounter]
     TwoThieves: Final[MonsterEncounter]
+    WrithingMass: Final[MonsterEncounter]
     def __eq__(self, other: object) -> bool: ...
     def __hash__(self, /) -> int: ...
     def __int__(self, /) -> int: ...
@@ -1957,6 +1968,7 @@ class MonsterName:
     LouseNormal: Final[MonsterName]
     Maw: Final[MonsterName]
     Mugger: Final[MonsterName]
+    Nemesis: Final[MonsterName]
     OrbWalker: Final[MonsterName]
     Sentry: Final[MonsterName]
     ShelledParasite: Final[MonsterName]
@@ -1972,11 +1984,14 @@ class MonsterName:
     SnakePlant: Final[MonsterName]
     Snecko: Final[MonsterName]
     SphericGuardian: Final[MonsterName]
+    SpireGrowth: Final[MonsterName]
     Taskmaster: Final[MonsterName]
     TheCollector: Final[MonsterName]
     TheGuardian: Final[MonsterName]
     TimeEater: Final[MonsterName]
     TorchHead: Final[MonsterName]
+    Transient: Final[MonsterName]
+    WrithingMass: Final[MonsterName]
     def __eq__(self, other: object) -> bool: ...
     def __hash__(self, /) -> int: ...
     def __int__(self, /) -> int: ...
@@ -2428,6 +2443,7 @@ class RewardRollTrigger:
     Library: Final[RewardRollTrigger]
     NeowPotions: Final[RewardRollTrigger]
     Orrery: Final[RewardRollTrigger]
+    SensoryStone: Final[RewardRollTrigger]
     SmokeBomb: Final[RewardRollTrigger]
     TinyHouse: Final[RewardRollTrigger]
     WomanInBlue: Final[RewardRollTrigger]

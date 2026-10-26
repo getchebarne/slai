@@ -28,6 +28,7 @@ mod ominous_forge;
 mod purifier;
 mod scrap_ooze;
 mod secret_portal;
+mod sensory_stone;
 mod shining_light;
 mod the_cleric;
 mod the_divine_fountain;
@@ -196,6 +197,7 @@ pub fn spawn_event(state: &mut GameState, name: EventName) -> Vec<usize> {
         EventName::GoldenIdol => golden_idol::spawn(state),
         EventName::ScrapOoze => scrap_ooze::spawn(state),
         EventName::SecretPortal => secret_portal::spawn(state),
+        EventName::SensoryStone => sensory_stone::spawn(state),
         EventName::WeMeetAgain => we_meet_again::spawn(state),
         EventName::DeadAdventurer => dead_adventurer::spawn(state),
         EventName::Neow => neow::spawn(state),
@@ -251,6 +253,7 @@ pub fn options_catalog(name: EventName, ascension: u8) -> &'static [EventOptionT
         EventName::GoldenIdol => golden_idol::catalog(ascension),
         EventName::ScrapOoze => scrap_ooze::catalog(ascension),
         EventName::SecretPortal => secret_portal::catalog(ascension),
+        EventName::SensoryStone => sensory_stone::catalog(ascension),
         EventName::WeMeetAgain => we_meet_again::catalog(ascension),
         EventName::DeadAdventurer => dead_adventurer::catalog(ascension),
         EventName::Neow => neow::catalog(ascension),
@@ -360,6 +363,7 @@ pub fn event_option_available(state: &GameState, idx: usize) -> bool {
         EventName::GoldenIdol => golden_idol::option_available(state, idx),
         EventName::ScrapOoze => scrap_ooze::option_available(state, idx),
         EventName::SecretPortal => secret_portal::option_available(state, idx),
+        EventName::SensoryStone => sensory_stone::option_available(state, idx),
         EventName::WeMeetAgain => we_meet_again::option_available(state, idx),
         EventName::DeadAdventurer => dead_adventurer::option_available(state, idx),
         EventName::Neow => neow::option_available(state, idx),

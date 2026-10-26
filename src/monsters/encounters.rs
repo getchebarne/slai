@@ -517,6 +517,10 @@ pub fn spawn_encounter_monsters(state: &mut GameState, encounter: MonsterEncount
             push_monster_spawn(effects, MonsterName::Cultist, 1);
             push_monster_spawn(effects, MonsterName::AwakenedOne, 2);
         }
+        MonsterEncounter::Transient => push_monster_spawn(effects, MonsterName::Transient, 0),
+        MonsterEncounter::WrithingMass => push_monster_spawn(effects, MonsterName::WrithingMass, 0),
+        MonsterEncounter::Nemesis => push_monster_spawn(effects, MonsterName::Nemesis, 0),
+        MonsterEncounter::SpireGrowth => push_monster_spawn(effects, MonsterName::SpireGrowth, 0),
     }
 
     effects.push(Effect {

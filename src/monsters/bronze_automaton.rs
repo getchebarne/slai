@@ -117,7 +117,7 @@ pub fn get_next_move_bronze_automaton(move_history: &[u8], ascension_level: u8) 
     if move_history.is_empty() {
         return IDX_MOVE_SPAWN_ORBS;
     }
-    let last = *move_history.last().unwrap() as usize;
+    let move_last = *move_history.last().unwrap() as usize;
 
     // Count cycling turns (Flail / Boost) since the last Hyper Beam
     let segment_start = move_history
@@ -139,13 +139,16 @@ pub fn get_next_move_bronze_automaton(move_history: &[u8], ascension_level: u8) 
 
     if num_turns == 4 {
         IDX_MOVE_HYPER_BEAM
-    } else if last == IDX_MOVE_HYPER_BEAM {
+    } else if move_last == IDX_MOVE_HYPER_BEAM {
         if ascension_level >= 19 {
             IDX_MOVE_BOOST
         } else {
             IDX_MOVE_STUNNED
         }
-    } else if last == IDX_MOVE_STUNNED || last == IDX_MOVE_BOOST || last == IDX_MOVE_SPAWN_ORBS {
+    } else if move_last == IDX_MOVE_STUNNED
+        || move_last == IDX_MOVE_BOOST
+        || move_last == IDX_MOVE_SPAWN_ORBS
+    {
         IDX_MOVE_FLAIL
     } else {
         IDX_MOVE_BOOST

@@ -658,7 +658,7 @@ fn dispatch_by_kind(
             process_effect_storm_of_steel_proc(state, upgraded)
         }
         EffectKind::StrengthLoseTemp { stacks } => {
-            process_effect_strength_lose_temp(id_targets, state, stacks)
+            process_effect_strength_lose_temp(id_source, id_targets, state, stacks)
         }
         EffectKind::UnloadDiscard => process_effect_unload_discard(state),
         EffectKind::DamageDeal { amount, lifesteal } => {
@@ -710,9 +710,7 @@ fn dispatch_by_kind(
         EffectKind::TurnStartMonster => {
             process_effect_turn_start_monster(one_target(id_targets), state)
         }
-        EffectKind::TurnEndCharacter { landing } => {
-            process_effect_turn_end_character(state, landing)
-        }
+        EffectKind::TurnEndCharacter { stage } => process_effect_turn_end_character(state, stage),
         EffectKind::TurnEndMonster => {
             process_effect_turn_end_monster(one_target(id_targets), state)
         }

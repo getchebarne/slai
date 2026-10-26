@@ -85,10 +85,10 @@ pub fn get_next_move_sentry(
         };
     }
     // Subsequent moves: strict alternation
-    let last = *move_history
+    let move_last = *move_history
         .last()
         .expect("`move_history` cannot be empty here") as usize;
-    if last == IDX_MOVE_BEAM {
+    if move_last == IDX_MOVE_BEAM {
         IDX_MOVE_BOLT
     } else {
         IDX_MOVE_BEAM

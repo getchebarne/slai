@@ -112,6 +112,9 @@ pub const ASCENSION_CARD_UPGRADE_CUT_LEVEL: u8 = 12;
 pub const CARD_REWARD_ROLL_CHANCE_RARE_ELITE: i32 = 10;
 pub const CARD_REWARD_ROLL_CHANCE_UNCOMMON_ELITE: i32 = 50;
 
+// Colorless Card rewards and the Courier's colorless restock roll Rare at this chance, otherwise Uncommon
+pub const COLORLESS_RARE_CHANCE: f32 = 0.3;
+
 // Wheel of Change pays 100 per act
 pub const WHEEL_GOLD_PER_ACT: u16 = 100;
 
@@ -276,7 +279,6 @@ pub const SHOP_CARD_CUT_RARE: i32 = 9;
 pub const SHOP_CARD_CUT_UNCOMMON: i32 = 46;
 
 // Relic-tier weights for the 2 non-shop Relic slots
-pub const SHOP_COLORLESS_RARE_CHANCE: f32 = 0.3;
 pub const SHOP_RELIC_TH_COMMON: u8 = 48;
 pub const SHOP_RELIC_TH_UNCOMMON: u8 = 82;
 

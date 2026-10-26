@@ -450,6 +450,7 @@ pub enum MonsterName {
     LouseDefensive,
     LouseNormal,
     Maw,
+    Nemesis,
     OrbWalker,
     Sentry,
     SlaverBlue,
@@ -461,8 +462,11 @@ pub enum MonsterName {
     SlimeSpikeLarge,
     SlimeSpikeMedium,
     SlimeSpikeSmall,
+    SpireGrowth,
     TheGuardian,
     TimeEater,
+    Transient,
+    WrithingMass,
     Byrd,
     Centurion,
     Chosen,
@@ -560,6 +564,12 @@ pub enum MonsterEncounter {
     // Act 3 hard
     JawWormHorde,
     Maw,
+    SpireGrowth,
+    Transient,
+    WrithingMass,
+
+    // Act 3 elite
+    Nemesis,
 
     // Act 3 boss
     AwakenedOne,
@@ -612,6 +622,7 @@ pub enum EventName {
     Purifier,
     ScrapOoze,
     SecretPortal,
+    SensoryStone,
     ShiningLight,
     TheCleric,
     TheDivineFountain,
