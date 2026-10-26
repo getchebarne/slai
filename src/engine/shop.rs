@@ -6,7 +6,7 @@ use strum::EnumCount;
 
 use crate::cards::get_card;
 use crate::cards::get_random_cards;
-use crate::consts::SHOP_COLORLESS_RARE_CHANCE;
+use crate::consts::COLORLESS_RARE_CHANCE;
 use crate::consts::SHOP_PRICE_CARD_COMMON;
 use crate::consts::SHOP_PRICE_CARD_RARE;
 use crate::consts::SHOP_PRICE_CARD_UNCOMMON;
@@ -55,7 +55,7 @@ pub(super) fn make_card_restock(
     let colorless = color == CardColor::Colorless;
     let card = if colorless {
         // A fresh rarity roll, never the bought Card's rarity
-        let rarity = if state.rng.random::<f32>() < SHOP_COLORLESS_RARE_CHANCE {
+        let rarity = if state.rng.random::<f32>() < COLORLESS_RARE_CHANCE {
             CardRarity::Rare
         } else {
             CardRarity::Uncommon

@@ -354,21 +354,22 @@ pub enum RelicExclusion {
 // Who is asking for a reward roll
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum RewardRollTrigger {
-    CombatMonster,
-    CombatElite,
+    CallingBell,
+    Cauldron,
     CombatBoss,
+    CombatElite,
+    CombatMonster,
+    DreamCatcher,
     EventFight,
     EventFightUnpaid,
-    SmokeBomb,
-    DreamCatcher,
-    Orrery,
+    Lab,
     Library,
     NeowPotions,
-    Cauldron,
-    WomanInBlue,
-    Lab,
+    Orrery,
+    SensoryStone,
+    SmokeBomb,
     TinyHouse,
-    CallingBell,
+    WomanInBlue,
 }
 
 // Origin tag the CardDiscard handler branches on

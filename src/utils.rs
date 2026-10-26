@@ -20,6 +20,7 @@ use crate::consts::CARD_REWARD_UPGRADE_CHANCE_ACT2;
 use crate::consts::CARD_REWARD_UPGRADE_CHANCE_ACT2_A12;
 use crate::consts::CARD_REWARD_UPGRADE_CHANCE_ACT3;
 use crate::consts::CARD_REWARD_UPGRADE_CHANCE_ACT3_A12;
+use crate::consts::COLORLESS_RARE_CHANCE;
 use crate::consts::FACTOR_FRAIL;
 use crate::consts::FACTOR_VULN;
 use crate::consts::FACTOR_VULN_ODD_MUSHROOM;
@@ -783,7 +784,9 @@ pub const fn card_pool(rarity: CardRarity, colorless: bool) -> &'static [CardNam
 pub const SHOP_STOCK_POLICY: RollPolicy = RollPolicy {
     cuts: Some((SHOP_CARD_CUT_RARE, SHOP_CARD_CUT_UNCOMMON)), // Own bands
     alternation: false,
-    write_pity: false,         // Reads the pity without writing it
+    read_pity: true,
+    write_pity: false,
+    colorless: false,
     dupe_rerolls_rarity: true, // make_card_colored's loop re-rolls rarity and Card together
     upgrade_roll: false,
     staged: true, // Kept, on offer as stock
@@ -806,8 +809,9 @@ pub fn roll_card_rarity(
         base_rare
     };
 
-    // Roll
-    let roll = rng.random_range(0i32..=99) + offset as i32;
+    // Roll, shifted by the pity offset when the policy reads it
+    let offset = if policy.read_pity { offset as i32 } else { 0 };
+    let roll = rng.random_range(0i32..=99) + offset;
     if roll < chance_rare {
         CardRarity::Rare
     } else if roll < chance_rare + (base_uncommon - base_rare) {
@@ -821,7 +825,9 @@ pub fn roll_card_rarity(
 pub struct RollPolicy {
     pub cuts: Option<(i32, i32)>,
     pub alternation: bool,
+    pub read_pity: bool, // The pity offset shifts the rarity roll
     pub write_pity: bool,
+    pub colorless: bool, // The Cards come from the colorless pools, which hold no Common
     pub dupe_rerolls_rarity: bool,
     pub upgrade_roll: bool,
     pub staged: bool, // The rolled Cards are kept; a discarded roll only moves the pity offset
@@ -837,7 +843,9 @@ pub const fn roll_policy(trigger: RewardRollTrigger) -> RollPolicy {
         RewardRollTrigger::CombatMonster | RewardRollTrigger::EventFight => RollPolicy {
             cuts: CUTS_MONSTER,
             alternation: true,
+            read_pity: true,
             write_pity: true,
+            colorless: false,
             dupe_rerolls_rarity: false,
             upgrade_roll: true,
             staged: true,
@@ -848,7 +856,9 @@ pub const fn roll_policy(trigger: RewardRollTrigger) -> RollPolicy {
                 CARD_REWARD_ROLL_CHANCE_UNCOMMON_ELITE,
             )),
             alternation: true,
+            read_pity: true,
             write_pity: true,
+            colorless: false,
             dupe_rerolls_rarity: false,
             upgrade_roll: true,
             staged: true,
@@ -856,7 +866,9 @@ pub const fn roll_policy(trigger: RewardRollTrigger) -> RollPolicy {
         RewardRollTrigger::CombatBoss => RollPolicy {
             cuts: None,
             alternation: false,
+            read_pity: true,
             write_pity: true,
+            colorless: false,
             dupe_rerolls_rarity: false,
             upgrade_roll: true,
             staged: true,
@@ -865,7 +877,9 @@ pub const fn roll_policy(trigger: RewardRollTrigger) -> RollPolicy {
         RewardRollTrigger::DreamCatcher => RollPolicy {
             cuts: CUTS_MONSTER,
             alternation: false,
+            read_pity: true,
             write_pity: true,
+            colorless: false,
             dupe_rerolls_rarity: false,
             upgrade_roll: true,
             staged: true,
@@ -874,7 +888,9 @@ pub const fn roll_policy(trigger: RewardRollTrigger) -> RollPolicy {
         RewardRollTrigger::Orrery => RollPolicy {
             cuts: Some((SHOP_CARD_CUT_RARE, SHOP_CARD_CUT_UNCOMMON)),
             alternation: false,
+            read_pity: true,
             write_pity: true,
+            colorless: false,
             dupe_rerolls_rarity: false,
             upgrade_roll: true,
             staged: true,
@@ -882,7 +898,9 @@ pub const fn roll_policy(trigger: RewardRollTrigger) -> RollPolicy {
         RewardRollTrigger::Library => RollPolicy {
             cuts: CUTS_MONSTER,
             alternation: true,
+            read_pity: true,
             write_pity: false,
+            colorless: false,
             dupe_rerolls_rarity: true,
             upgrade_roll: false,
             staged: true,
@@ -891,7 +909,9 @@ pub const fn roll_policy(trigger: RewardRollTrigger) -> RollPolicy {
         RewardRollTrigger::NeowPotions | RewardRollTrigger::CallingBell => RollPolicy {
             cuts: CUTS_MONSTER,
             alternation: true,
+            read_pity: true,
             write_pity: true,
+            colorless: false,
             dupe_rerolls_rarity: false,
             upgrade_roll: true,
             staged: false,
@@ -900,10 +920,23 @@ pub const fn roll_policy(trigger: RewardRollTrigger) -> RollPolicy {
         RewardRollTrigger::Cauldron => RollPolicy {
             cuts: Some((SHOP_CARD_CUT_RARE, SHOP_CARD_CUT_UNCOMMON)),
             alternation: false,
+            read_pity: true,
             write_pity: true,
+            colorless: false,
             dupe_rerolls_rarity: false,
             upgrade_roll: true,
             staged: false,
+        },
+        // Colorless rewards: Rare at the colorless chance, otherwise Uncommon; a Rare still resets the pity it never reads
+        RewardRollTrigger::SensoryStone => RollPolicy {
+            cuts: Some(((COLORLESS_RARE_CHANCE * 100.0) as i32, 100)),
+            alternation: false,
+            read_pity: false,
+            write_pity: true,
+            colorless: true,
+            dupe_rerolls_rarity: false,
+            upgrade_roll: false,
+            staged: true,
         },
         RewardRollTrigger::EventFightUnpaid
         | RewardRollTrigger::SmokeBomb
@@ -951,7 +984,8 @@ pub const fn potion_roll_policy(trigger: RewardRollTrigger) -> PotionRollPolicy 
         RewardRollTrigger::DreamCatcher
         | RewardRollTrigger::Orrery
         | RewardRollTrigger::Library
-        | RewardRollTrigger::CallingBell => panic!("no Potion roll for this trigger"),
+        | RewardRollTrigger::CallingBell
+        | RewardRollTrigger::SensoryStone => panic!("no Potion roll for this trigger"),
     }
 }
 
@@ -986,12 +1020,12 @@ pub fn roll_card_rewards(
     out.clear();
     for _ in 0..count {
         // Roll rarity
-        let (mut pool, rarity) = if policy.cuts.is_none() {
-            (card_pool(CardRarity::Rare, false), CardRarity::Rare)
+        let rarity = if policy.cuts.is_none() {
+            CardRarity::Rare
         } else {
-            let rarity = roll_card_rarity(rng, character_reward_roll_offset, &policy, id_relics);
-            (card_pool(rarity, false), rarity)
+            roll_card_rarity(rng, character_reward_roll_offset, &policy, id_relics)
         };
+        let mut pool = card_pool(rarity, policy.colorless);
 
         // Pity: reset offset on Rare hit; decrement on Common (toward more rares)
         if policy.write_pity {
@@ -1011,7 +1045,7 @@ pub fn roll_card_rewards(
             if policy.dupe_rerolls_rarity {
                 pool = card_pool(
                     roll_card_rarity(rng, character_reward_roll_offset, &policy, id_relics),
-                    false,
+                    policy.colorless,
                 );
             }
             name = pool[rng.random_range(0..pool.len())];

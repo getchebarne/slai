@@ -622,6 +622,7 @@ pub enum EventName {
     Purifier,
     ScrapOoze,
     SecretPortal,
+    SensoryStone,
     ShiningLight,
     TheCleric,
     TheDivineFountain,
