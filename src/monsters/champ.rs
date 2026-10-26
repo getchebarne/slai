@@ -169,7 +169,7 @@ const IDX_MOVE_EXECUTE: usize = 2;
 const IDX_MOVE_FACE_SLAP: usize = 3;
 const IDX_MOVE_GLOAT: usize = 4;
 const IDX_MOVE_TAUNT: usize = 5;
-const IDX_MOVE_ANGER: usize = 6;
+pub const IDX_MOVE_ANGER: usize = 6;
 
 pub static CHAMP: MonsterTemplate = MonsterTemplate {
     name: MonsterName::Champ,
@@ -218,7 +218,7 @@ pub fn get_next_move_champ(
         return IDX_MOVE_TAUNT;
     }
 
-    let last = move_history
+    let move_last = move_history
         .last()
         .copied()
         .map(|idx_move| idx_move as usize);
@@ -226,14 +226,16 @@ pub fn get_next_move_champ(
     let forge_roll_max = if ascension_level >= 19 { 30 } else { 15 };
     let forge_times = move_uses[IDX_MOVE_DEFENSIVE_STANCE];
 
-    if last != Some(IDX_MOVE_DEFENSIVE_STANCE) && forge_times < 2 && roll <= forge_roll_max {
+    if move_last != Some(IDX_MOVE_DEFENSIVE_STANCE) && forge_times < 2 && roll <= forge_roll_max {
         IDX_MOVE_DEFENSIVE_STANCE
-    } else if last != Some(IDX_MOVE_GLOAT) && last != Some(IDX_MOVE_DEFENSIVE_STANCE) && roll <= 30
+    } else if move_last != Some(IDX_MOVE_GLOAT)
+        && move_last != Some(IDX_MOVE_DEFENSIVE_STANCE)
+        && roll <= 30
     {
         IDX_MOVE_GLOAT
-    } else if last != Some(IDX_MOVE_FACE_SLAP) && roll <= 55 {
+    } else if move_last != Some(IDX_MOVE_FACE_SLAP) && roll <= 55 {
         IDX_MOVE_FACE_SLAP
-    } else if last == Some(IDX_MOVE_HEAVY_SLASH) {
+    } else if move_last == Some(IDX_MOVE_HEAVY_SLASH) {
         IDX_MOVE_FACE_SLAP
     } else {
         IDX_MOVE_HEAVY_SLASH

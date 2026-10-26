@@ -464,6 +464,7 @@ pub enum MonsterName {
     TheGuardian,
     TimeEater,
     Transient,
+    WrithingMass,
     Byrd,
     Centurion,
     Chosen,
@@ -562,6 +563,7 @@ pub enum MonsterEncounter {
     JawWormHorde,
     Maw,
     Transient,
+    WrithingMass,
 
     // Act 3 boss
     AwakenedOne,

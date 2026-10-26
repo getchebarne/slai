@@ -79,13 +79,13 @@ pub fn get_next_move_maw(
     if move_current.is_none() {
         return IDX_MOVE_ROAR;
     }
-    let last = move_history
+    let move_last = move_history
         .last()
         .copied()
         .map(|idx_move| idx_move as usize);
-    if last != Some(IDX_MOVE_NOM) && rng.random_range(0..=99) < 50 {
+    if move_last != Some(IDX_MOVE_NOM) && rng.random_range(0..=99) < 50 {
         IDX_MOVE_NOM
-    } else if last == Some(IDX_MOVE_SLAM) || last == Some(IDX_MOVE_NOM) {
+    } else if move_last == Some(IDX_MOVE_SLAM) || move_last == Some(IDX_MOVE_NOM) {
         IDX_MOVE_DROOL
     } else {
         IDX_MOVE_SLAM
@@ -94,6 +94,6 @@ pub fn get_next_move_maw(
 
 // Nom as the Maw's k-th move hits (k + 1) / 2 times
 pub fn nom_instances(move_uses: &[u8; MAX_MONSTER_MOVES]) -> u8 {
-    let moves_chosen_before: u16 = move_uses.iter().map(|&uses| u16::from(uses)).sum();
-    ((moves_chosen_before + 2) / 2).min(u8::MAX as u16) as u8
+    let moves_used_before: u16 = move_uses.iter().map(|&uses| u16::from(uses)).sum();
+    ((moves_used_before + 2) / 2).min(u8::MAX as u16) as u8
 }

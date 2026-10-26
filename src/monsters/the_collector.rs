@@ -140,7 +140,7 @@ static MOVES_ASC19: [Move; 5] = [
 const IDX_MOVE_SPAWN: usize = 0;
 const IDX_MOVE_FIREBALL: usize = 1;
 const IDX_MOVE_BUFF: usize = 2;
-const IDX_MOVE_MEGA_DEBUFF: usize = 3;
+pub const IDX_MOVE_MEGA_DEBUFF: usize = 3;
 const IDX_MOVE_REVIVE: usize = 4;
 
 pub static THE_COLLECTOR: MonsterTemplate = MonsterTemplate {
@@ -176,15 +176,15 @@ pub fn get_next_move_the_collector(
         return IDX_MOVE_MEGA_DEBUFF;
     }
 
-    let last = *move_history.last().unwrap() as usize;
+    let move_last = *move_history.last().unwrap() as usize;
     let roll = rng.random_range(0..=99);
-    if roll <= 25 && torch_heads_alive < TORCH_HEAD_POSTS.len() && last != IDX_MOVE_REVIVE {
+    if roll <= 25 && torch_heads_alive < TORCH_HEAD_POSTS.len() && move_last != IDX_MOVE_REVIVE {
         IDX_MOVE_REVIVE
     } else if roll <= 70
         && !move_history.ends_with(&[IDX_MOVE_FIREBALL as u8, IDX_MOVE_FIREBALL as u8])
     {
         IDX_MOVE_FIREBALL
-    } else if last == IDX_MOVE_BUFF {
+    } else if move_last == IDX_MOVE_BUFF {
         IDX_MOVE_FIREBALL
     } else {
         IDX_MOVE_BUFF

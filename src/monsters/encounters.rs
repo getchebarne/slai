@@ -513,6 +513,7 @@ pub fn spawn_encounter_monsters(state: &mut GameState, encounter: MonsterEncount
             push_monster_spawn(effects, MonsterName::AwakenedOne, 2);
         }
         MonsterEncounter::Transient => push_monster_spawn(effects, MonsterName::Transient, 0),
+        MonsterEncounter::WrithingMass => push_monster_spawn(effects, MonsterName::WrithingMass, 0),
     }
 
     effects.push(Effect {

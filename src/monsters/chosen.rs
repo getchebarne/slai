@@ -90,8 +90,8 @@ pub fn get_next_move_chosen(move_history: &[u8], ascension_level: u8, rng: &mut 
         return IDX_MOVE_HEX;
     }
 
-    let last = *move_history.last().unwrap() as usize;
-    if last != IDX_MOVE_DEBILITATE && last != IDX_MOVE_DRAIN {
+    let move_last = *move_history.last().unwrap() as usize;
+    if move_last != IDX_MOVE_DEBILITATE && move_last != IDX_MOVE_DRAIN {
         if rng.random_range(0..=99) < 50 {
             IDX_MOVE_DEBILITATE
         } else {

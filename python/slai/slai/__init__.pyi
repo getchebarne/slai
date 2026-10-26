@@ -1762,6 +1762,7 @@ class ModifierKind:
     Phantasmal: Final[ModifierKind]
     PlatedArmor: Final[ModifierKind]
     Poison: Final[ModifierKind]
+    Reactive: Final[ModifierKind]
     Regeneration: Final[ModifierKind]
     Retain: Final[ModifierKind]
     Ritual: Final[ModifierKind]
@@ -1836,6 +1837,8 @@ class Monster:
     def name(self, /) -> MonsterName: ...
     @property
     def replay_target(self, /) -> bool: ...
+    @property
+    def ultimate_used(self, /) -> bool: ...
 
 @final
 class MonsterEncounter:
@@ -1888,6 +1891,7 @@ class MonsterEncounter:
     TwoLouse: Final[MonsterEncounter]
     TwoOrbWalkers: Final[MonsterEncounter]
     TwoThieves: Final[MonsterEncounter]
+    WrithingMass: Final[MonsterEncounter]
     def __eq__(self, other: object) -> bool: ...
     def __hash__(self, /) -> int: ...
     def __int__(self, /) -> int: ...
@@ -1980,6 +1984,7 @@ class MonsterName:
     TimeEater: Final[MonsterName]
     TorchHead: Final[MonsterName]
     Transient: Final[MonsterName]
+    WrithingMass: Final[MonsterName]
     def __eq__(self, other: object) -> bool: ...
     def __hash__(self, /) -> int: ...
     def __int__(self, /) -> int: ...

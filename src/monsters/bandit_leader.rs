@@ -48,10 +48,10 @@ pub fn get_next_move_bandit_leader(
     if move_current.is_none() {
         return IDX_MOVE_MOCK;
     }
-    let last = *move_history
+    let move_last = *move_history
         .last()
         .expect("`move_history` cannot be empty here") as usize;
-    match last {
+    match move_last {
         IDX_MOVE_MOCK => IDX_MOVE_AGONIZING,
         IDX_MOVE_AGONIZING => IDX_MOVE_CROSS_SLASH,
         IDX_MOVE_CROSS_SLASH => {
@@ -64,6 +64,6 @@ pub fn get_next_move_bandit_leader(
                 IDX_MOVE_AGONIZING
             }
         }
-        _ => unreachable!("Bandit Leader unexpected move idx: {last}"),
+        _ => unreachable!("Bandit Leader unexpected move idx: {move_last}"),
     }
 }

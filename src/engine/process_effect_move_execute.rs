@@ -34,6 +34,10 @@ pub fn process_effect_move_execute(id_target: Option<usize>, state: &mut GameSta
     let entity = &mut state.entities[id_monster];
     entity.monster_move_history_exec[entity.monster_move_history_len as usize - 1] = true;
 
+    // Use counts tally executed moves only, so a re-rolled pick never counts, and they never drop a move
+    let idx_move = entity.monster_move_current.unwrap();
+    entity.monster_move_uses[idx_move] = entity.monster_move_uses[idx_move].saturating_add(1);
+
     // Copy the Monster's move effects out so effect_buf/queue mutations below don't hold `entities` borrowed
     let move_effects = state.entities[id_monster].monster_move_effects;
     let move_effects_len = state.entities[id_monster].monster_move_effects_len as usize;

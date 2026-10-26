@@ -96,7 +96,7 @@ pub fn process_effect_damage_deal(
     }
 
     // Executes in reverse:
-    //     1. On-damage-taken triggers (Angry; CurlUp / Flight / Malleable tail-queue)
+    //     1. On-damage-taken triggers (Angry; CurlUp / Flight / Malleable / Reactive tail-queue)
     //     2. HealthDelta
     //     3. ModifierDelta Poison (Envenom)
     //     4. HealthDelta Gain (lifesteal)
@@ -133,7 +133,7 @@ pub fn process_effect_damage_deal(
             target: Target::Direct(Some(id_target)),
         });
 
-        // Curl Up, Angry, Flight and Malleable answer attack damage only
+        // Curl Up, Angry, Flight, Malleable and Reactive answer attack damage only
         if (from_card || from_monster) && id_source != Some(id_target) {
             let target = &mut state.entities[id_target];
             fire_on_damage_taken(
@@ -152,7 +152,7 @@ fn fire_on_damage_taken(
     damage_over_block: u16,
     effect_queue: &mut VecDeque<Effect>,
 ) {
-    // CurlUp, Flight and Malleable skip a killing blow
+    // CurlUp, Flight, Malleable and Reactive skip a killing blow
     let lives = damage_over_block < target.vitals.health;
 
     // CurlUp: fires once, gaining block = stacks behind the rest of the attack; the spent modifier stays until then
@@ -212,6 +212,17 @@ fn fire_on_damage_taken(
                 amount: stacks as u16,
             },
             id_source: Some(id_target),
+            target: Target::Direct(Some(id_target)),
+        });
+    }
+
+    // Reactive: a landing hit re-rolls the owner's move behind the rest of the attack, after Malleable's block
+    if lives && has_modifier(&target.modifiers, ModifierKind::Reactive) {
+        effect_queue.push_back(Effect {
+            kind: EffectKind::MoveUpdate {
+                move_override: None,
+            },
+            id_source: None,
             target: Target::Direct(Some(id_target)),
         });
     }
