@@ -682,9 +682,7 @@ fn dispatch_by_kind(
         EffectKind::GameOver => process_effect_game_over(state),
         EffectKind::TurnStartCharacter => process_effect_turn_start_character(state),
         EffectKind::TurnStartMonster => process_effect_turn_start_monster(id_target, state),
-        EffectKind::TurnEndCharacter { landing } => {
-            process_effect_turn_end_character(state, landing)
-        }
+        EffectKind::TurnEndCharacter { stage } => process_effect_turn_end_character(state, stage),
         EffectKind::TurnEndMonster => process_effect_turn_end_monster(id_target, state),
         EffectKind::TurnMonsters { stage } => process_effect_turn_monsters(state, stage),
         EffectKind::UnceasingTopDraw => process_effect_unceasing_top_draw(state),

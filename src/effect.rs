@@ -321,7 +321,7 @@ pub enum EffectKind {
     },
     TimeWarpProc,
     TurnEndCharacter {
-        landing: bool, // The second pass, which TurnEndCharacter queues for itself
+        stage: TurnEndCharacterStage,
     },
     TurnEndMonster,
     TurnMonsters {
@@ -387,6 +387,14 @@ pub enum PlaySource {
     Replay,
     ReplayCopy { id_card_original: usize }, // Necronomicon's replay of a copy of the Card; the copy's changes to itself land on the original
     TurnEnd { hand_size: u16 }, // A Card playing itself out of hand; Regret loses the hand size as the turn ended
+}
+
+// The Character's turn end, each stage waiting for everything queued before it
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum TurnEndCharacterStage {
+    FirstPass, // The turn-end Relics, Plated Armor and the Cards that play themselves out of hand
+    Landing,   // The per-turn cost resets, Regeneration and the other end-of-turn Modifier hooks
+    Discard,   // The hand as the hooks left it: Ethereal Cards exhaust, the rest are discarded
 }
 
 // The Monsters' half of the round, each stage waiting for everything queued before it

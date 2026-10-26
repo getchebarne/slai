@@ -4,6 +4,7 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::PlaySource;
 use crate::effect::Target;
+use crate::effect::TurnEndCharacterStage;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 
@@ -43,7 +44,9 @@ pub fn process_effect_time_warp_proc(id_target: Option<usize>, state: &mut GameS
     // The turn end waits for everything queued and every play still to come, ahead of a landing already waiting
     state.combat.turn_end_pending = true;
     state.phase_queue.push_front(Effect {
-        kind: EffectKind::TurnEndCharacter { landing: false },
+        kind: EffectKind::TurnEndCharacter {
+            stage: TurnEndCharacterStage::FirstPass,
+        },
         id_source: None,
         target: Target::Direct(None),
     });
