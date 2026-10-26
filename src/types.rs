@@ -450,6 +450,7 @@ pub enum MonsterName {
     LouseDefensive,
     LouseNormal,
     Maw,
+    Nemesis,
     OrbWalker,
     Sentry,
     SlaverBlue,
@@ -564,6 +565,9 @@ pub enum MonsterEncounter {
     Maw,
     Transient,
     WrithingMass,
+
+    // Act 3 elite
+    Nemesis,
 
     // Act 3 boss
     AwakenedOne,

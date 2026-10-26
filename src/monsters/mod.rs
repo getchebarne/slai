@@ -30,6 +30,7 @@ pub mod louse_green;
 pub mod louse_red;
 pub mod maw;
 pub mod mugger;
+pub mod nemesis;
 pub mod orb_walker;
 pub mod sentry;
 pub mod shelled_parasite;
@@ -154,6 +155,7 @@ pub const ALL_MONSTERS: &[&'static MonsterTemplate] = &[
     &maw::MAW,
     &mugger::MUGGER,
     &orb_walker::ORB_WALKER,
+    &nemesis::NEMESIS,
     &sentry::SENTRY,
     &shelled_parasite::SHELLED_PARASITE,
     &slaver_blue::SLAVER_BLUE,
@@ -350,6 +352,7 @@ pub fn monster_template(monster_name: MonsterName) -> &'static MonsterTemplate {
         MonsterName::TimeEater => &time_eater::TIME_EATER,
         MonsterName::Transient => &transient::TRANSIENT,
         MonsterName::WrithingMass => &writhing_mass::WRITHING_MASS,
+        MonsterName::Nemesis => &nemesis::NEMESIS,
     }
 }
 
@@ -594,6 +597,9 @@ pub fn get_next_move(
             &entity.monster_move_uses,
             rng,
         ),
+        MonsterName::Nemesis => {
+            nemesis::get_next_move_nemesis(entity.monster_move_current, history, rng)
+        }
     }
 }
 
