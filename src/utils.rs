@@ -147,8 +147,11 @@ pub fn has_relic(id_relics: &[Option<usize>; RelicName::COUNT], name: RelicName)
 }
 
 // A Modifier's turn hook fires by its priority, then by the stamp it took when it appeared
-pub fn hook_order(modifiers: &Modifiers, kind: ModifierKind) -> (u8, u32) {
-    (modifier_def(kind).priority, modifiers.seq[kind as usize])
+pub fn hook_order(modifiers: &Modifiers, mod_kind: ModifierKind) -> (u8, u32) {
+    (
+        modifier_def(mod_kind).priority,
+        modifiers.seq[mod_kind as usize],
+    )
 }
 
 pub fn card_is_upgradable(entity: &Entity) -> bool {

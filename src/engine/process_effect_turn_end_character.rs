@@ -262,17 +262,17 @@ pub fn process_effect_turn_end_character(state: &mut GameState, stage: TurnEndCh
             }
 
             // Lose{Strength,Dexterity}: the borrowed stacks leave at turn end
-            for (lose, gain) in [
-                (ModifierKind::LoseStrength, ModifierKind::Strength),
-                (ModifierKind::LoseDexterity, ModifierKind::Dexterity),
+            for (mod_kind, mod_kind_lose) in [
+                (ModifierKind::Strength, ModifierKind::LoseStrength),
+                (ModifierKind::Dexterity, ModifierKind::LoseDexterity),
             ] {
-                if has_modifier(mods_char, lose) {
-                    let stacks = modifier_stacks(mods_char, lose);
+                if has_modifier(mods_char, mod_kind_lose) {
+                    let stacks = modifier_stacks(mods_char, mod_kind_lose);
                     hooks.push((
-                        hook_order(mods_char, lose),
+                        hook_order(mods_char, mod_kind_lose),
                         Effect {
                             kind: EffectKind::ModifierDelta {
-                                kind: gain,
+                                kind: mod_kind,
                                 stacks: -stacks,
                             },
                             id_source: None,
@@ -280,9 +280,11 @@ pub fn process_effect_turn_end_character(state: &mut GameState, stage: TurnEndCh
                         },
                     ));
                     hooks.push((
-                        hook_order(mods_char, lose),
+                        hook_order(mods_char, mod_kind_lose),
                         Effect {
-                            kind: EffectKind::ModifierRemove { kind: lose },
+                            kind: EffectKind::ModifierRemove {
+                                kind: mod_kind_lose,
+                            },
                             id_source: None,
                             target: Target::Direct(Some(state.id_character)),
                         },
@@ -291,16 +293,16 @@ pub fn process_effect_turn_end_character(state: &mut GameState, stage: TurnEndCh
             }
 
             // Queue `EffectKind::ModifierRemove`s for Modifiers that clear at end of turn
-            for kind in [
+            for mod_kind in [
                 ModifierKind::Burst,
                 ModifierKind::NoDraw,
                 ModifierKind::Entangled,
             ] {
-                if has_modifier(mods_char, kind) {
+                if has_modifier(mods_char, mod_kind) {
                     hooks.push((
-                        hook_order(mods_char, kind),
+                        hook_order(mods_char, mod_kind),
                         Effect {
-                            kind: EffectKind::ModifierRemove { kind },
+                            kind: EffectKind::ModifierRemove { kind: mod_kind },
                             id_source: None,
                             target: Target::Direct(Some(state.id_character)),
                         },
