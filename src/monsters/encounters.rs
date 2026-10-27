@@ -4,10 +4,9 @@ use crate::consts::NUM_ENCOUNTERS_EASY;
 use crate::consts::NUM_ENCOUNTERS_EASY_ACT2;
 use crate::consts::NUM_ENCOUNTERS_ELITE;
 use crate::consts::NUM_ENCOUNTERS_HARD;
-use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::SelectionKind;
+use crate::effect::TARGET_MONSTERS_ALL;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
@@ -417,11 +416,7 @@ pub fn spawn_encounter_monsters(state: &mut GameState, encounter: MonsterEncount
                 effects.push(Effect {
                     kind,
                     id_source: None,
-                    target: Target::Resolve {
-                        candidate_pool: CandidatePool::Monsters,
-                        filters: &[],
-                        selection_kind: SelectionKind::Single,
-                    },
+                    target: TARGET_MONSTERS_ALL,
                 });
             }
         }

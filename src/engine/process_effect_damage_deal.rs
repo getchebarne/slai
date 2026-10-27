@@ -13,32 +13,16 @@ use crate::modifier::modifier_apply;
 use crate::modifier::modifier_stacks;
 use crate::types::DeltaSign;
 use crate::types::RelicName;
-use crate::utils::flush_effects_from_buf_to_queue_front;
 use crate::utils::has_relic;
 
 pub fn process_effect_damage_deal(
     id_source: Option<usize>,
-    id_targets: &[usize],
+    id_target: Option<usize>,
     state: &mut GameState,
     amount: u16,
     lifesteal: bool, // Life Suck
 ) {
-    assert!(!id_targets.is_empty(), "DamageDeal requires id_target");
-
-    // Each target's hit, death included, resolves before the next target's block
-    if id_targets.len() > 1 {
-        state.effect_buf.clear();
-        for &id_target in id_targets {
-            state.effect_buf.push(Effect {
-                kind: EffectKind::DamageDeal { amount, lifesteal },
-                id_source,
-                target: Target::Direct(Some(id_target)),
-            });
-        }
-        flush_effects_from_buf_to_queue_front(state);
-        return;
-    }
-    let id_target = id_targets[0];
+    let id_target = id_target.expect("DamageDeal requires id_target");
 
     // Corpses and half-dead Monsters absorb nothing: pre-resolved Direct hits can outlive their target
     let target = &state.entities[id_target];

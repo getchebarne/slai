@@ -1,6 +1,9 @@
+use crate::consts::MAX_SIZE_CARD_PILE_HAND;
+use crate::effect::CandidatePool;
 use crate::effect::DiscardSource;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::types::CardName;
@@ -32,15 +35,18 @@ pub fn process_effect_storm_of_steel_proc(state: &mut GameState, upgraded: bool)
         target: Target::Direct(None),
     });
 
-    // Discard the current Cards
-    for idx in 0..id_card_pile_hand.len() {
-        let id_card = id_card_pile_hand[idx];
-        state.effect_queue.push_front(Effect {
-            kind: EffectKind::CardDiscard {
-                source: DiscardSource::Explicit, // Triggers on-discard synergies
+    // The whole hand leaves from the right, so the leftmost Card ends on top of the discard pile
+    state.effect_queue.push_front(Effect {
+        kind: EffectKind::CardDiscard {
+            source: DiscardSource::Explicit, // Triggers on-discard synergies
+        },
+        id_source: None,
+        target: Target::Resolve {
+            candidate_pool: CandidatePool::CardPileHand,
+            filters: &[],
+            selection_kind: SelectionKind::Input {
+                count: MAX_SIZE_CARD_PILE_HAND as u16,
             },
-            id_source: None,
-            target: Target::Direct(Some(id_card)),
-        });
-    }
+        },
+    });
 }

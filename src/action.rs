@@ -277,7 +277,7 @@ fn selection_action(kind: EffectKind, id: usize) -> Action {
     }
 }
 
-// Stages the selected id; the last pick hands every staged id to the effect at once
+// Stages the selected id; at the last pick the effect resolves to every staged id
 fn handle_selection(state: &mut GameState, id_selected: usize) {
     // Validate there's a pending `Effect` and, if so, take it
     let effect_pending = state

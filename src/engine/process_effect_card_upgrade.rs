@@ -6,14 +6,8 @@ use crate::game::GameState;
 use crate::types::CostScope;
 use crate::utils::get_card_cost_this_turn;
 
-pub fn process_effect_card_upgrade(id_targets: &[usize], state: &mut GameState) {
-    assert!(!id_targets.is_empty(), "CardUpgrade requires id_target");
-    for &id_target in id_targets {
-        upgrade_card(id_target, state);
-    }
-}
-
-fn upgrade_card(id_target: usize, state: &mut GameState) {
+pub fn process_effect_card_upgrade(id_target: Option<usize>, state: &mut GameState) {
+    let id_target = id_target.expect("CardUpgrade requires id_target");
     let card = state.entities[id_target];
 
     // A Card is upgraded at most once

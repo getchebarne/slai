@@ -21,24 +21,13 @@ use crate::utils::scale_block_gain;
 
 pub fn process_effect_modifier_delta(
     id_source: Option<usize>,
-    id_targets: &[usize],
+    id_target: Option<usize>,
     state: &mut GameState,
     kind: ModifierKind,
     stacks: i16,
 ) {
-    assert!(!id_targets.is_empty(), "ModifierDelta requires id_target");
-    for &id_target in id_targets {
-        apply_modifier_delta(id_source, id_target, state, kind, stacks);
-    }
-}
+    let id_target = id_target.expect("ModifierDelta requires id_target");
 
-fn apply_modifier_delta(
-    id_source: Option<usize>,
-    id_target: usize,
-    state: &mut GameState,
-    kind: ModifierKind,
-    stacks: i16,
-) {
     // A corpse or a half-dead Monster takes no Powers, and their hooks (Snecko Skull, Sadistic Nature) must not fire
     let target = &state.entities[id_target];
     if target.dead || target.monster_half_dead {

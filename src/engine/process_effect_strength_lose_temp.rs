@@ -4,46 +4,41 @@ use crate::effect::Target;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
-use crate::utils::flush_effects_from_buf_to_queue_front;
 
 pub fn process_effect_strength_lose_temp(
     id_source: Option<usize>,
-    id_targets: &[usize],
+    id_target: Option<usize>,
     state: &mut GameState,
     stacks: i16,
 ) {
-    assert!(
-        !id_targets.is_empty(),
-        "StrengthLoseTemp requires id_target"
-    );
+    let id_target = id_target.expect("StrengthLoseTemp requires id_target");
 
-    // Each Monster's Strength loss then its Shackled (if no Artifact), both applied by the effect's source, in the list's order
-    state.effect_buf.clear();
-    for &id_target in id_targets {
-        // A corpse or a half-dead Monster takes no debuff
-        let target = &state.entities[id_target];
-        if target.dead || target.monster_half_dead {
-            continue;
-        }
-        let artifact = has_modifier(&target.modifiers, ModifierKind::Artifact);
-        state.effect_buf.push(Effect {
+    // A corpse or a half-dead Monster takes no debuff
+    let target = &state.entities[id_target];
+    if target.dead || target.monster_half_dead {
+        return;
+    }
+    let modifiers = &target.modifiers;
+
+    // Executes in reverse, both applied by the effect's source:
+    //     1. ModifierDelta Strength
+    //     2. ModifierDelta Shackled (if no Artifact)
+    if !has_modifier(modifiers, ModifierKind::Artifact) {
+        state.effect_queue.push_front(Effect {
             kind: EffectKind::ModifierDelta {
-                kind: ModifierKind::Strength,
-                stacks: -stacks,
+                kind: ModifierKind::Shackled,
+                stacks,
             },
             id_source,
             target: Target::Direct(Some(id_target)),
         });
-        if !artifact {
-            state.effect_buf.push(Effect {
-                kind: EffectKind::ModifierDelta {
-                    kind: ModifierKind::Shackled,
-                    stacks,
-                },
-                id_source,
-                target: Target::Direct(Some(id_target)),
-            });
-        }
     }
-    flush_effects_from_buf_to_queue_front(state);
+    state.effect_queue.push_front(Effect {
+        kind: EffectKind::ModifierDelta {
+            kind: ModifierKind::Strength,
+            stacks: -stacks,
+        },
+        id_source,
+        target: Target::Direct(Some(id_target)),
+    });
 }

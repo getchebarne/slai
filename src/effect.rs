@@ -483,6 +483,16 @@ pub const fn pool_is_cards(pool: CandidatePool) -> bool {
     )
 }
 
+// The kinds that take every resolved target in one dispatch; the resolver splits any other kind into one Direct copy per target
+pub const fn takes_every_target(kind: EffectKind) -> bool {
+    matches!(
+        kind,
+        EffectKind::DamagePhysical { .. }
+            | EffectKind::DamagePhysicalFixed { .. }
+            | EffectKind::DamagePhysicalIfPoisoned { .. }
+    )
+}
+
 // Input selections above one pick several entities, which only Card pools hold
 pub const fn is_multi_selection(selection_kind: SelectionKind) -> bool {
     match selection_kind {
@@ -520,7 +530,7 @@ pub enum SelectionKind {
     All,
     Single,
     Random { count: u8 },
-    // At count 0, a pick with no Cards left: it resolves to the picked Cards, in pick order, without reading the pool or filters
+    // At count 0, a pick with nothing left to choose: it resolves to the picked ids, in pick order, without reading the pool or filters
     Input { count: u16 },
     InputUpTo { count: u16 },
 }
@@ -531,7 +541,7 @@ pub enum Target {
     // Known target, or `None` for targetless effects (CardDraw, EnergyGain).
     Direct(Option<usize>),
 
-    // Resolved at dequeue: the pool and filters against live state, then the selection kind; a pick at count 0 takes its picked Cards instead
+    // Resolved at dequeue: the pool and filters against live state, then the selection kind; a pick at count 0 takes its picked ids instead
     Resolve {
         candidate_pool: CandidatePool,
         // Left to right, Costed and NotSourceUnlessAlone last; an empty list keeps every candidate

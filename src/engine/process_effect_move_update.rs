@@ -13,7 +13,7 @@ use crate::types::Combat;
 use crate::types::MonsterName;
 
 pub fn process_effect_move_update(
-    id_targets: &[usize],
+    id_target: Option<usize>,
     state: &mut GameState,
     move_override: Option<usize>,
 ) {
@@ -21,14 +21,8 @@ pub fn process_effect_move_update(
         state.combat.active,
         "process_effect_move_update outside the Combat frame"
     );
-    assert!(!id_targets.is_empty(), "MoveUpdate requires id_target");
-    for &id_target in id_targets {
-        update_move(id_target, state, move_override);
-    }
-}
-
-fn update_move(id_target: usize, state: &mut GameState, move_override: Option<usize>) {
     let Combat { id_monsters, .. } = &mut state.combat;
+    let id_target = id_target.expect("MoveUpdate requires id_target");
 
     // Corpses don't roll: a mid-phase death leaves this queued effect dangling
     if state.entities[id_target].dead {
