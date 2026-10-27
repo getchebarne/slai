@@ -1,10 +1,17 @@
+use crate::effect::EffectKind;
+use crate::engine::first_target;
 use crate::game::GameState;
 use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::RelicName;
 
 // Unregisters the targeted Relic; the entity stays orphaned in the arena
-pub fn process_effect_relic_lose(id_target: Option<usize>, state: &mut GameState) {
+pub fn process_effect_relic_lose(
+    id_source: Option<usize>,
+    id_targets: &[usize],
+    state: &mut GameState,
+) {
+    let id_target = first_target(state, EffectKind::RelicLose, id_source, id_targets);
     let id_target = id_target.expect("RelicLose requires id_target");
     let name = state.entities[id_target].relic_name;
     assert!(

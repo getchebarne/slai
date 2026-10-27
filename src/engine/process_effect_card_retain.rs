@@ -1,7 +1,14 @@
+use crate::effect::EffectKind;
+use crate::engine::first_target;
 use crate::game::GameState;
 
 // Each selection moves to the end of the hand, so the kept Cards lead the next hand in selection order
-pub fn process_effect_card_retain(id_target: Option<usize>, state: &mut GameState) {
+pub fn process_effect_card_retain(
+    id_source: Option<usize>,
+    id_targets: &[usize],
+    state: &mut GameState,
+) {
+    let id_target = first_target(state, EffectKind::CardRetain, id_source, id_targets);
     assert!(
         state.combat.active,
         "process_effect_card_retain outside the Combat frame"

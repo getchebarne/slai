@@ -4,6 +4,7 @@ use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
+use crate::engine::first_target;
 use crate::game::GameState;
 use crate::potions::remove_potion;
 use crate::types::DeltaSign;
@@ -16,10 +17,16 @@ use crate::utils::monsters_alive;
 // id_source is the used Potion, id_target its Monster if it needs one
 pub fn process_effect_potion_use(
     id_source: Option<usize>,
-    id_target: Option<usize>,
+    id_targets: &[usize],
     state: &mut GameState,
     at_selection: bool,
 ) {
+    let id_target = first_target(
+        state,
+        EffectKind::PotionUse { at_selection },
+        id_source,
+        id_targets,
+    );
     let id_potion = id_source.expect("PotionUse requires id_source");
 
     // The Potion's selected-Monster effects resolve against this use's target

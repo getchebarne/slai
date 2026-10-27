@@ -4,13 +4,19 @@ use crate::effect::EffectKind;
 use crate::effect::ReadAt;
 use crate::effect::Rounding;
 use crate::effect::Target;
+use crate::engine::first_target;
 use crate::game::GameState;
 use crate::types::CardRarity;
 use crate::types::DeltaSign;
 use crate::types::RelicName;
 
 // Bonfire Spirits: purge the offered Card, reward keyed on its rarity
-pub fn process_effect_bonfire_offer(id_target: Option<usize>, state: &mut GameState) {
+pub fn process_effect_bonfire_offer(
+    id_source: Option<usize>,
+    id_targets: &[usize],
+    state: &mut GameState,
+) {
+    let id_target = first_target(state, EffectKind::BonfireOffer, id_source, id_targets);
     let id_card = id_target.expect("BonfireOffer requires id_target");
     let id_character = state.id_character;
     let card_rarity = state.entities[id_card].card_rarity;

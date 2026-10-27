@@ -7,6 +7,7 @@ use crate::effect::EffectKind;
 use crate::effect::RelicExclusion;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
+use crate::engine::first_target;
 use crate::game::GameState;
 use crate::potions::get_potion;
 use crate::relics::egg_upgrades_kind;
@@ -21,7 +22,12 @@ use crate::types::reward_reset;
 use crate::utils::draw_relic_excluding;
 use crate::utils::push_entity;
 
-pub fn process_effect_relic_adopt(id_target: Option<usize>, state: &mut GameState) {
+pub fn process_effect_relic_adopt(
+    id_source: Option<usize>,
+    id_targets: &[usize],
+    state: &mut GameState,
+) {
+    let id_target = first_target(state, EffectKind::RelicAdopt, id_source, id_targets);
     let id_relic = id_target.expect("RelicAdopt requires id_target");
     let name = state.entities[id_relic].relic_name;
 

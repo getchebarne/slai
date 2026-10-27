@@ -2,13 +2,19 @@ use crate::consts::NIGHTMARE_COPIES;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
+use crate::engine::first_target;
 use crate::game::GameState;
 use crate::types::CardPile;
 use crate::utils::flush_effects_from_buf_to_queue_front;
 use crate::utils::push_entity;
 
 // The targeted pending Nightmare adds its copies to the hand and leaves the pending list
-pub fn process_effect_card_nightmare_spawn(id_target: Option<usize>, state: &mut GameState) {
+pub fn process_effect_card_nightmare_spawn(
+    id_source: Option<usize>,
+    id_targets: &[usize],
+    state: &mut GameState,
+) {
+    let id_target = first_target(state, EffectKind::CardNightmareSpawn, id_source, id_targets);
     assert!(
         state.combat.active,
         "process_effect_card_nightmare_spawn outside the Combat frame"

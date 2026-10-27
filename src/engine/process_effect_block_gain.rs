@@ -1,4 +1,6 @@
 use crate::consts::MAX_BLOCK;
+use crate::effect::EffectKind;
+use crate::engine::first_target;
 use crate::entity::EntityKind;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
@@ -8,10 +10,16 @@ use crate::utils::scale_block_gain;
 
 pub fn process_effect_block_gain(
     id_source: Option<usize>,
-    id_target: Option<usize>,
+    id_targets: &[usize],
     state: &mut GameState,
     amount: u16,
 ) {
+    let id_target = first_target(
+        state,
+        EffectKind::BlockGain { amount },
+        id_source,
+        id_targets,
+    );
     let id_target = id_target.expect("BlockGain requires id_target");
 
     // Dead Entities don't block

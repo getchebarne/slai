@@ -367,38 +367,6 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
         });
     }
 
-    // Panache: every 5th Card played while active hits all enemies for `stacks`
-    let mut sweep_panache = Vec::new();
-    if has_modifier(char_modifiers, ModifierKind::Panache) {
-        *panache_countdown -= 1;
-        if *panache_countdown == 0 {
-            *panache_countdown = PANACHE_PLAYS;
-            let stacks = modifier_stacks(char_modifiers, ModifierKind::Panache);
-            sweep_panache.push(Effect {
-                kind: EffectKind::DamageDeal {
-                    amount: stacks.max(0) as u16,
-                    lifesteal: false,
-                },
-                id_source: None,
-                target: TARGET_MONSTERS_ALL,
-            });
-        }
-    }
-
-    // Thousand Cuts: every Card played hits all enemies for `stacks`
-    let mut sweep_thousand_cuts = Vec::new();
-    if has_modifier(char_modifiers, ModifierKind::ThousandCuts) {
-        let stacks = modifier_stacks(char_modifiers, ModifierKind::ThousandCuts);
-        sweep_thousand_cuts.push(Effect {
-            kind: EffectKind::DamageDeal {
-                amount: stacks as u16,
-                lifesteal: false,
-            },
-            id_source: None,
-            target: TARGET_MONSTERS_ALL,
-        });
-    }
-
     // Skewer's hits land behind every hook its play sets off
     let skewer = card.card_name == CardName::Skewer;
     let mut hits_skewer = Vec::new();
@@ -518,8 +486,22 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
         });
     }
 
-    // Panache's sweep lands behind After Image
-    state.effect_buf.append(&mut sweep_panache);
+    // Panache: every 5th Card played while active hits all enemies for `stacks`; the sweep lands behind After Image
+    if has_modifier(char_modifiers, ModifierKind::Panache) {
+        *panache_countdown -= 1;
+        if *panache_countdown == 0 {
+            *panache_countdown = PANACHE_PLAYS;
+            let stacks = modifier_stacks(char_modifiers, ModifierKind::Panache);
+            state.effect_buf.push(Effect {
+                kind: EffectKind::DamageDeal {
+                    amount: stacks.max(0) as u16,
+                    lifesteal: false,
+                },
+                id_source: None,
+                target: TARGET_MONSTERS_ALL,
+            });
+        }
+    }
 
     // A spent DuplicateNextCardPlay stays at 0 stacks until the Card's effects have resolved
     if duplication && stacks_duplication == 1 {
@@ -710,8 +692,19 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
         });
     }
 
-    // Thousand Cuts' sweep lands once the played Card is routed
-    state.effect_buf.append(&mut sweep_thousand_cuts);
+    // Thousand Cuts: every Card played hits all enemies for `stacks`; the sweep lands once the played Card is routed
+    let char_modifiers = &state.entities[id_character].modifiers;
+    if has_modifier(char_modifiers, ModifierKind::ThousandCuts) {
+        let stacks = modifier_stacks(char_modifiers, ModifierKind::ThousandCuts);
+        state.effect_buf.push(Effect {
+            kind: EffectKind::DamageDeal {
+                amount: stacks as u16,
+                lifesteal: false,
+            },
+            id_source: None,
+            target: TARGET_MONSTERS_ALL,
+        });
+    }
 
     // Skewer's hits land last
     state.effect_buf.append(&mut hits_skewer);

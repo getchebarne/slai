@@ -1,5 +1,7 @@
 use rand::Rng;
 
+use crate::effect::EffectKind;
+use crate::engine::first_target;
 use crate::entity::CardCostKind;
 use crate::entity::CostOverride;
 use crate::entity::PlayRestriction;
@@ -8,13 +10,25 @@ use crate::types::CostScope;
 use crate::utils::get_card_cost_this_turn;
 
 pub fn process_effect_set_cost_override(
-    id_target: Option<usize>,
+    id_source: Option<usize>,
+    id_targets: &[usize],
     state: &mut GameState,
     amount: u16,
     only_reduce: bool,
     random: bool,
     scope: CostScope,
 ) {
+    let id_target = first_target(
+        state,
+        EffectKind::SetCostOverride {
+            amount,
+            only_reduce,
+            random,
+            scope,
+        },
+        id_source,
+        id_targets,
+    );
     let id_target = id_target.expect("SetCostOverride requires id_target");
     let card = &state.entities[id_target];
 

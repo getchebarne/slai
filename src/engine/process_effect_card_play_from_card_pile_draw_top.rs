@@ -3,14 +3,22 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::PlaySource;
 use crate::effect::Target;
+use crate::engine::first_target;
 use crate::game::GameState;
 use crate::types::Combat;
 use crate::utils::get_card_effective_cost;
 
 pub fn process_effect_card_play_from_card_pile_draw_top(
-    id_target: Option<usize>,
+    id_source: Option<usize>,
+    id_targets: &[usize],
     state: &mut GameState,
 ) {
+    let id_target = first_target(
+        state,
+        EffectKind::CardPlayFromCardPileDrawTop,
+        id_source,
+        id_targets,
+    );
     assert!(
         state.combat.active,
         "process_effect_card_play_from_card_pile_draw_top outside the Combat frame"

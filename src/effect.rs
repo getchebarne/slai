@@ -483,16 +483,6 @@ pub const fn pool_is_cards(pool: CandidatePool) -> bool {
     )
 }
 
-// The kinds that take every resolved target in one dispatch; the resolver splits any other kind into one Direct copy per target
-pub const fn takes_every_target(kind: EffectKind) -> bool {
-    matches!(
-        kind,
-        EffectKind::DamagePhysical { .. }
-            | EffectKind::DamagePhysicalFixed { .. }
-            | EffectKind::DamagePhysicalIfPoisoned { .. }
-    )
-}
-
 // Input selections above one pick several entities, which only Card pools hold
 pub const fn is_multi_selection(selection_kind: SelectionKind) -> bool {
     match selection_kind {

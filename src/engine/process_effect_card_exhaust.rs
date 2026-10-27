@@ -3,6 +3,7 @@ use crate::effect::EFFECT_ACCURACY_RESYNC_HAND;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
+use crate::engine::first_target;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
@@ -13,7 +14,12 @@ use crate::types::Combat;
 use crate::types::RelicName;
 use crate::utils::has_relic;
 
-pub fn process_effect_card_exhaust(id_target: Option<usize>, state: &mut GameState) {
+pub fn process_effect_card_exhaust(
+    id_source: Option<usize>,
+    id_targets: &[usize],
+    state: &mut GameState,
+) {
+    let id_target = first_target(state, EffectKind::CardExhaust, id_source, id_targets);
     assert!(
         state.combat.active,
         "process_effect_card_exhaust outside the Combat frame"

@@ -1,12 +1,18 @@
 use crate::cards::get_card;
 use crate::cards::get_card_template;
 use crate::effect::EffectKind;
+use crate::engine::first_target;
 use crate::entity::CostOverride;
 use crate::game::GameState;
 use crate::types::CostScope;
 use crate::utils::get_card_cost_this_turn;
 
-pub fn process_effect_card_upgrade(id_target: Option<usize>, state: &mut GameState) {
+pub fn process_effect_card_upgrade(
+    id_source: Option<usize>,
+    id_targets: &[usize],
+    state: &mut GameState,
+) {
+    let id_target = first_target(state, EffectKind::CardUpgrade, id_source, id_targets);
     let id_target = id_target.expect("CardUpgrade requires id_target");
     let card = state.entities[id_target];
 

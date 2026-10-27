@@ -1,6 +1,7 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
+use crate::engine::first_target;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
@@ -8,11 +9,18 @@ use crate::modifier::modifier_stacks;
 
 // Multiply target's stacks of `kind` by `factor`. No-op if target doesn't have the modifier
 pub fn process_effect_modifier_multiply(
-    id_target: Option<usize>,
+    id_source: Option<usize>,
+    id_targets: &[usize],
     state: &mut GameState,
     kind: ModifierKind,
     factor: u8,
 ) {
+    let id_target = first_target(
+        state,
+        EffectKind::ModifierMultiply { kind, factor },
+        id_source,
+        id_targets,
+    );
     let id_target = id_target.expect("ModifierMultiply requires id_target");
     let modifiers = &state.entities[id_target].modifiers;
     if !has_modifier(modifiers, kind) {

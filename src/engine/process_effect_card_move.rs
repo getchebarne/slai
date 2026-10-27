@@ -3,6 +3,7 @@ use crate::effect::EFFECT_ACCURACY_RESYNC_HAND;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
+use crate::engine::first_target;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
@@ -12,11 +13,22 @@ use crate::utils::detach_card;
 use crate::utils::place_card;
 
 pub fn process_effect_card_move(
-    id_target: Option<usize>,
+    id_source: Option<usize>,
+    id_targets: &[usize],
     state: &mut GameState,
     pile: CardPile,
     cost_zero: Option<CostScope>,
 ) {
+    let id_target = first_target(
+        state,
+        EffectKind::CardMove {
+            card_pile: pile,
+            cost_zero,
+        },
+        id_source,
+        id_targets,
+    );
+
     // No on-discard or on-draw Card hooks fire
     let id_target = id_target.expect("CardMove requires id_target");
 

@@ -2,6 +2,7 @@ use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
+use crate::engine::first_target;
 use crate::game::GameState;
 use crate::types::DeltaSign;
 use crate::types::Reward;
@@ -10,10 +11,17 @@ use crate::types::RewardKind;
 // Claims hand the staged reward entity to the matching Adopt effect, which owns
 // registration and any on-pickup behavior
 pub fn process_effect_reward_take(
-    id_target: Option<usize>,
+    id_source: Option<usize>,
+    id_targets: &[usize],
     state: &mut GameState,
     kind: RewardKind,
 ) {
+    let id_target = first_target(
+        state,
+        EffectKind::RewardTake { kind },
+        id_source,
+        id_targets,
+    );
     assert!(state.reward.active, "RewardTake outside the Reward context");
     let Reward {
         id_cards: bundles,

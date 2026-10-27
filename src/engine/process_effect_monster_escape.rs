@@ -2,6 +2,7 @@ use crate::consts::MAX_SIZE_CARD_PILE_HAND;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
+use crate::engine::first_target;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
@@ -9,7 +10,12 @@ use crate::types::Combat;
 use crate::utils::flush_effects_from_buf_to_queue_front;
 
 // Mark dead WITHOUT firing the on-death hook chain
-pub fn process_effect_monster_escape(id_target: Option<usize>, state: &mut GameState) {
+pub fn process_effect_monster_escape(
+    id_source: Option<usize>,
+    id_targets: &[usize],
+    state: &mut GameState,
+) {
+    let id_target = first_target(state, EffectKind::MonsterEscape, id_source, id_targets);
     assert!(
         state.combat.active,
         "process_effect_monster_escape outside the Combat frame"

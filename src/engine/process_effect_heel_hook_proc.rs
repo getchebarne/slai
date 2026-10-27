@@ -1,6 +1,7 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
+use crate::engine::first_target;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
@@ -9,10 +10,16 @@ use crate::types::DeltaSign;
 // The hit, then +1 energy +1 Card if the target was Weak before the hit
 pub fn process_effect_heel_hook_proc(
     id_source: Option<usize>,
-    id_target: Option<usize>,
+    id_targets: &[usize],
     state: &mut GameState,
     damage: u16,
 ) {
+    let id_target = first_target(
+        state,
+        EffectKind::HeelHookProc { damage },
+        id_source,
+        id_targets,
+    );
     let id_target = id_target.expect("HeelHookProc requires id_target");
 
     // Executes in reverse:

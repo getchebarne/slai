@@ -1,16 +1,24 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
+use crate::engine::first_target;
 use crate::entity::CardCostKind;
 use crate::game::GameState;
 use crate::types::CardPile;
 
 // A Stasis hostage whose holder left goes back to the hand, or to the discard pile if the hand was full as its holder left
 pub fn process_effect_card_stasis_return(
-    id_target: Option<usize>,
+    id_source: Option<usize>,
+    id_targets: &[usize],
     state: &mut GameState,
     hand_full: bool,
 ) {
+    let id_target = first_target(
+        state,
+        EffectKind::CardStasisReturn { hand_full },
+        id_source,
+        id_targets,
+    );
     assert!(
         state.combat.active,
         "process_effect_card_stasis_return outside the Combat frame"

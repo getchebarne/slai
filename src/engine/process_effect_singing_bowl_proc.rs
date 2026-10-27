@@ -2,10 +2,16 @@ use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
+use crate::engine::first_target;
 use crate::game::GameState;
 use crate::types::DeltaSign;
 
-pub fn process_effect_singing_bowl_proc(id_target: Option<usize>, state: &mut GameState) {
+pub fn process_effect_singing_bowl_proc(
+    id_source: Option<usize>,
+    id_targets: &[usize],
+    state: &mut GameState,
+) {
+    let id_target = first_target(state, EffectKind::SingingBowlProc, id_source, id_targets);
     let id_card = id_target.expect("SingingBowlProc requires id_target");
     assert!(
         state.reward.active,

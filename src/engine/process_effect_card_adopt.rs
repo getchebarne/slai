@@ -3,6 +3,7 @@ use crate::effect::EFFECT_DU_VU_DOLL_RECOUNT;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
+use crate::engine::first_target;
 use crate::game::GameState;
 use crate::relics::egg_upgrades_kind;
 use crate::types::CardKind;
@@ -12,7 +13,18 @@ use crate::utils::has_relic;
 use crate::utils::increase_max_hp;
 
 // A Card is adopted in two passes: Omamori's check now, the landing after the queued work
-pub fn process_effect_card_adopt(id_target: Option<usize>, state: &mut GameState, landing: bool) {
+pub fn process_effect_card_adopt(
+    id_source: Option<usize>,
+    id_targets: &[usize],
+    state: &mut GameState,
+    landing: bool,
+) {
+    let id_target = first_target(
+        state,
+        EffectKind::CardAdopt { landing },
+        id_source,
+        id_targets,
+    );
     let id_card = id_target.expect("CardAdopt requires id_target");
     let card = state.entities[id_card];
 
