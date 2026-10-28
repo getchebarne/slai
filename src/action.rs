@@ -277,7 +277,7 @@ fn selection_action(kind: EffectKind, id: usize) -> Action {
     }
 }
 
-// Stages the selected id while selections remain; the last one applies right after the staged ids
+// Stages the selected id; at the last pick the effect resolves to every staged id
 fn handle_selection(state: &mut GameState, id_selected: usize) {
     // Validate there's a pending `Effect` and, if so, take it
     let effect_pending = state
@@ -301,20 +301,13 @@ fn handle_selection(state: &mut GameState, id_selected: usize) {
         }
         _ => panic!("A pending selection carries an Input halt"),
     };
-    if remaining == 0 {
-        flush_card_pile_selected(state, effect_pending.kind, effect_pending.id_source);
-        state.effect_buf.push(Effect {
-            target: Target::Direct(Some(id_selected)),
-            ..effect_pending
-        });
-        return;
-    }
 
     // Stage the selected `Entity` ID; nothing applies until the selection closes
-    state.id_card_pile_selected.push(id_selected);
+    state.id_selected.push(id_selected);
 
-    // Re-park with the remaining count; staged selections stay out of the pool
+    // Queue it again with the remaining count: it halts again, staged selections out of the pool, or at none left hands them over
     let selection_kind = match selection_kind {
+        _ if remaining == 0 => SelectionKind::Input { count: 0 },
         SelectionKind::Input { .. } => SelectionKind::Input { count: remaining },
         _ => SelectionKind::InputUpTo { count: remaining },
     };
@@ -327,18 +320,6 @@ fn handle_selection(state: &mut GameState, id_selected: usize) {
             selection_kind,
         },
     });
-}
-
-// One Direct effect per staged selection, in selection order
-fn flush_card_pile_selected(state: &mut GameState, kind: EffectKind, id_source: Option<usize>) {
-    for &id in &state.id_card_pile_selected {
-        state.effect_buf.push(Effect {
-            kind,
-            id_source,
-            target: Target::Direct(Some(id)),
-        });
-    }
-    state.id_card_pile_selected.clear();
 }
 
 // Ends an InputUpTo halt early; staged selections apply, the remainder is forfeited
@@ -354,8 +335,27 @@ fn handle_selection_skip(state: &mut GameState) {
             target: Target::Direct(None),
             ..effect_pending
         });
+        return;
     }
-    flush_card_pile_selected(state, effect_pending.kind, effect_pending.id_source);
+
+    // The countdown ends early: the effect takes whatever is staged, and with nothing staged it doesn't run
+    let Target::Resolve {
+        candidate_pool,
+        filters,
+        ..
+    } = effect_pending.target
+    else {
+        unreachable!("effect_pending carries a Resolve target")
+    };
+    state.effect_buf.push(Effect {
+        kind: effect_pending.kind,
+        id_source: effect_pending.id_source,
+        target: Target::Resolve {
+            candidate_pool,
+            filters,
+            selection_kind: SelectionKind::Input { count: 0 },
+        },
+    });
 }
 
 fn handle_card_play(state: &mut GameState, id_card: usize, id_monster: Option<usize>) {
@@ -598,7 +598,7 @@ fn fill_legal_actions_effect_pending(
     // Apply the filters over the whole set; staged selections are out of the running
     filter_candidates(filters, &mut id_candidates, &state.entities, None);
     for id in id_candidates {
-        if !state.id_card_pile_selected.contains(&id) {
+        if !state.id_selected.contains(&id) {
             state.legal_actions.push(selection_action(kind, id));
         }
     }

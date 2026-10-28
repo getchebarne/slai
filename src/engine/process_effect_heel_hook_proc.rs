@@ -1,5 +1,6 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::ScaledAt;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
@@ -39,6 +40,8 @@ pub fn process_effect_heel_hook_proc(
             amount: damage,
             instances: 1,
             lifesteal: false,
+            if_poisoned: false,
+            scaled_at: ScaledAt::Now,
         },
         id_source,
         target: Target::Direct(Some(id_target)),

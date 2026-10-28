@@ -188,8 +188,8 @@ get_event_option_templates = _rs.get_event_option_templates
 # PEP 604 union alias per family. The union works as annotation, isinstance target,
 # and typing.get_args source alike; the FFI returns instances of the flat classes.
 EffectDamagePhysical = _rs.EffectDamagePhysical
-EffectDamagePhysicalIfPoisoned = _rs.EffectDamagePhysicalIfPoisoned
 EffectHeelHookProc = _rs.EffectHeelHookProc
+EffectSkewerProc = _rs.EffectSkewerProc
 EffectEscapePlanCheck = _rs.EffectEscapePlanCheck
 EffectCardBottle = _rs.EffectCardBottle
 EffectGlassKnifeDecay = _rs.EffectGlassKnifeDecay
@@ -279,8 +279,8 @@ EffectRoomEnter = _rs.EffectRoomEnter
 RewardRollTrigger = _rs.RewardRollTrigger
 Effect = (
     EffectDamagePhysical
-    | EffectDamagePhysicalIfPoisoned
     | EffectHeelHookProc
+    | EffectSkewerProc
     | EffectEscapePlanCheck
     | EffectCardBottle
     | EffectGlassKnifeDecay
@@ -551,8 +551,8 @@ __all__ = [
     "Effect",
     "PendingEffect",
     "EffectDamagePhysical",
-    "EffectDamagePhysicalIfPoisoned",
     "EffectHeelHookProc",
+    "EffectSkewerProc",
     "EffectEscapePlanCheck",
     "EffectCardBottle",
     "EffectGlassKnifeDecay",

@@ -33,10 +33,10 @@ use super::effect::PyEffectDamageFinisher;
 use super::effect::PyEffectDamageFlechettes;
 use super::effect::PyEffectDamageMindBlast;
 use super::effect::PyEffectDamagePhysical;
-use super::effect::PyEffectDamagePhysicalIfPoisoned;
 use super::effect::PyEffectEscapePlanCheck;
 use super::effect::PyEffectHeelHookProc;
 use super::effect::PyEffectModifierDelta;
+use super::effect::PyEffectSkewerProc;
 use super::effect::snapshot_effect;
 use super::macros::flat_variants;
 use super::macros::mirror_enum;
@@ -358,18 +358,13 @@ pub(crate) fn snapshot_adjusted_effects(
                 amount,
                 instances,
                 lifesteal,
+                if_poisoned,
                 target,
             }) => PyEffect::DamagePhysical(PyEffectDamagePhysical {
                 amount: adjusted_damage(amount),
                 instances,
                 lifesteal,
-                target,
-            }),
-            PyEffect::DamagePhysicalIfPoisoned(PyEffectDamagePhysicalIfPoisoned {
-                amount,
-                target,
-            }) => PyEffect::DamagePhysicalIfPoisoned(PyEffectDamagePhysicalIfPoisoned {
-                amount: adjusted_damage(amount),
+                if_poisoned,
                 target,
             }),
             PyEffect::DamageFinisher(PyEffectDamageFinisher { damage, target }) => {
@@ -392,6 +387,12 @@ pub(crate) fn snapshot_adjusted_effects(
             }
             PyEffect::HeelHookProc(PyEffectHeelHookProc { damage, target }) => {
                 PyEffect::HeelHookProc(PyEffectHeelHookProc {
+                    damage: adjusted_damage(damage),
+                    target,
+                })
+            }
+            PyEffect::SkewerProc(PyEffectSkewerProc { damage, target }) => {
+                PyEffect::SkewerProc(PyEffectSkewerProc {
                     damage: adjusted_damage(damage),
                     target,
                 })

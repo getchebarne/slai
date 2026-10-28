@@ -2,6 +2,7 @@ use crate::cards::CardTemplate;
 use crate::cards::make_card_template;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::ScaledAt;
 use crate::effect::TARGET_MONSTER_SELECTED;
 use crate::entity::CardCostKind;
 use crate::entity::PlayRestriction;
@@ -28,6 +29,8 @@ pub static NEUTRALIZE: CardTemplate = make_card_template(
                 amount: 3,
                 instances: 1,
                 lifesteal: false,
+                if_poisoned: false,
+                scaled_at: ScaledAt::Now,
             },
             id_source: None,
             target: TARGET_MONSTER_SELECTED,
@@ -54,6 +57,8 @@ pub static NEUTRALIZE_PLUS: CardTemplate = CardTemplate {
             amount: 4,
             instances: 1,
             lifesteal: false,
+            if_poisoned: false,
+            scaled_at: ScaledAt::Now,
         }; // +1 damage
         effects[1].kind = EffectKind::ModifierDelta {
             kind: ModifierKind::Weak,

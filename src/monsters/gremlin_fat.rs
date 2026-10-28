@@ -1,5 +1,6 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::ScaledAt;
 use crate::effect::TARGET_CHARACTER;
 use crate::entity::Intent;
 use crate::entity::Move;
@@ -20,6 +21,8 @@ static MOVE_SMASH_5_W1_F1: Move = make_move(
                 amount: 5,
                 instances: 1,
                 lifesteal: false,
+                if_poisoned: false,
+                scaled_at: ScaledAt::Now,
             },
             id_source: None,
             target: TARGET_CHARACTER,

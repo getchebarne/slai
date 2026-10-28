@@ -7,6 +7,8 @@ use crate::effect::CardPlay;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::PlaySource;
+use crate::effect::ScaledAt;
+use crate::effect::TARGET_MONSTERS_ALL;
 use crate::effect::Target;
 use crate::entity::CardCostKind;
 use crate::entity::Entity;
@@ -363,48 +365,6 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
         });
     }
 
-    // Panache: every 5th Card played while active hits all enemies for `stacks`
-    let mut sweep_panache = Vec::new();
-    if has_modifier(char_modifiers, ModifierKind::Panache) {
-        *panache_countdown -= 1;
-        if *panache_countdown == 0 {
-            *panache_countdown = PANACHE_PLAYS;
-            let stacks = modifier_stacks(char_modifiers, ModifierKind::Panache);
-            for id_monster in id_monsters.iter().flatten().copied() {
-                sweep_panache.push(Effect {
-                    kind: EffectKind::DamageDeal {
-                        amount: stacks.max(0) as u16,
-                        lifesteal: false,
-                    },
-                    id_source: None,
-                    target: Target::Direct(Some(id_monster)),
-                });
-            }
-        }
-    }
-
-    // Thousand Cuts: every Card played hits all enemies for `stacks`
-    let mut sweep_thousand_cuts = Vec::new();
-    if has_modifier(char_modifiers, ModifierKind::ThousandCuts) {
-        let stacks = modifier_stacks(char_modifiers, ModifierKind::ThousandCuts);
-        for id_monster in id_monsters.iter().flatten().copied() {
-            sweep_thousand_cuts.push(Effect {
-                kind: EffectKind::DamageDeal {
-                    amount: stacks as u16,
-                    lifesteal: false,
-                },
-                id_source: None,
-                target: Target::Direct(Some(id_monster)),
-            });
-        }
-    }
-
-    // Skewer's hits land behind Panache's and Thousand Cuts' sweeps, which spend the target's block first
-    if card.card_name == CardName::Skewer {
-        state.effect_buf.append(&mut sweep_panache);
-        state.effect_buf.append(&mut sweep_thousand_cuts);
-    }
-
     // Wrist Blade: attacks that cost 0 deal +4 per hit
     let bonus_wrist_blade = wrist_blade_bonus(&card, cost_effective, &state.id_relics);
 
@@ -442,16 +402,18 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
                 amount: draw_pile_size,
                 instances: 1,
                 lifesteal: false,
+                if_poisoned: false,
+                scaled_at: ScaledAt::Now,
             };
         }
 
         // Add Wrist Blade bonus to every hit of the Card's damage
         match &mut effect.kind {
-            EffectKind::DamagePhysical { amount, .. }
-            | EffectKind::DamagePhysicalIfPoisoned { amount } => *amount += bonus_wrist_blade,
+            EffectKind::DamagePhysical { amount, .. } => *amount += bonus_wrist_blade,
             EffectKind::DamageFinisher { damage }
             | EffectKind::DamageFlechettes { damage }
-            | EffectKind::HeelHookProc { damage } => *damage += bonus_wrist_blade,
+            | EffectKind::HeelHookProc { damage }
+            | EffectKind::SkewerProc { damage } => *damage += bonus_wrist_blade,
             _ => {}
         }
 
@@ -459,15 +421,6 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
         if let EffectKind::ModifierDelta { stacks, .. } = &mut effect.kind {
             *stacks *= mul as i16;
             state.effect_buf.push(effect);
-            continue;
-        }
-
-        // `EffectKind::DamagePhysical` scales its hits into a single attack, and an X of 0 deals none (e.g., Skewer)
-        if let EffectKind::DamagePhysical { instances, .. } = &mut effect.kind {
-            *instances *= mul as u16;
-            if *instances > 0 {
-                state.effect_buf.push(effect);
-            }
             continue;
         }
         for _ in 0..mul {
@@ -487,8 +440,22 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
         });
     }
 
-    // Panache's sweep lands behind After Image, unless Skewer staged it ahead of its hits
-    state.effect_buf.append(&mut sweep_panache);
+    // Panache: every 5th Card played while active hits all enemies for `stacks`; the sweep lands behind After Image
+    if has_modifier(char_modifiers, ModifierKind::Panache) {
+        *panache_countdown -= 1;
+        if *panache_countdown == 0 {
+            *panache_countdown = PANACHE_PLAYS;
+            let stacks = modifier_stacks(char_modifiers, ModifierKind::Panache);
+            state.effect_buf.push(Effect {
+                kind: EffectKind::DamageDeal {
+                    amount: stacks.max(0) as u16,
+                    lifesteal: false,
+                },
+                id_source: None,
+                target: TARGET_MONSTERS_ALL,
+            });
+        }
+    }
 
     // A spent DuplicateNextCardPlay stays at 0 stacks until the Card's effects have resolved
     if duplication && stacks_duplication == 1 {
@@ -640,7 +607,7 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
         }
     }
 
-    // Choke (enemy): pushed after card_effects_play so the played Card resolves first
+    // Choke (enemy): lands behind the played Card's effects, ahead of Skewer's hits
     for id_monster in id_monsters.iter().flatten().copied() {
         let mods_monster = &state.entities[id_monster].modifiers;
         if has_modifier(mods_monster, ModifierKind::Choke) {
@@ -679,8 +646,19 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
         });
     }
 
-    // Thousand Cuts' sweep lands once the played Card is routed, unless Skewer staged it ahead of its hits
-    state.effect_buf.append(&mut sweep_thousand_cuts);
+    // Thousand Cuts: every Card played hits all enemies for `stacks`; the sweep lands once the played Card is routed
+    let char_modifiers = &state.entities[id_character].modifiers;
+    if has_modifier(char_modifiers, ModifierKind::ThousandCuts) {
+        let stacks = modifier_stacks(char_modifiers, ModifierKind::ThousandCuts);
+        state.effect_buf.push(Effect {
+            kind: EffectKind::DamageDeal {
+                amount: stacks as u16,
+                lifesteal: false,
+            },
+            id_source: None,
+            target: TARGET_MONSTERS_ALL,
+        });
+    }
 
     // Burst and Duplication replay the Card itself ahead of any waiting play, with this play's target, X, cost and draw pile size; its changes (Glass Knife, Ritual Dagger) carry over
     for _ in 0..burst as usize + duplication as usize {

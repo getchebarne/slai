@@ -6,7 +6,6 @@ use crate::game::Location;
 use crate::map::has_edge;
 use crate::types::RelicName;
 
-// Direct form (post-resolve); Resolve form handled by process_effect
 pub fn process_effect_room_select(id_target: Option<usize>, state: &mut GameState) {
     let id_room = id_target.expect("RoomSelect Direct form must have target");
 

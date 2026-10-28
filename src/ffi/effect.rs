@@ -6,6 +6,7 @@ use pyo3::type_object::PyTypeInfo;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::RelicRoll;
+use crate::effect::ScaledAt;
 use crate::effect::Target;
 use crate::game::Location;
 
@@ -36,9 +37,9 @@ mirror_enum!(PyRewardRollTrigger from RewardRollTrigger, "RewardRollTrigger", {
 
 // Mirrors only EffectKind variants reachable from static Card/Monster defs or a halted selection; snapshot_effect panics on runtime-only variants
 flat_variants!(PyEffect {
-    DamagePhysical => PyEffectDamagePhysical as "EffectDamagePhysical" { amount: u16, instances: u16, lifesteal: bool, target: PyTarget },
-    DamagePhysicalIfPoisoned => PyEffectDamagePhysicalIfPoisoned as "EffectDamagePhysicalIfPoisoned" { amount: u16, target: PyTarget },
+    DamagePhysical => PyEffectDamagePhysical as "EffectDamagePhysical" { amount: u16, instances: u16, lifesteal: bool, if_poisoned: bool, target: PyTarget },
     HeelHookProc => PyEffectHeelHookProc as "EffectHeelHookProc" { damage: u16, target: PyTarget },
+    SkewerProc => PyEffectSkewerProc as "EffectSkewerProc" { damage: u16, target: PyTarget },
     EscapePlanCheck => PyEffectEscapePlanCheck as "EffectEscapePlanCheck" { block: u16, target: PyTarget },
     GlassKnifeDecay => PyEffectGlassKnifeDecay as "EffectGlassKnifeDecay" { delta: i16, target: PyTarget },
     CardSetupSelect => PyEffectCardSetupSelect as "EffectCardSetupSelect" { free: bool, bottom: bool, target: PyTarget },
@@ -248,23 +249,25 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
         );
     }
     match effect.kind {
+        // A hit scaled as its play started is pushed at runtime only
         EffectKind::DamagePhysical {
             amount,
             instances,
             lifesteal,
+            if_poisoned,
+            scaled_at: ScaledAt::Now,
         } => PyEffect::DamagePhysical(PyEffectDamagePhysical {
             amount,
             instances,
             lifesteal,
+            if_poisoned,
             target: require_target(target),
         }),
-        EffectKind::DamagePhysicalIfPoisoned { amount } => {
-            PyEffect::DamagePhysicalIfPoisoned(PyEffectDamagePhysicalIfPoisoned {
-                amount,
-                target: require_target(target),
-            })
-        }
         EffectKind::HeelHookProc { damage } => PyEffect::HeelHookProc(PyEffectHeelHookProc {
+            damage,
+            target: require_target(target),
+        }),
+        EffectKind::SkewerProc { damage } => PyEffect::SkewerProc(PyEffectSkewerProc {
             damage,
             target: require_target(target),
         }),

@@ -2,6 +2,7 @@ use crate::cards::CardTemplate;
 use crate::cards::make_card_template;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::ScaledAt;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::TARGET_MONSTER_SELECTED;
 use crate::entity::CardCostKind;
@@ -29,6 +30,8 @@ pub static PREDATOR: CardTemplate = make_card_template(
                 amount: 15,
                 instances: 1,
                 lifesteal: false,
+                if_poisoned: false,
+                scaled_at: ScaledAt::Now,
             },
             id_source: None,
             target: TARGET_MONSTER_SELECTED,
@@ -55,6 +58,8 @@ pub static PREDATOR_PLUS: CardTemplate = CardTemplate {
             amount: 20,
             instances: 1,
             lifesteal: false,
+            if_poisoned: false,
+            scaled_at: ScaledAt::Now,
         }; // +5 damage
         effects
     },

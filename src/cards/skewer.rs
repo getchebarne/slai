@@ -22,11 +22,7 @@ pub static SKEWER: CardTemplate = make_card_template(
     false,
     false,
     &[Effect {
-        kind: EffectKind::DamagePhysical {
-            amount: 7,
-            instances: 1,
-            lifesteal: false,
-        },
+        kind: EffectKind::SkewerProc { damage: 7 },
         id_source: None,
         target: TARGET_MONSTER_SELECTED,
     }],
@@ -39,11 +35,7 @@ pub static SKEWER_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
     effects_play: {
         let mut effects = SKEWER.effects_play;
-        effects[0].kind = EffectKind::DamagePhysical {
-            amount: 10,
-            instances: 1,
-            lifesteal: false,
-        }; // +3 damage
+        effects[0].kind = EffectKind::SkewerProc { damage: 10 }; // +3 damage
         effects
     },
     ..SKEWER

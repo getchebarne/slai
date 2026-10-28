@@ -6,6 +6,7 @@ use crate::effect::DiscardSource;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
+use crate::effect::TARGET_MONSTERS_ALL;
 use crate::effect::Target;
 use crate::entity::CardCostKind;
 use crate::entity::CostOverride;
@@ -437,16 +438,14 @@ pub fn process_effect_turn_start_character(state: &mut GameState) {
     // Noxius Fumes: the Character gives Monsters `stacks` poison stacks
     if has_modifier(&modifiers, ModifierKind::NoxiousFumes) {
         let stacks = modifier_stacks(&modifiers, ModifierKind::NoxiousFumes);
-        for id_monster in id_monsters.iter().flatten().copied() {
-            state.effect_buf.push(Effect {
-                kind: EffectKind::ModifierDelta {
-                    kind: ModifierKind::Poison,
-                    stacks,
-                },
-                id_source: Some(state.id_character),
-                target: Target::Direct(Some(id_monster)),
-            });
-        }
+        state.effect_buf.push(Effect {
+            kind: EffectKind::ModifierDelta {
+                kind: ModifierKind::Poison,
+                stacks,
+            },
+            id_source: Some(state.id_character),
+            target: TARGET_MONSTERS_ALL,
+        });
     }
 
     // Draw Cards next turn (Predator, Doppelganger): apply and clear

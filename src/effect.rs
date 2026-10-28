@@ -130,11 +130,10 @@ pub enum EffectKind {
     DamageMindBlast, // Mind Blast's hit; its play turns it into a DamagePhysical for the draw pile's size
     DamagePhysical {
         amount: u16,
-        instances: u16, // Hits on one target, resolved one at a time; an X-cost Card's X can pass 255
-        lifesteal: bool, // Life Suck
-    },
-    DamagePhysicalIfPoisoned {
-        amount: u16,
+        instances: u16,    // Hits on one target, resolved one at a time
+        lifesteal: bool,   // Life Suck
+        if_poisoned: bool, // Bane: a hit that lands only on a Poisoned target
+        scaled_at: ScaledAt,
     },
     Death {
         with_leader: bool, // A Minion its leader's death takes down
@@ -310,6 +309,9 @@ pub enum EffectKind {
     ShopPurge,
     ShuffleCardPileDiscardIntoCardPileDraw,
     SingingBowlProc,
+    SkewerProc {
+        damage: u16,
+    }, // One per X of Skewer's play: scales its damage as the play starts and queues one hit at the back that keeps it
     SneakyStrikeProc {
         energy: u8,
     },
@@ -424,6 +426,13 @@ pub enum ReadAt {
     EventOpen,
 }
 
+// When a hit's amount is scaled: as it's dealt, or already as its play started (Skewer)
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum ScaledAt {
+    Now,
+    PlayStart,
+}
+
 // How a Relative amount rounds its fraction
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Rounding {
@@ -480,7 +489,7 @@ pub const fn pool_is_cards(pool: CandidatePool) -> bool {
     )
 }
 
-// Input selections above one stage before applying; every other kind resolves at once
+// Input selections above one pick several entities, which only Card pools hold
 pub const fn is_multi_selection(selection_kind: SelectionKind) -> bool {
     match selection_kind {
         SelectionKind::Input { count } | SelectionKind::InputUpTo { count } => count > 1,
@@ -508,7 +517,7 @@ pub enum CandidateFilter {
     NotIntangible,
     NotMinion,
 
-    // Starter-Card predicates (Vampires, Back to Basics)
+    // Starter-Card predicates (Vampires, Back to Basics, Pandora's Box)
     Starter, // Strike or Defend
 }
 
@@ -517,6 +526,7 @@ pub enum SelectionKind {
     All,
     Single,
     Random { count: u8 },
+    // At count 0, a pick with nothing left to choose: it resolves to the picked ids, in pick order, without reading the pool or filters
     Input { count: u16 },
     InputUpTo { count: u16 },
 }
@@ -527,7 +537,7 @@ pub enum Target {
     // Known target, or `None` for targetless effects (CardDraw, EnergyGain).
     Direct(Option<usize>),
 
-    // Resolved against live state at dequeue via `resolve_selection_kind`.
+    // Resolved at dequeue: the pool and filters against live state, then the selection kind; a pick at count 0 takes its picked ids instead
     Resolve {
         candidate_pool: CandidatePool,
         // Left to right, Costed and NotSourceUnlessAlone last; an empty list keeps every candidate

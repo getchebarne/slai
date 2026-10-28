@@ -2,6 +2,7 @@ use crate::cards::CardTemplate;
 use crate::cards::make_card_template;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::ScaledAt;
 use crate::effect::TARGET_MONSTERS_ALL;
 use crate::entity::CardCostKind;
 use crate::entity::PlayRestriction;
@@ -26,6 +27,8 @@ pub static DRAMATIC_ENTRANCE: CardTemplate = make_card_template(
             amount: 8,
             instances: 1,
             lifesteal: false,
+            if_poisoned: false,
+            scaled_at: ScaledAt::Now,
         },
         id_source: None,
         target: TARGET_MONSTERS_ALL,
@@ -43,6 +46,8 @@ pub static DRAMATIC_ENTRANCE_PLUS: CardTemplate = CardTemplate {
             amount: 12,
             instances: 1,
             lifesteal: false,
+            if_poisoned: false,
+            scaled_at: ScaledAt::Now,
         }; // +4 damage
         effects
     },

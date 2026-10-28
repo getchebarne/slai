@@ -1,5 +1,6 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::ScaledAt;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::types::Combat;
@@ -26,6 +27,8 @@ pub fn process_effect_damage_finisher(
                 amount: damage,
                 instances: num_attacks,
                 lifesteal: false,
+                if_poisoned: false,
+                scaled_at: ScaledAt::Now,
             },
             id_source,
             target: Target::Direct(Some(id_target)),

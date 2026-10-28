@@ -2,6 +2,7 @@ use crate::cards::CardTemplate;
 use crate::cards::make_card_template;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::ScaledAt;
 use crate::effect::TARGET_MONSTERS_ALL;
 use crate::entity::CardCostKind;
 use crate::entity::PlayRestriction;
@@ -15,6 +16,8 @@ const HIT: Effect = Effect {
         amount: 4,
         instances: 1,
         lifesteal: false,
+        if_poisoned: false,
+        scaled_at: ScaledAt::Now,
     },
     id_source: None,
     target: TARGET_MONSTERS_ALL,
@@ -24,6 +27,8 @@ const HIT_PLUS: Effect = Effect {
         amount: 6,
         instances: 1,
         lifesteal: false,
+        if_poisoned: false,
+        scaled_at: ScaledAt::Now,
     }, // +2 damage
     id_source: None,
     target: TARGET_MONSTERS_ALL,

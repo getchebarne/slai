@@ -38,7 +38,7 @@ pub fn process_effect_potion_use(
     // Smoke Bomb drops at once the selection parked behind it, every queued effect, and the waiting Card plays and turn phases
     if potion.potion_name == PotionName::SmokeBomb {
         state.effect_queue.clear();
-        state.id_card_pile_selected.clear();
+        state.id_selected.clear();
         state.card_play_queue.clear();
         state.phase_queue.clear();
     }
@@ -66,7 +66,7 @@ pub fn process_effect_potion_use(
                 .combat
                 .id_card_pile_hand
                 .iter()
-                .all(|id| state.id_card_pile_selected.contains(id))
+                .all(|id| state.id_selected.contains(id))
         {
             continue;
         }

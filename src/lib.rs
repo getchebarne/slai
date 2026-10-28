@@ -311,8 +311,6 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEffectDamagePhysical;
     #[pymodule_export]
-    use super::ffi::PyEffectDamagePhysicalIfPoisoned;
-    #[pymodule_export]
     use super::ffi::PyEffectDebuffsClear;
     #[pymodule_export]
     use super::ffi::PyEffectDistractionAdd;
@@ -412,6 +410,8 @@ mod slai {
     use super::ffi::PyEffectSetCostOverride;
     #[pymodule_export]
     use super::ffi::PyEffectShuffleCardPileDiscardIntoCardPileDraw;
+    #[pymodule_export]
+    use super::ffi::PyEffectSkewerProc;
     #[pymodule_export]
     use super::ffi::PyEffectSneakyStrikeProc;
     #[pymodule_export]
