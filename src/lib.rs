@@ -311,8 +311,6 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEffectDamagePhysical;
     #[pymodule_export]
-    use super::ffi::PyEffectDamagePhysicalIfPoisoned;
-    #[pymodule_export]
     use super::ffi::PyEffectDebuffsClear;
     #[pymodule_export]
     use super::ffi::PyEffectDistractionAdd;

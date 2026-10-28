@@ -2,6 +2,7 @@ use crate::cards::CardTemplate;
 use crate::cards::make_card_template;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::ScaledAt;
 use crate::effect::TARGET_MONSTER_SELECTED;
 use crate::entity::CardCostKind;
 use crate::entity::PlayRestriction;
@@ -27,12 +28,20 @@ pub static BANE: CardTemplate = make_card_template(
                 amount: 7,
                 instances: 1,
                 lifesteal: false,
+                if_poisoned: false,
+                scaled_at: ScaledAt::Now,
             },
             id_source: None,
             target: TARGET_MONSTER_SELECTED,
         },
         Effect {
-            kind: EffectKind::DamagePhysicalIfPoisoned { amount: 7 },
+            kind: EffectKind::DamagePhysical {
+                amount: 7,
+                instances: 1,
+                lifesteal: false,
+                if_poisoned: true,
+                scaled_at: ScaledAt::Now,
+            },
             id_source: None,
             target: TARGET_MONSTER_SELECTED,
         },
@@ -50,8 +59,16 @@ pub static BANE_PLUS: CardTemplate = CardTemplate {
             amount: 10,
             instances: 1,
             lifesteal: false,
+            if_poisoned: false,
+            scaled_at: ScaledAt::Now,
         }; // +3 damage
-        effects[1].kind = EffectKind::DamagePhysicalIfPoisoned { amount: 10 }; // +3 damage
+        effects[1].kind = EffectKind::DamagePhysical {
+            amount: 10,
+            instances: 1,
+            lifesteal: false,
+            if_poisoned: true,
+            scaled_at: ScaledAt::Now,
+        }; // +3 damage
         effects
     },
     ..BANE

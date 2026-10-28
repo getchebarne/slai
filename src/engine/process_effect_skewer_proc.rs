@@ -1,5 +1,6 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::ScaledAt;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
@@ -40,7 +41,13 @@ pub fn process_effect_skewer_proc(
         has_modifier(mods_target, ModifierKind::Flight),
     );
     state.effect_queue.push_back(Effect {
-        kind: EffectKind::DamagePhysicalFixed { amount },
+        kind: EffectKind::DamagePhysical {
+            amount,
+            instances: 1,
+            lifesteal: false,
+            if_poisoned: false,
+            scaled_at: ScaledAt::PlayStart,
+        },
         id_source,
         target: Target::Direct(Some(id_target)),
     });

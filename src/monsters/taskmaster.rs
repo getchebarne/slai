@@ -1,5 +1,6 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::ScaledAt;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::TARGET_SOURCE;
 use crate::effect::Target;
@@ -23,6 +24,8 @@ static MOVE_SCOURING_WHIP_A18: Move = make_move(
                 amount: 7,
                 instances: 1,
                 lifesteal: false,
+                if_poisoned: false,
+                scaled_at: ScaledAt::Now,
             },
             id_source: None,
             target: TARGET_CHARACTER,

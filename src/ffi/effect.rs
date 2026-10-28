@@ -6,6 +6,7 @@ use pyo3::type_object::PyTypeInfo;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::RelicRoll;
+use crate::effect::ScaledAt;
 use crate::effect::Target;
 use crate::game::Location;
 
@@ -36,8 +37,7 @@ mirror_enum!(PyRewardRollTrigger from RewardRollTrigger, "RewardRollTrigger", {
 
 // Mirrors only EffectKind variants reachable from static Card/Monster defs or a halted selection; snapshot_effect panics on runtime-only variants
 flat_variants!(PyEffect {
-    DamagePhysical => PyEffectDamagePhysical as "EffectDamagePhysical" { amount: u16, instances: u16, lifesteal: bool, target: PyTarget },
-    DamagePhysicalIfPoisoned => PyEffectDamagePhysicalIfPoisoned as "EffectDamagePhysicalIfPoisoned" { amount: u16, target: PyTarget },
+    DamagePhysical => PyEffectDamagePhysical as "EffectDamagePhysical" { amount: u16, instances: u16, lifesteal: bool, if_poisoned: bool, target: PyTarget },
     HeelHookProc => PyEffectHeelHookProc as "EffectHeelHookProc" { damage: u16, target: PyTarget },
     SkewerProc => PyEffectSkewerProc as "EffectSkewerProc" { damage: u16, target: PyTarget },
     EscapePlanCheck => PyEffectEscapePlanCheck as "EffectEscapePlanCheck" { block: u16, target: PyTarget },
@@ -253,15 +253,20 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
             amount,
             instances,
             lifesteal,
-        } => PyEffect::DamagePhysical(PyEffectDamagePhysical {
-            amount,
-            instances,
-            lifesteal,
-            target: require_target(target),
-        }),
-        EffectKind::DamagePhysicalIfPoisoned { amount } => {
-            PyEffect::DamagePhysicalIfPoisoned(PyEffectDamagePhysicalIfPoisoned {
+            if_poisoned,
+            scaled_at,
+        } => {
+            // A hit scaled as its play started is pushed at runtime only
+            assert!(
+                scaled_at == ScaledAt::Now,
+                "snapshot_effect: a hit scaled as its play started on a static effect: {:?}",
+                effect.kind
+            );
+            PyEffect::DamagePhysical(PyEffectDamagePhysical {
                 amount,
+                instances,
+                lifesteal,
+                if_poisoned,
                 target: require_target(target),
             })
         }

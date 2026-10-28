@@ -1,6 +1,7 @@
 use crate::consts::HEXAGHOST_DIVIDER_HITS;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::ScaledAt;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::TARGET_SOURCE;
 use crate::effect::Target;
@@ -27,6 +28,8 @@ const fn move_inferno(damage: u16) -> Move {
                     amount: damage,
                     instances: INFERNO_HITS as u16,
                     lifesteal: false,
+                    if_poisoned: false,
+                    scaled_at: ScaledAt::Now,
                 },
                 id_source: None,
                 target: TARGET_CHARACTER,

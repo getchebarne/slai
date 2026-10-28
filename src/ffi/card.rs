@@ -33,7 +33,6 @@ use super::effect::PyEffectDamageFinisher;
 use super::effect::PyEffectDamageFlechettes;
 use super::effect::PyEffectDamageMindBlast;
 use super::effect::PyEffectDamagePhysical;
-use super::effect::PyEffectDamagePhysicalIfPoisoned;
 use super::effect::PyEffectEscapePlanCheck;
 use super::effect::PyEffectHeelHookProc;
 use super::effect::PyEffectModifierDelta;
@@ -359,18 +358,13 @@ pub(crate) fn snapshot_adjusted_effects(
                 amount,
                 instances,
                 lifesteal,
+                if_poisoned,
                 target,
             }) => PyEffect::DamagePhysical(PyEffectDamagePhysical {
                 amount: adjusted_damage(amount),
                 instances,
                 lifesteal,
-                target,
-            }),
-            PyEffect::DamagePhysicalIfPoisoned(PyEffectDamagePhysicalIfPoisoned {
-                amount,
-                target,
-            }) => PyEffect::DamagePhysicalIfPoisoned(PyEffectDamagePhysicalIfPoisoned {
-                amount: adjusted_damage(amount),
+                if_poisoned,
                 target,
             }),
             PyEffect::DamageFinisher(PyEffectDamageFinisher { damage, target }) => {

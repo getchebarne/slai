@@ -132,12 +132,8 @@ pub enum EffectKind {
         amount: u16,
         instances: u16, // Hits on one target, resolved one at a time; an X-cost Card's X can pass 255
         lifesteal: bool, // Life Suck
-    },
-    DamagePhysicalFixed {
-        amount: u16,
-    }, // One of Skewer's hits, its damage fixed as its play started; nothing scales it as it lands
-    DamagePhysicalIfPoisoned {
-        amount: u16,
+        if_poisoned: bool, // Bane: a hit that lands only on a Poisoned target
+        scaled_at: ScaledAt,
     },
     Death {
         with_leader: bool, // A Minion its leader's death takes down
@@ -315,7 +311,7 @@ pub enum EffectKind {
     SingingBowlProc,
     SkewerProc {
         damage: u16,
-    }, // One per X of Skewer's play: scales its damage as the play starts and queues one fixed hit at the back
+    }, // One per X of Skewer's play: scales its damage as the play starts and queues one hit at the back that keeps it
     SneakyStrikeProc {
         energy: u8,
     },
@@ -428,6 +424,13 @@ pub struct CardPlay {
 pub enum ReadAt {
     Now,
     EventOpen,
+}
+
+// When a hit's amount is scaled: as it's dealt, or already as its play started (Skewer)
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum ScaledAt {
+    Now,
+    PlayStart,
 }
 
 // How a Relative amount rounds its fraction

@@ -2,6 +2,7 @@ use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::ScaledAt;
 use crate::effect::SelectionKind;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
@@ -39,6 +40,8 @@ const fn move_attack_intangible(name: &'static str, damage: u16, instances: u8) 
                     amount: damage,
                     instances: instances as u16,
                     lifesteal: false,
+                    if_poisoned: false,
+                    scaled_at: ScaledAt::Now,
                 },
                 id_source: None,
                 target: TARGET_CHARACTER,

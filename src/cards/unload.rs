@@ -2,6 +2,7 @@ use crate::cards::CardTemplate;
 use crate::cards::make_card_template;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::ScaledAt;
 use crate::effect::TARGET_MONSTER_SELECTED;
 use crate::effect::Target;
 use crate::entity::CardCostKind;
@@ -28,6 +29,8 @@ pub static UNLOAD: CardTemplate = make_card_template(
                 amount: 14,
                 instances: 1,
                 lifesteal: false,
+                if_poisoned: false,
+                scaled_at: ScaledAt::Now,
             },
             id_source: None,
             target: TARGET_MONSTER_SELECTED,
@@ -51,6 +54,8 @@ pub static UNLOAD_PLUS: CardTemplate = CardTemplate {
             amount: 18,
             instances: 1,
             lifesteal: false,
+            if_poisoned: false,
+            scaled_at: ScaledAt::Now,
         }; // +4 damage
         effects
     },

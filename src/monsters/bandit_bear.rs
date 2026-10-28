@@ -1,5 +1,6 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::ScaledAt;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::TARGET_SOURCE;
 use crate::entity::Intent;
@@ -22,6 +23,8 @@ const fn move_lunge(damage: u16) -> Move {
                     amount: damage,
                     instances: 1,
                     lifesteal: false,
+                    if_poisoned: false,
+                    scaled_at: ScaledAt::Now,
                 },
                 id_source: None,
                 target: TARGET_CHARACTER,

@@ -3,6 +3,7 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::ReadAt;
 use crate::effect::Rounding;
+use crate::effect::ScaledAt;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::TARGET_SOURCE;
 use crate::effect::Target;
@@ -61,6 +62,8 @@ static MOVE_SLUDGE: Move = make_move(
                 amount: 18,
                 instances: 1,
                 lifesteal: false,
+                if_poisoned: false,
+                scaled_at: ScaledAt::Now,
             },
             id_source: None,
             target: TARGET_CHARACTER,

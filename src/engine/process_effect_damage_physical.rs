@@ -1,5 +1,6 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::ScaledAt;
 use crate::effect::Target;
 use crate::entity::EntityKind;
 use crate::game::GameState;
@@ -15,7 +16,7 @@ use crate::utils::strike_dummy_bonus;
 use crate::utils::vuln_factor;
 use crate::utils::weak_factor;
 
-// Physical damage on a list of targets: every target's hit, then each Thorns reflect, the last target's first, then the remaining hits; Str+Vigor+Weak/Vuln scale, x2 DoubleDmg, Intangible clamp, if_poisoned needs Poison
+// Physical damage on a list of targets: every target's hit, then each Thorns reflect, the last target's first, then the remaining hits; Str+Vigor+Weak/Vuln scale it unless it was scaled as its play started, x2 DoubleDmg, Intangible clamp, if_poisoned needs Poison
 #[allow(clippy::too_many_arguments)]
 pub fn process_effect_damage_physical(
     id_source: Option<usize>,
@@ -23,9 +24,9 @@ pub fn process_effect_damage_physical(
     state: &mut GameState,
     amount: u16,
     instances: u16,
-    if_poisoned: bool, // Bane
-    lifesteal: bool,   // Life Suck
-    fixed: bool,       // Skewer: the amount was scaled as its play started
+    if_poisoned: bool,   // Bane
+    lifesteal: bool,     // Life Suck
+    scaled_at: ScaledAt, // Skewer: PlayStart
 ) {
     let id_source = id_source.expect("DamagePhysical requires id_source");
     assert!(!id_targets.is_empty(), "DamagePhysical requires id_target");
@@ -91,8 +92,8 @@ pub fn process_effect_damage_physical(
         let vuln_odd_mushroom = target.kind == EntityKind::Character
             && has_relic(&state.id_relics, RelicName::OddMushroom);
 
-        // Calculate final base attack damage; a hit fixed as its play started keeps its amount
-        let mut final_damage = if fixed {
+        // Calculate final base attack damage; a hit scaled as its play started keeps its amount
+        let mut final_damage = if scaled_at == ScaledAt::PlayStart {
             amount
         } else {
             scale_attack_damage(
@@ -148,6 +149,8 @@ pub fn process_effect_damage_physical(
                     amount,
                     instances: instances - 1,
                     lifesteal,
+                    if_poisoned,
+                    scaled_at,
                 },
                 id_source: Some(id_source),
                 target: Target::Direct(Some(id_target)),

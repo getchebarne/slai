@@ -80,6 +80,7 @@ use crate::types::CardPile;
 use crate::types::MonsterKind;
 use strum::EnumCount;
 
+use crate::effect::ScaledAt;
 use crate::types::MonsterName;
 use crate::types::Vitals;
 use rand::Rng;
@@ -631,6 +632,8 @@ pub const fn move_attack(name: &'static str, damage: u16, instances: u8) -> Move
                 amount: damage,
                 instances: instances as u16,
                 lifesteal: false,
+                if_poisoned: false,
+                scaled_at: ScaledAt::Now,
             },
             id_source: None,
             target: TARGET_CHARACTER,
@@ -682,6 +685,8 @@ pub const fn move_attack_debuff(
                     amount: damage,
                     instances: 1,
                     lifesteal: false,
+                    if_poisoned: false,
+                    scaled_at: ScaledAt::Now,
                 },
                 id_source: None,
                 target: TARGET_CHARACTER,
@@ -714,6 +719,8 @@ pub const fn move_attack_card_add(
                     amount: damage,
                     instances: 1,
                     lifesteal: false,
+                    if_poisoned: false,
+                    scaled_at: ScaledAt::Now,
                 },
                 id_source: None,
                 target: TARGET_CHARACTER,

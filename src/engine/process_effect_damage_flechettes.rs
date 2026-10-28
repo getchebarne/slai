@@ -1,5 +1,6 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::ScaledAt;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::types::CardKind;
@@ -30,6 +31,8 @@ pub fn process_effect_damage_flechettes(
                 amount: damage,
                 instances: num_skills_in_hand as u16,
                 lifesteal: false,
+                if_poisoned: false,
+                scaled_at: ScaledAt::Now,
             },
             id_source,
             target: Target::Direct(Some(id_target)),

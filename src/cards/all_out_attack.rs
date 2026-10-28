@@ -4,6 +4,7 @@ use crate::effect::CandidatePool;
 use crate::effect::DiscardSource;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::ScaledAt;
 use crate::effect::SelectionKind;
 use crate::effect::TARGET_MONSTERS_ALL;
 use crate::effect::Target;
@@ -31,6 +32,8 @@ pub static ALL_OUT_ATTACK: CardTemplate = make_card_template(
                 amount: 10,
                 instances: 1,
                 lifesteal: false,
+                if_poisoned: false,
+                scaled_at: ScaledAt::Now,
             },
             id_source: None,
             target: TARGET_MONSTERS_ALL,
@@ -60,6 +63,8 @@ pub static ALL_OUT_ATTACK_PLUS: CardTemplate = CardTemplate {
             amount: 14,
             instances: 1,
             lifesteal: false,
+            if_poisoned: false,
+            scaled_at: ScaledAt::Now,
         }; // +4 damage
         effects
     },

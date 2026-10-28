@@ -168,8 +168,6 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState, wit
                     | EffectKind::BlockGain { .. }
                     | EffectKind::DamageDeal { .. }
                     | EffectKind::DamagePhysical { .. }
-                    | EffectKind::DamagePhysicalFixed { .. }
-                    | EffectKind::DamagePhysicalIfPoisoned { .. }
                     | EffectKind::DamageFinisher { .. }
                     | EffectKind::DamageFlechettes { .. }
                     | EffectKind::PoisonTick { .. }

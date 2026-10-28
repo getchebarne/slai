@@ -7,6 +7,7 @@ use crate::effect::CardPlay;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::PlaySource;
+use crate::effect::ScaledAt;
 use crate::effect::TARGET_MONSTERS_ALL;
 use crate::effect::Target;
 use crate::entity::CardCostKind;
@@ -401,13 +402,14 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
                 amount: draw_pile_size,
                 instances: 1,
                 lifesteal: false,
+                if_poisoned: false,
+                scaled_at: ScaledAt::Now,
             };
         }
 
         // Add Wrist Blade bonus to every hit of the Card's damage
         match &mut effect.kind {
-            EffectKind::DamagePhysical { amount, .. }
-            | EffectKind::DamagePhysicalIfPoisoned { amount } => *amount += bonus_wrist_blade,
+            EffectKind::DamagePhysical { amount, .. } => *amount += bonus_wrist_blade,
             EffectKind::DamageFinisher { damage }
             | EffectKind::DamageFlechettes { damage }
             | EffectKind::HeelHookProc { damage }
