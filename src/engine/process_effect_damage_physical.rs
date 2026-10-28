@@ -24,8 +24,8 @@ pub fn process_effect_damage_physical(
     state: &mut GameState,
     amount: u16,
     instances: u16,
-    if_poisoned: bool,   // Bane
     lifesteal: bool,     // Life Suck
+    if_poisoned: bool,   // Bane
     scaled_at: ScaledAt, // Skewer: PlayStart
 ) {
     let id_source = id_source.expect("DamagePhysical requires id_source");

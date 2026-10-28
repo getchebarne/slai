@@ -62,6 +62,7 @@ use crate::consts::MAX_MOVE_HISTORY;
 use crate::effect::EFFECT_ZERO;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::ScaledAt;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::TARGET_SOURCE;
 use crate::effect::Target;
@@ -80,7 +81,6 @@ use crate::types::CardPile;
 use crate::types::MonsterKind;
 use strum::EnumCount;
 
-use crate::effect::ScaledAt;
 use crate::types::MonsterName;
 use crate::types::Vitals;
 use rand::Rng;

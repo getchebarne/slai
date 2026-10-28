@@ -130,8 +130,8 @@ pub enum EffectKind {
     DamageMindBlast, // Mind Blast's hit; its play turns it into a DamagePhysical for the draw pile's size
     DamagePhysical {
         amount: u16,
-        instances: u16, // Hits on one target, resolved one at a time; an X-cost Card's X can pass 255
-        lifesteal: bool, // Life Suck
+        instances: u16,    // Hits on one target, resolved one at a time
+        lifesteal: bool,   // Life Suck
         if_poisoned: bool, // Bane: a hit that lands only on a Poisoned target
         scaled_at: ScaledAt,
     },

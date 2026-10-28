@@ -686,8 +686,8 @@ fn dispatch_by_kind(
             state,
             amount,
             instances,
-            if_poisoned,
             lifesteal,
+            if_poisoned,
             scaled_at,
         ),
         EffectKind::GlassKnifeDecay { delta } => {

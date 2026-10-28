@@ -249,27 +249,20 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
         );
     }
     match effect.kind {
+        // A hit scaled as its play started is pushed at runtime only
         EffectKind::DamagePhysical {
             amount,
             instances,
             lifesteal,
             if_poisoned,
-            scaled_at,
-        } => {
-            // A hit scaled as its play started is pushed at runtime only
-            assert!(
-                scaled_at == ScaledAt::Now,
-                "snapshot_effect: a hit scaled as its play started on a static effect: {:?}",
-                effect.kind
-            );
-            PyEffect::DamagePhysical(PyEffectDamagePhysical {
-                amount,
-                instances,
-                lifesteal,
-                if_poisoned,
-                target: require_target(target),
-            })
-        }
+            scaled_at: ScaledAt::Now,
+        } => PyEffect::DamagePhysical(PyEffectDamagePhysical {
+            amount,
+            instances,
+            lifesteal,
+            if_poisoned,
+            target: require_target(target),
+        }),
         EffectKind::HeelHookProc { damage } => PyEffect::HeelHookProc(PyEffectHeelHookProc {
             damage,
             target: require_target(target),
