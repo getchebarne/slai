@@ -419,6 +419,7 @@ fn card_has_damage_at_least(entity: &Entity, min_base: u16) -> bool {
         let amount = match effect.kind {
             EffectKind::DamagePhysical { amount, .. } => amount,
             EffectKind::DamagePhysicalIfPoisoned { amount } => amount,
+            EffectKind::SkewerProc { damage } => damage,
             _ => 0,
         };
         if amount >= min_base {

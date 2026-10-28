@@ -5,7 +5,6 @@ use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::TARGET_MONSTERS_ALL;
 use crate::effect::Target;
-use crate::engine::first_target;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
@@ -22,18 +21,7 @@ use crate::utils::flush_effects_from_buf_to_queue_front;
 use crate::utils::has_relic;
 use crate::utils::resolve_health_fraction;
 
-pub fn process_effect_death(
-    id_source: Option<usize>,
-    id_targets: &[usize],
-    state: &mut GameState,
-    with_leader: bool,
-) {
-    let id_target = first_target(
-        state,
-        EffectKind::Death { with_leader },
-        id_source,
-        id_targets,
-    );
+pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState, with_leader: bool) {
     let id_target = id_target.expect("Death requires id_target");
 
     // Death is not re-entrant: a second pass would re-fire the on-death triggers

@@ -1,23 +1,16 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::engine::first_target;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
 
 pub fn process_effect_strength_lose_temp(
     id_source: Option<usize>,
-    id_targets: &[usize],
+    id_target: Option<usize>,
     state: &mut GameState,
     stacks: i16,
 ) {
-    let id_target = first_target(
-        state,
-        EffectKind::StrengthLoseTemp { stacks },
-        id_source,
-        id_targets,
-    );
     let id_target = id_target.expect("StrengthLoseTemp requires id_target");
 
     // A corpse or a half-dead Monster takes no debuff

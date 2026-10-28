@@ -1,7 +1,6 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::engine::first_target;
 use crate::game::GameState;
 use crate::types::CardKind;
 use crate::types::Combat;
@@ -9,16 +8,10 @@ use crate::types::Combat;
 // `damage` per Skill in hand (Flechettes itself already moved to discard)
 pub fn process_effect_damage_flechettes(
     id_source: Option<usize>,
-    id_targets: &[usize],
+    id_target: Option<usize>,
     state: &mut GameState,
     damage: u16,
 ) {
-    let id_target = first_target(
-        state,
-        EffectKind::DamageFlechettes { damage },
-        id_source,
-        id_targets,
-    );
     assert!(
         state.combat.active,
         "process_effect_damage_flechettes outside the Combat frame"

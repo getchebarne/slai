@@ -1,14 +1,7 @@
-use crate::effect::EffectKind;
-use crate::engine::first_target;
 use crate::game::GameState;
 use crate::types::Combat;
 
-pub fn process_effect_card_remove(
-    id_source: Option<usize>,
-    id_targets: &[usize],
-    state: &mut GameState,
-) {
-    let id_target = first_target(state, EffectKind::CardRemove, id_source, id_targets);
+pub fn process_effect_card_remove(id_target: Option<usize>, state: &mut GameState) {
     assert!(
         state.combat.active,
         "process_effect_card_remove outside the Combat frame"

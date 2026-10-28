@@ -111,7 +111,7 @@ pub fn snapshot_state(state: &GameState) -> PyGameState {
         effect_pending: state.effect_pending.as_ref().map(snapshot_effect_pending),
         // A fight's selections stage its own Cards
         card_pile_selected: state
-            .id_card_pile_selected
+            .id_selected
             .iter()
             .map(|&id| {
                 if state.combat.active {

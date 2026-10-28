@@ -1,7 +1,6 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::engine::first_target;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::active_modifier_kinds;
@@ -10,12 +9,7 @@ use crate::modifier::modifier_stacks;
 use crate::monsters::byrd;
 use crate::utils::flush_effects_from_buf_to_queue_front;
 
-pub fn process_effect_turn_start_monster(
-    id_source: Option<usize>,
-    id_targets: &[usize],
-    state: &mut GameState,
-) {
-    let id_target = first_target(state, EffectKind::TurnStartMonster, id_source, id_targets);
+pub fn process_effect_turn_start_monster(id_target: Option<usize>, state: &mut GameState) {
     assert!(
         state.combat.active,
         "process_effect_turn_start_monster outside the Combat frame"

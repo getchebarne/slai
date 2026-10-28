@@ -1,23 +1,15 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::engine::first_target;
 use crate::game::GameState;
 use crate::types::CardPile;
 use crate::utils::push_entity;
 
 pub fn process_effect_card_duplicate(
-    id_source: Option<usize>,
-    id_targets: &[usize],
+    id_target: Option<usize>,
     state: &mut GameState,
     pile: CardPile,
 ) {
-    let id_target = first_target(
-        state,
-        EffectKind::CardDuplicate { card_pile: pile },
-        id_source,
-        id_targets,
-    );
     let id_card = id_target.expect("CardDuplicate requires id_target");
     let mut card_copy = state.entities[id_card];
 

@@ -1,5 +1,3 @@
-use crate::effect::EffectKind;
-use crate::engine::first_target;
 use crate::entity::EntityKind;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
@@ -11,16 +9,10 @@ use crate::utils::card_damage_delta;
 // this runs (mirrors HandOfGreedProc)
 pub fn process_effect_ritual_dagger_proc(
     id_source: Option<usize>,
-    id_targets: &[usize],
+    id_target: Option<usize>,
     state: &mut GameState,
     bump: u16,
 ) {
-    let id_target = first_target(
-        state,
-        EffectKind::RitualDaggerProc { bump },
-        id_source,
-        id_targets,
-    );
     let id_source = id_source.expect("RitualDaggerProc requires id_source");
     let id_target = id_target.expect("RitualDaggerProc requires id_target");
     assert!(state.entities[id_source].kind == EntityKind::Card);

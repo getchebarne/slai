@@ -1,18 +1,12 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::engine::first_target;
 use crate::game::GameState;
 use crate::game::Location;
 use crate::map::has_edge;
 use crate::types::RelicName;
 
-pub fn process_effect_room_select(
-    id_source: Option<usize>,
-    id_targets: &[usize],
-    state: &mut GameState,
-) {
-    let id_target = first_target(state, EffectKind::RoomSelect, id_source, id_targets);
+pub fn process_effect_room_select(id_target: Option<usize>, state: &mut GameState) {
     let id_room = id_target.expect("RoomSelect Direct form must have target");
 
     // Wing Boots: an off-path move burns a charge (checked before the location moves)

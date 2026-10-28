@@ -313,6 +313,9 @@ pub enum EffectKind {
     ShopPurge,
     ShuffleCardPileDiscardIntoCardPileDraw,
     SingingBowlProc,
+    SkewerProc {
+        damage: u16,
+    }, // One per X of Skewer's play: scales its damage as the play starts and queues one fixed hit at the back
     SneakyStrikeProc {
         energy: u8,
     },

@@ -1,7 +1,6 @@
 use crate::consts::HEXAGHOST_DIVIDER_DIVISOR;
 use crate::consts::MODE_SHIFT_INCREASE_PER_CYCLE;
 use crate::effect::EffectKind;
-use crate::engine::first_target;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::monsters::book_of_stabbing;
@@ -14,17 +13,10 @@ use crate::types::Combat;
 use crate::types::MonsterName;
 
 pub fn process_effect_move_update(
-    id_source: Option<usize>,
-    id_targets: &[usize],
+    id_target: Option<usize>,
     state: &mut GameState,
     move_override: Option<usize>,
 ) {
-    let id_target = first_target(
-        state,
-        EffectKind::MoveUpdate { move_override },
-        id_source,
-        id_targets,
-    );
     assert!(
         state.combat.active,
         "process_effect_move_update outside the Combat frame"

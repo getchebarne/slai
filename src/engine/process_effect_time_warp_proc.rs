@@ -5,17 +5,11 @@ use crate::effect::EffectKind;
 use crate::effect::PlaySource;
 use crate::effect::Target;
 use crate::effect::TurnEndCharacterStage;
-use crate::engine::first_target;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 
 // Time Warp counts a Card play; the 12th starts the count over, ends the Character's turn early and gives every Monster Strength
-pub fn process_effect_time_warp_proc(
-    id_source: Option<usize>,
-    id_targets: &[usize],
-    state: &mut GameState,
-) {
-    let id_target = first_target(state, EffectKind::TimeWarpProc, id_source, id_targets);
+pub fn process_effect_time_warp_proc(id_target: Option<usize>, state: &mut GameState) {
     let id_target = id_target.expect("TimeWarpProc requires id_target");
     assert!(
         state.combat.active,

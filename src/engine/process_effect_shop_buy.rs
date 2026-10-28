@@ -2,7 +2,6 @@ use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::engine::first_target;
 use crate::engine::shop::apply_shop_discounts;
 use crate::engine::shop::make_card_restock;
 use crate::engine::shop::make_potion;
@@ -17,13 +16,7 @@ use crate::utils::context_focus;
 use crate::utils::flush_effects_from_buf_to_queue_front;
 use crate::utils::has_relic;
 
-pub fn process_effect_shop_buy(
-    id_source: Option<usize>,
-    id_targets: &[usize],
-    state: &mut GameState,
-    slot: ShopSlot,
-) {
-    let id_target = first_target(state, EffectKind::ShopBuy { slot }, id_source, id_targets);
+pub fn process_effect_shop_buy(id_target: Option<usize>, state: &mut GameState, slot: ShopSlot) {
     let id_bought = id_target.expect("ShopBuy requires id_target");
     assert!(
         context_focus(state) == Focus::Shop,

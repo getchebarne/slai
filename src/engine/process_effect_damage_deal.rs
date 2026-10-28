@@ -4,7 +4,6 @@ use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::engine::first_target;
 use crate::entity::Entity;
 use crate::entity::EntityKind;
 use crate::game::GameState;
@@ -18,17 +17,11 @@ use crate::utils::has_relic;
 
 pub fn process_effect_damage_deal(
     id_source: Option<usize>,
-    id_targets: &[usize],
+    id_target: Option<usize>,
     state: &mut GameState,
     amount: u16,
     lifesteal: bool, // Life Suck
 ) {
-    let id_target = first_target(
-        state,
-        EffectKind::DamageDeal { amount, lifesteal },
-        id_source,
-        id_targets,
-    );
     let id_target = id_target.expect("DamageDeal requires id_target");
 
     // Corpses and half-dead Monsters absorb nothing: pre-resolved Direct hits can outlive their target

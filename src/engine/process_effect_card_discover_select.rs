@@ -1,7 +1,6 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::engine::first_target;
 use crate::game::GameState;
 use crate::types::CardPile;
 use crate::types::Combat;
@@ -10,23 +9,12 @@ use crate::utils::flush_effects_from_buf_to_queue_front;
 use crate::utils::push_entity;
 
 pub fn process_effect_card_discover_select(
-    id_source: Option<usize>,
-    id_targets: &[usize],
+    id_target: Option<usize>,
     state: &mut GameState,
     cost_zero: Option<CostScope>,
     pile: CardPile,
     copies: u8,
 ) {
-    let id_target = first_target(
-        state,
-        EffectKind::CardDiscoverSelect {
-            cost_zero,
-            card_pile: pile,
-            copies,
-        },
-        id_source,
-        id_targets,
-    );
     assert!(
         state.combat.active,
         "process_effect_card_discover_select outside the Combat frame"

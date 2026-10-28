@@ -1,21 +1,12 @@
-use crate::effect::EffectKind;
-use crate::engine::first_target;
 use crate::game::GameState;
 use crate::types::Combat;
 
 pub fn process_effect_card_setup_select(
-    id_source: Option<usize>,
-    id_targets: &[usize],
+    id_target: Option<usize>,
     state: &mut GameState,
     free: bool,
     bottom: bool,
 ) {
-    let id_target = first_target(
-        state,
-        EffectKind::CardSetupSelect { free, bottom },
-        id_source,
-        id_targets,
-    );
     assert!(
         state.combat.active,
         "process_effect_card_setup_select outside the Combat frame"

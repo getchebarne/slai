@@ -1,7 +1,6 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::engine::first_target;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
@@ -9,12 +8,7 @@ use crate::modifier::modifier_set_not_new;
 use crate::modifier::modifier_stacks;
 use crate::modifier::modifier_tick;
 
-pub fn process_effect_modifier_tick(
-    id_source: Option<usize>,
-    id_targets: &[usize],
-    state: &mut GameState,
-) {
-    let id_target = first_target(state, EffectKind::ModifierTick, id_source, id_targets);
+pub fn process_effect_modifier_tick(id_target: Option<usize>, state: &mut GameState) {
     let id_target = id_target.expect("ModifierTick requires id_target");
     let modifiers = &mut state.entities[id_target].modifiers;
 

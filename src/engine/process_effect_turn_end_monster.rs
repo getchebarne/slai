@@ -2,7 +2,6 @@ use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::engine::first_target;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
@@ -11,12 +10,7 @@ use crate::monsters::snake_plant;
 use crate::types::DeltaSign;
 
 // A Monster unwinds its per-turn kit at its turn end
-pub fn process_effect_turn_end_monster(
-    id_source: Option<usize>,
-    id_targets: &[usize],
-    state: &mut GameState,
-) {
-    let id_target = first_target(state, EffectKind::TurnEndMonster, id_source, id_targets);
+pub fn process_effect_turn_end_monster(id_target: Option<usize>, state: &mut GameState) {
     let id_monster = id_target.expect("TurnEndMonster requires id_target");
 
     // Corpses don't unwind Shackled or gain Metallicize block

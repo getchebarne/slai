@@ -37,6 +37,7 @@ use super::effect::PyEffectDamagePhysicalIfPoisoned;
 use super::effect::PyEffectEscapePlanCheck;
 use super::effect::PyEffectHeelHookProc;
 use super::effect::PyEffectModifierDelta;
+use super::effect::PyEffectSkewerProc;
 use super::effect::snapshot_effect;
 use super::macros::flat_variants;
 use super::macros::mirror_enum;
@@ -392,6 +393,12 @@ pub(crate) fn snapshot_adjusted_effects(
             }
             PyEffect::HeelHookProc(PyEffectHeelHookProc { damage, target }) => {
                 PyEffect::HeelHookProc(PyEffectHeelHookProc {
+                    damage: adjusted_damage(damage),
+                    target,
+                })
+            }
+            PyEffect::SkewerProc(PyEffectSkewerProc { damage, target }) => {
+                PyEffect::SkewerProc(PyEffectSkewerProc {
                     damage: adjusted_damage(damage),
                     target,
                 })

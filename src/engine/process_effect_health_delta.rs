@@ -2,7 +2,6 @@ use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::engine::first_target;
 use crate::entity::EntityKind;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
@@ -25,17 +24,11 @@ use crate::utils::resolve_health_fraction;
 
 pub fn process_effect_health_delta(
     id_source: Option<usize>,
-    id_targets: &[usize],
+    id_target: Option<usize>,
     state: &mut GameState,
     sign: DeltaSign,
     amount: Amount,
 ) {
-    let id_target = first_target(
-        state,
-        EffectKind::HealthDelta { sign, amount },
-        id_source,
-        id_targets,
-    );
     let id_target = id_target.expect("HealthDelta requires id_target");
 
     // Resolve amount

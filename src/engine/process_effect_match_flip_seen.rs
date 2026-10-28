@@ -1,7 +1,6 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::engine::first_target;
 use crate::events::EFFECT_EVENT_CONSUME;
 use crate::game::GameState;
 use crate::types::CardPile;
@@ -10,12 +9,7 @@ use crate::types::Focus;
 use crate::utils::context_focus;
 
 // Match and Keep!: flips a face-down Card already seen, selected by the player or just revealed by an unseen flip
-pub fn process_effect_match_flip_seen(
-    id_source: Option<usize>,
-    id_targets: &[usize],
-    state: &mut GameState,
-) {
-    let id_target = first_target(state, EffectKind::MatchFlipSeen, id_source, id_targets);
+pub fn process_effect_match_flip_seen(id_target: Option<usize>, state: &mut GameState) {
     let id_card = id_target.expect("MatchFlipSeen requires id_target");
     assert!(
         context_focus(state) == Focus::Event,

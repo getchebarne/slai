@@ -5,7 +5,6 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
-use crate::engine::first_target;
 use crate::entity::CardCostKind;
 use crate::entity::CostOverride;
 use crate::game::GameState;
@@ -21,17 +20,10 @@ use crate::utils::has_relic;
 
 // Every source bumps the counter; the explicit ones also queue the Card's discard effects and fire the discard hooks, EndOfTurn honors retain
 pub fn process_effect_card_discard(
-    id_source: Option<usize>,
-    id_targets: &[usize],
+    id_target: Option<usize>,
     state: &mut GameState,
     source: DiscardSource,
 ) {
-    let id_target = first_target(
-        state,
-        EffectKind::CardDiscard { source },
-        id_source,
-        id_targets,
-    );
     assert!(
         state.combat.active,
         "process_effect_card_discard outside the Combat frame"

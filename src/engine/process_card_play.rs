@@ -31,9 +31,6 @@ use crate::utils::has_relic;
 use crate::utils::is_play_restriction_satisfied;
 use crate::utils::play_cap_reached;
 use crate::utils::push_entity;
-use crate::utils::scale_attack_damage;
-use crate::utils::vuln_factor;
-use crate::utils::weak_factor;
 use crate::utils::wrist_blade_bonus;
 
 // Starts the next waiting Card play; a replay plays the Card, or Necronomicon's copy of it, where it lies
@@ -367,10 +364,6 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
         });
     }
 
-    // Skewer's hits land behind every hook its play sets off
-    let skewer = card.card_name == CardName::Skewer;
-    let mut hits_skewer = Vec::new();
-
     // Wrist Blade: attacks that cost 0 deal +4 per hit
     let bonus_wrist_blade = wrist_blade_bonus(&card, cost_effective, &state.id_relics);
 
@@ -417,7 +410,8 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
             | EffectKind::DamagePhysicalIfPoisoned { amount } => *amount += bonus_wrist_blade,
             EffectKind::DamageFinisher { damage }
             | EffectKind::DamageFlechettes { damage }
-            | EffectKind::HeelHookProc { damage } => *damage += bonus_wrist_blade,
+            | EffectKind::HeelHookProc { damage }
+            | EffectKind::SkewerProc { damage } => *damage += bonus_wrist_blade,
             _ => {}
         }
 
@@ -425,48 +419,6 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
         if let EffectKind::ModifierDelta { stacks, .. } = &mut effect.kind {
             *stacks *= mul as i16;
             state.effect_buf.push(effect);
-            continue;
-        }
-
-        // `EffectKind::DamagePhysical` scales its hits by X, and an X of 0 deals none; Skewer's become one fixed hit each
-        if let EffectKind::DamagePhysical {
-            amount, instances, ..
-        } = &mut effect.kind
-        {
-            *instances *= mul as u16;
-            if skewer {
-                // Skewer's damage is fixed as its play starts: each hit deals what its target would take now
-                let mods_target =
-                    &state.entities[id_target.expect("Skewer has a target")].modifiers;
-                let vigor = if has_modifier(char_modifiers, ModifierKind::Vigor) {
-                    modifier_stacks(char_modifiers, ModifierKind::Vigor)
-                } else {
-                    0
-                };
-                let str_stacks = if has_modifier(char_modifiers, ModifierKind::Strength) {
-                    modifier_stacks(char_modifiers, ModifierKind::Strength)
-                } else {
-                    0
-                };
-                let damage = scale_attack_damage(
-                    (*amount as i16 + vigor).max(0) as u16,
-                    str_stacks,
-                    has_modifier(char_modifiers, ModifierKind::DoubleDamage),
-                    has_modifier(char_modifiers, ModifierKind::PenNib),
-                    weak_factor(has_modifier(char_modifiers, ModifierKind::Weak), false),
-                    vuln_factor(has_modifier(mods_target, ModifierKind::Vulnerable), false),
-                    has_modifier(mods_target, ModifierKind::Flight),
-                );
-                for _ in 0..*instances {
-                    hits_skewer.push(Effect {
-                        kind: EffectKind::DamagePhysicalFixed { amount: damage },
-                        id_source: Some(id_card),
-                        target: Target::Direct(id_target),
-                    });
-                }
-            } else if *instances > 0 {
-                state.effect_buf.push(effect);
-            }
             continue;
         }
         for _ in 0..mul {
@@ -705,9 +657,6 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
             target: TARGET_MONSTERS_ALL,
         });
     }
-
-    // Skewer's hits land last
-    state.effect_buf.append(&mut hits_skewer);
 
     // Burst and Duplication replay the Card itself ahead of any waiting play, with this play's target, X, cost and draw pile size; its changes (Glass Knife, Ritual Dagger) carry over
     for _ in 0..burst as usize + duplication as usize {

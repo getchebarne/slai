@@ -4,7 +4,6 @@ use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::engine::first_target;
 use crate::game::GameState;
 use crate::potions::remove_potion;
 use crate::types::DeltaSign;
@@ -17,16 +16,10 @@ use crate::utils::monsters_alive;
 // id_source is the used Potion, id_target its Monster if it needs one
 pub fn process_effect_potion_use(
     id_source: Option<usize>,
-    id_targets: &[usize],
+    id_target: Option<usize>,
     state: &mut GameState,
     at_selection: bool,
 ) {
-    let id_target = first_target(
-        state,
-        EffectKind::PotionUse { at_selection },
-        id_source,
-        id_targets,
-    );
     let id_potion = id_source.expect("PotionUse requires id_source");
 
     // The Potion's selected-Monster effects resolve against this use's target
@@ -45,7 +38,7 @@ pub fn process_effect_potion_use(
     // Smoke Bomb drops at once the selection parked behind it, every queued effect, and the waiting Card plays and turn phases
     if potion.potion_name == PotionName::SmokeBomb {
         state.effect_queue.clear();
-        state.id_card_pile_selected.clear();
+        state.id_selected.clear();
         state.card_play_queue.clear();
         state.phase_queue.clear();
     }
@@ -73,7 +66,7 @@ pub fn process_effect_potion_use(
                 .combat
                 .id_card_pile_hand
                 .iter()
-                .all(|id| state.id_card_pile_selected.contains(id))
+                .all(|id| state.id_selected.contains(id))
         {
             continue;
         }

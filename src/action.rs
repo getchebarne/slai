@@ -303,7 +303,7 @@ fn handle_selection(state: &mut GameState, id_selected: usize) {
     };
 
     // Stage the selected `Entity` ID; nothing applies until the selection closes
-    state.id_card_pile_selected.push(id_selected);
+    state.id_selected.push(id_selected);
 
     // Queue it again with the remaining count: it halts again, staged selections out of the pool, or at none left hands them over
     let selection_kind = match selection_kind {
@@ -598,7 +598,7 @@ fn fill_legal_actions_effect_pending(
     // Apply the filters over the whole set; staged selections are out of the running
     filter_candidates(filters, &mut id_candidates, &state.entities, None);
     for id in id_candidates {
-        if !state.id_card_pile_selected.contains(&id) {
+        if !state.id_selected.contains(&id) {
             state.legal_actions.push(selection_action(kind, id));
         }
     }

@@ -2,24 +2,12 @@ use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::engine::first_target;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::types::DeltaSign;
 
 // HP loss = the stacks held when the tick was queued; then Poison -= 1 (removed at 0)
-pub fn process_effect_poison_tick(
-    id_source: Option<usize>,
-    id_targets: &[usize],
-    state: &mut GameState,
-    amount: u16,
-) {
-    let id_target = first_target(
-        state,
-        EffectKind::PoisonTick { amount },
-        id_source,
-        id_targets,
-    );
+pub fn process_effect_poison_tick(id_target: Option<usize>, state: &mut GameState, amount: u16) {
     let id_target = id_target.expect("PoisonTick requires id_target");
 
     // Executes in reverse:

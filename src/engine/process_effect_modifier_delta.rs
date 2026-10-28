@@ -3,7 +3,6 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::effect::effect_accuracy_resync;
-use crate::engine::first_target;
 use crate::entity::EntityKind;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
@@ -22,17 +21,11 @@ use crate::utils::scale_block_gain;
 
 pub fn process_effect_modifier_delta(
     id_source: Option<usize>,
-    id_targets: &[usize],
+    id_target: Option<usize>,
     state: &mut GameState,
     kind: ModifierKind,
     stacks: i16,
 ) {
-    let id_target = first_target(
-        state,
-        EffectKind::ModifierDelta { kind, stacks },
-        id_source,
-        id_targets,
-    );
     let id_target = id_target.expect("ModifierDelta requires id_target");
 
     // A corpse or a half-dead Monster takes no Powers, and their hooks (Snecko Skull, Sadistic Nature) must not fire

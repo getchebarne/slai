@@ -413,6 +413,8 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEffectShuffleCardPileDiscardIntoCardPileDraw;
     #[pymodule_export]
+    use super::ffi::PyEffectSkewerProc;
+    #[pymodule_export]
     use super::ffi::PyEffectSneakyStrikeProc;
     #[pymodule_export]
     use super::ffi::PyEffectStormOfSteelProc;

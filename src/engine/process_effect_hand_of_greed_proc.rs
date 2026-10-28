@@ -2,24 +2,16 @@ use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::engine::first_target;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
 use crate::types::DeltaSign;
 
 pub fn process_effect_hand_of_greed_proc(
-    id_source: Option<usize>,
-    id_targets: &[usize],
+    id_target: Option<usize>,
     state: &mut GameState,
     gold: u16,
 ) {
-    let id_target = first_target(
-        state,
-        EffectKind::HandOfGreedProc { gold },
-        id_source,
-        id_targets,
-    );
     let id_target = id_target.expect("HandOfGreedProc requires id_target");
 
     // Queued right after the Card's damage: the kill has fully resolved by the time this runs

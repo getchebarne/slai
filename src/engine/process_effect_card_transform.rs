@@ -9,24 +9,16 @@ use crate::cards::POOL_UNCOMMON_GREEN_CARD;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::engine::first_target;
 use crate::game::GameState;
 use crate::types::CardColor;
 use crate::types::CardName;
 use crate::types::CardPile;
 
 pub fn process_effect_card_transform(
-    id_source: Option<usize>,
-    id_targets: &[usize],
+    id_target: Option<usize>,
     state: &mut GameState,
     upgraded: bool,
 ) {
-    let id_target = first_target(
-        state,
-        EffectKind::CardTransform { upgraded },
-        id_source,
-        id_targets,
-    );
     let id_card = id_target.expect("CardTransform requires id_target");
     let source_name = state.entities[id_card].card_name;
 

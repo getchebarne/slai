@@ -120,6 +120,7 @@ pub mod process_effect_shop_buy;
 pub mod process_effect_shop_purge;
 pub mod process_effect_shuffle_card_pile_discard_into_card_pile_draw;
 pub mod process_effect_singing_bowl_proc;
+pub mod process_effect_skewer_proc;
 pub mod process_effect_sneaky_strike_proc;
 pub mod process_effect_storm_of_steel_proc;
 pub mod process_effect_strength_lose_temp;
@@ -255,6 +256,7 @@ use self::process_effect_shop_buy::process_effect_shop_buy;
 use self::process_effect_shop_purge::process_effect_shop_purge;
 use self::process_effect_shuffle_card_pile_discard_into_card_pile_draw::process_effect_shuffle_card_pile_discard_into_card_pile_draw;
 use self::process_effect_singing_bowl_proc::process_effect_singing_bowl_proc;
+use self::process_effect_skewer_proc::process_effect_skewer_proc;
 use self::process_effect_sneaky_strike_proc::process_effect_sneaky_strike_proc;
 use self::process_effect_storm_of_steel_proc::process_effect_storm_of_steel_proc;
 use self::process_effect_strength_lose_temp::process_effect_strength_lose_temp;
@@ -285,6 +287,7 @@ use crate::effect::Target;
 use crate::effect::is_multi_selection;
 use crate::effect::pool_is_cards;
 use crate::entity::Entity;
+use crate::entity::EntityKind;
 use crate::game::GameState;
 use crate::game::Location;
 use crate::map::get_active_room_kind;
@@ -314,7 +317,7 @@ pub(crate) fn enqueue_direct_targets(
 }
 
 // A one-target kind works on the first target; the rest wait at the front as its own copies: what that target queues at the front runs before them, and what it queues at the back runs after them
-pub(crate) fn first_target(
+fn first_target(
     state: &mut GameState,
     kind: EffectKind,
     id_source: Option<usize>,
@@ -481,9 +484,7 @@ fn resolve_or_halt(
     // The end of a pick's countdown: a pick with nothing left to choose hands over the picked ids
     if matches!(selection_kind, SelectionKind::Input { count: 0 }) {
         state.effect_candidate_buf.clear();
-        state
-            .effect_candidate_buf
-            .append(&mut state.id_card_pile_selected);
+        state.effect_candidate_buf.append(&mut state.id_selected);
         return true;
     }
 
@@ -553,7 +554,8 @@ fn dispatch_by_kind(
             state, color, kind, card_pile, count, cost_zero, upgraded, rarity,
         ),
         EffectKind::HandOfGreedProc { gold } => {
-            process_effect_hand_of_greed_proc(id_source, id_targets, state, gold)
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_hand_of_greed_proc(id_target, state, gold)
         }
         EffectKind::CardDrawUpTo { amount } => process_effect_card_draw_up_to(state, amount),
         EffectKind::CardAdd {
@@ -563,61 +565,98 @@ fn dispatch_by_kind(
             upgraded,
         } => process_effect_card_add(state, card_name, card_pile, count, upgraded),
         EffectKind::CardDiscard { source } => {
-            process_effect_card_discard(id_source, id_targets, state, source)
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_card_discard(id_target, state, source)
         }
         EffectKind::CardMove {
             card_pile,
             cost_zero,
-        } => process_effect_card_move(id_source, id_targets, state, card_pile, cost_zero),
+        } => {
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_card_move(id_target, state, card_pile, cost_zero)
+        }
         EffectKind::DamageMindBlast => {
             unreachable!("Mind Blast's play turns its hit into DamagePhysical")
         }
         EffectKind::ShuffleCardPileDiscardIntoCardPileDraw => {
             process_effect_shuffle_card_pile_discard_into_card_pile_draw(state)
         }
-        EffectKind::CardRetain => process_effect_card_retain(id_source, id_targets, state),
+        EffectKind::CardRetain => {
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_card_retain(id_target, state)
+        }
         EffectKind::CardSetupSelect { free, bottom } => {
-            process_effect_card_setup_select(id_source, id_targets, state, free, bottom)
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_card_setup_select(id_target, state, free, bottom)
         }
         EffectKind::CardNightmareSelect => {
-            process_effect_card_nightmare_select(id_source, id_targets, state)
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_card_nightmare_select(id_target, state)
         }
         EffectKind::CardNightmareSpawn => {
-            process_effect_card_nightmare_spawn(id_source, id_targets, state)
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_card_nightmare_spawn(id_target, state)
         }
         EffectKind::CardPlace { pile } => {
-            process_effect_card_place(id_source, id_targets, state, pile)
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_card_place(id_target, state, pile)
         }
-        EffectKind::CardExhaust => process_effect_card_exhaust(id_source, id_targets, state),
+        EffectKind::CardExhaust => {
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_card_exhaust(id_target, state)
+        }
         EffectKind::CardPlayFromCardPileDrawTop => {
-            process_effect_card_play_from_card_pile_draw_top(id_source, id_targets, state)
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_card_play_from_card_pile_draw_top(id_target, state)
         }
         EffectKind::CardPlayQueueClear => process_effect_card_play_queue_clear(state),
         EffectKind::BombArm { turns, damage } => process_effect_bomb_arm(state, turns, damage),
         EffectKind::BombTick { seq } => process_effect_bomb_tick(state, seq),
-        EffectKind::LifestealHeal => process_effect_lifesteal_heal(id_source, id_targets, state),
-        EffectKind::CardPlayRelocate => {
-            process_effect_card_play_relocate(id_source, id_targets, state)
+        EffectKind::LifestealHeal => {
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_lifesteal_heal(id_target, state)
         }
-        EffectKind::CardRemove => process_effect_card_remove(id_source, id_targets, state),
+        EffectKind::CardPlayRelocate => {
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_card_play_relocate(id_target, state)
+        }
+        EffectKind::CardRemove => {
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_card_remove(id_target, state)
+        }
         EffectKind::ActTransition => process_effect_act_transition(state),
         EffectKind::AdventurerSearch => process_effect_adventurer_search(state),
         EffectKind::MindBloomFight => process_effect_mind_bloom_fight(state),
-        EffectKind::BonfireOffer => process_effect_bonfire_offer(id_source, id_targets, state),
-        EffectKind::CardBottle => process_effect_card_bottle(id_source, id_targets, state),
+        EffectKind::BonfireOffer => {
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_bonfire_offer(id_target, state)
+        }
+        EffectKind::CardBottle => {
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_card_bottle(id_target, state)
+        }
         EffectKind::CardCostMinusDiscards => {
-            process_effect_card_cost_minus_discards(id_source, id_targets, state)
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_card_cost_minus_discards(id_target, state)
         }
         EffectKind::CardFreePlaySpend => {
-            process_effect_card_free_play_spend(id_source, id_targets, state)
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_card_free_play_spend(id_target, state)
         }
         EffectKind::GiryaLift => process_effect_girya_lift(state),
         EffectKind::SingingBowlProc => {
-            process_effect_singing_bowl_proc(id_source, id_targets, state)
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_singing_bowl_proc(id_target, state)
         }
         EffectKind::WheelSpin => process_effect_wheel_spin(state),
-        EffectKind::CardUpgrade => process_effect_card_upgrade(id_source, id_targets, state),
-        EffectKind::AccuracyResync => process_effect_accuracy_resync(id_source, id_targets, state),
+        EffectKind::CardUpgrade => {
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_card_upgrade(id_target, state)
+        }
+        EffectKind::AccuracyResync => {
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_accuracy_resync(id_target, state)
+        }
         EffectKind::RewardRollCards { bundles, trigger } => {
             process_effect_reward_roll_cards(state, bundles, trigger)
         }
@@ -630,16 +669,24 @@ fn dispatch_by_kind(
             process_effect_reward_roll_relic(state, roll, exclusion)
         }
         EffectKind::RitualDaggerProc { bump } => {
-            process_effect_ritual_dagger_proc(id_source, id_targets, state, bump)
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_ritual_dagger_proc(id_source, id_target, state, bump)
         }
-        EffectKind::RewardTake { kind } => {
-            process_effect_reward_take(id_source, id_targets, state, kind)
+        EffectKind::RewardTake { kind: reward_kind } => {
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_reward_take(id_target, state, reward_kind)
         }
         EffectKind::RoomExit => process_effect_room_exit(state),
         EffectKind::RestDig => process_effect_rest_dig(state),
         EffectKind::RestSiteConsume => process_effect_rest_site_consume(state),
-        EffectKind::RestSmith => process_effect_rest_smith(id_source, id_targets, state),
-        EffectKind::RestToke => process_effect_rest_toke(id_source, id_targets, state),
+        EffectKind::RestSmith => {
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_rest_smith(id_target, state)
+        }
+        EffectKind::RestToke => {
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_rest_toke(id_target, state)
+        }
         EffectKind::DamagePhysical {
             amount,
             instances,
@@ -654,7 +701,8 @@ fn dispatch_by_kind(
             id_source, id_targets, state, amount, 1, true, false, false,
         ),
         EffectKind::GlassKnifeDecay { delta } => {
-            process_effect_glass_knife_decay(id_source, id_targets, state, delta)
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_glass_knife_decay(id_target, state, delta)
         }
         EffectKind::DistractionAdd => process_effect_distraction_add(state),
         EffectKind::DuVuDollRecount => process_effect_du_vu_doll_recount(state),
@@ -663,75 +711,104 @@ fn dispatch_by_kind(
             only_reduce,
             random,
             scope,
-        } => process_effect_set_cost_override(
-            id_source,
-            id_targets,
-            state,
-            amount,
-            only_reduce,
-            random,
-            scope,
-        ),
+        } => {
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_set_cost_override(id_target, state, amount, only_reduce, random, scope)
+        }
         EffectKind::EscapePlanCheck { block } => {
             process_effect_escape_plan_check(id_source, state, block)
         }
         EffectKind::DamageFinisher { damage } => {
-            process_effect_damage_finisher(id_source, id_targets, state, damage)
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_damage_finisher(id_source, id_target, state, damage)
         }
         EffectKind::DamageFlechettes { damage } => {
-            process_effect_damage_flechettes(id_source, id_targets, state, damage)
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_damage_flechettes(id_source, id_target, state, damage)
         }
         EffectKind::HeelHookProc { damage } => {
-            process_effect_heel_hook_proc(id_source, id_targets, state, damage)
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_heel_hook_proc(id_source, id_target, state, damage)
+        }
+        EffectKind::SkewerProc { damage } => {
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_skewer_proc(id_source, id_target, state, damage)
         }
         EffectKind::SneakyStrikeProc { energy } => process_effect_sneaky_strike_proc(state, energy),
         EffectKind::StormOfSteelProc { upgraded } => {
             process_effect_storm_of_steel_proc(state, upgraded)
         }
         EffectKind::StrengthLoseTemp { stacks } => {
-            process_effect_strength_lose_temp(id_source, id_targets, state, stacks)
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_strength_lose_temp(id_source, id_target, state, stacks)
         }
         EffectKind::UnloadDiscard => process_effect_unload_discard(state),
         EffectKind::DamageDeal { amount, lifesteal } => {
-            process_effect_damage_deal(id_source, id_targets, state, amount, lifesteal)
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_damage_deal(id_source, id_target, state, amount, lifesteal)
         }
         EffectKind::HealthDelta { sign, amount } => {
-            process_effect_health_delta(id_source, id_targets, state, sign, amount)
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_health_delta(id_source, id_target, state, sign, amount)
         }
         EffectKind::HealthSet { amount } => {
-            process_effect_health_set(id_source, id_targets, state, amount)
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_health_set(id_target, state, amount)
         }
         EffectKind::BlockGain { amount } => {
-            process_effect_block_gain(id_source, id_targets, state, amount)
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_block_gain(id_source, id_target, state, amount)
         }
         EffectKind::BlockSet { amount } => {
-            process_effect_block_set(id_source, id_targets, state, amount)
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_block_set(id_target, state, amount)
         }
         EffectKind::EnergyDelta { sign, amount } => {
             process_effect_energy_delta(state, sign, amount)
         }
-        EffectKind::ModifierDelta { kind, stacks } => {
-            process_effect_modifier_delta(id_source, id_targets, state, kind, stacks)
+        EffectKind::ModifierDelta {
+            kind: mod_kind,
+            stacks,
+        } => {
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_modifier_delta(id_source, id_target, state, mod_kind, stacks)
         }
-        EffectKind::ModifierMultiply { kind, factor } => {
-            process_effect_modifier_multiply(id_source, id_targets, state, kind, factor)
+        EffectKind::ModifierMultiply {
+            kind: mod_kind,
+            factor,
+        } => {
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_modifier_multiply(id_target, state, mod_kind, factor)
         }
-        EffectKind::ModifierRemove { kind } => {
-            process_effect_modifier_remove(id_source, id_targets, state, kind)
+        EffectKind::ModifierRemove { kind: mod_kind } => {
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_modifier_remove(id_target, state, mod_kind)
         }
-        EffectKind::ModifierTick => process_effect_modifier_tick(id_source, id_targets, state),
+        EffectKind::ModifierTick => {
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_modifier_tick(id_target, state)
+        }
         EffectKind::PoisonTick { amount } => {
-            process_effect_poison_tick(id_source, id_targets, state, amount)
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_poison_tick(id_target, state, amount)
         }
         EffectKind::Death { with_leader } => {
+            let id_target = first_target(state, kind, id_source, id_targets);
             // Character can die outside Combat; empty Monster slots make iter a no-op
-            process_effect_death(id_source, id_targets, state, with_leader)
+            process_effect_death(id_target, state, with_leader)
         }
         EffectKind::HalfDeadRebirth => {
-            process_effect_half_dead_rebirth(id_source, id_targets, state)
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_half_dead_rebirth(id_target, state)
         }
-        EffectKind::DefensiveMode => process_effect_defensive_mode(id_source, id_targets, state),
-        EffectKind::LagavulinWake => process_effect_lagavulin_wake(id_source, id_targets, state),
+        EffectKind::DefensiveMode => {
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_defensive_mode(id_target, state)
+        }
+        EffectKind::LagavulinWake => {
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_lagavulin_wake(id_target, state)
+        }
         EffectKind::CombatStart { elite } => process_effect_combat_start(state, elite),
         EffectKind::CombatEnd { escaped_character } => {
             process_effect_combat_end(state, escaped_character)
@@ -739,16 +816,24 @@ fn dispatch_by_kind(
         EffectKind::GameOver => process_effect_game_over(state),
         EffectKind::TurnStartCharacter => process_effect_turn_start_character(state),
         EffectKind::TurnStartMonster => {
-            process_effect_turn_start_monster(id_source, id_targets, state)
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_turn_start_monster(id_target, state)
         }
         EffectKind::TurnEndCharacter { stage } => process_effect_turn_end_character(state, stage),
-        EffectKind::TurnEndMonster => process_effect_turn_end_monster(id_source, id_targets, state),
+        EffectKind::TurnEndMonster => {
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_turn_end_monster(id_target, state)
+        }
         EffectKind::TurnMonsters { stage } => process_effect_turn_monsters(state, stage),
         EffectKind::UnceasingTopDraw => process_effect_unceasing_top_draw(state),
         EffectKind::MoveUpdate { move_override } => {
-            process_effect_move_update(id_source, id_targets, state, move_override)
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_move_update(id_target, state, move_override)
         }
-        EffectKind::MoveExecute => process_effect_move_execute(id_source, id_targets, state),
+        EffectKind::MoveExecute => {
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_move_execute(id_target, state)
+        }
         EffectKind::RoomEnter { location, landing } => {
             process_effect_room_enter(state, location, landing)
         }
@@ -758,13 +843,23 @@ fn dispatch_by_kind(
         EffectKind::MonsterSplit { name, slot_offset } => {
             process_effect_monster_split(id_source, state, name, slot_offset)
         }
-        EffectKind::MonsterEscape => process_effect_monster_escape(id_source, id_targets, state),
-        EffectKind::MonsterRemove => process_effect_monster_remove(id_source, id_targets, state),
+        EffectKind::MonsterEscape => {
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_monster_escape(id_target, state)
+        }
+        EffectKind::MonsterRemove => {
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_monster_remove(id_target, state)
+        }
         EffectKind::GoldSteal { amount } => process_effect_gold_steal(id_source, state, amount),
         EffectKind::GremlinSummon => process_effect_gremlin_summon(state),
-        EffectKind::DebuffsClear => process_effect_debuffs_clear(id_source, id_targets, state),
+        EffectKind::DebuffsClear => {
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_debuffs_clear(id_target, state)
+        }
         EffectKind::CardStasisReturn { hand_full } => {
-            process_effect_card_stasis_return(id_source, id_targets, state, hand_full)
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_card_stasis_return(id_target, state, hand_full)
         }
         EffectKind::CardStasisSteal => process_effect_card_stasis_steal(id_source, state),
         EffectKind::JoustBet { on_owner } => process_effect_joust_bet(state, on_owner),
@@ -772,40 +867,66 @@ fn dispatch_by_kind(
             process_effect_knowing_skull_cost_bump(id_source, state)
         }
         EffectKind::MausoleumOpen => process_effect_mausoleum_open(state),
-        EffectKind::MatchFlipSeen => process_effect_match_flip_seen(id_source, id_targets, state),
+        EffectKind::MatchFlipSeen => {
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_match_flip_seen(id_target, state)
+        }
         EffectKind::MatchFlipUnseen => process_effect_match_flip_unseen(state),
         EffectKind::MayhemProc => process_effect_mayhem_proc(state),
-        EffectKind::TimeWarpProc => process_effect_time_warp_proc(id_source, id_targets, state),
+        EffectKind::TimeWarpProc => {
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_time_warp_proc(id_target, state)
+        }
         EffectKind::HexaghostBurnIncrease { count } => {
             process_effect_hexaghost_burn_increase(state, count)
         }
         EffectKind::GoldDelta { sign, amount } => process_effect_gold_delta(state, sign, amount),
-        EffectKind::RoomSelect => process_effect_room_select(id_source, id_targets, state),
-        EffectKind::CardPurge => process_effect_card_purge(id_source, id_targets, state),
+        EffectKind::RoomSelect => {
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_room_select(id_target, state)
+        }
+        EffectKind::CardPurge => {
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_card_purge(id_target, state)
+        }
         EffectKind::CardDuplicate { card_pile } => {
-            process_effect_card_duplicate(id_source, id_targets, state, card_pile)
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_card_duplicate(id_target, state, card_pile)
         }
         EffectKind::CardTransform { upgraded } => {
-            process_effect_card_transform(id_source, id_targets, state, upgraded)
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_card_transform(id_target, state, upgraded)
         }
         EffectKind::CardAdopt { landing } => {
-            process_effect_card_adopt(id_source, id_targets, state, landing)
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_card_adopt(id_target, state, landing)
         }
         EffectKind::MaxHealthDelta { sign, amount } => {
-            process_effect_max_health_delta(id_source, id_targets, state, sign, amount)
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_max_health_delta(id_target, state, sign, amount)
         }
         EffectKind::ChestOpen => process_effect_chest_open(state),
-        EffectKind::PotionDiscard => process_effect_potion_discard(id_source, id_targets, state),
+        EffectKind::PotionDiscard => {
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_potion_discard(id_target, state)
+        }
         EffectKind::ShopBuild => process_effect_shop_build(state),
-        EffectKind::ShopBuy { slot } => process_effect_shop_buy(id_source, id_targets, state, slot),
+        EffectKind::ShopBuy { slot } => {
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_shop_buy(id_target, state, slot)
+        }
         EffectKind::ShopPurge => process_effect_shop_purge(state),
         EffectKind::PotionUse { at_selection } => {
-            process_effect_potion_use(id_source, id_targets, state, at_selection)
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_potion_use(id_source, id_target, state, at_selection)
         }
         EffectKind::PotionAddRandom { limited, uniform } => {
             process_effect_potion_add_random(state, limited, uniform)
         }
-        EffectKind::PotionAdopt => process_effect_potion_adopt(id_source, id_targets, state),
+        EffectKind::PotionAdopt => {
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_potion_adopt(id_target, state)
+        }
         EffectKind::CardDiscoverRoll {
             kind,
             color,
@@ -823,8 +944,14 @@ fn dispatch_by_kind(
             process_effect_relic_grant_random(state, tier, exclusion)
         }
         EffectKind::RelicGrantSpecific { name } => process_effect_relic_grant_specific(state, name),
-        EffectKind::RelicLose => process_effect_relic_lose(id_source, id_targets, state),
-        EffectKind::RelicAdopt => process_effect_relic_adopt(id_source, id_targets, state),
+        EffectKind::RelicLose => {
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_relic_lose(id_target, state)
+        }
+        EffectKind::RelicAdopt => {
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_relic_adopt(id_target, state)
+        }
         EffectKind::EventAdvanceState { delta } => process_effect_event_advance_state(state, delta),
         EffectKind::ScrapOozeReach {
             chance,
@@ -836,9 +963,10 @@ fn dispatch_by_kind(
             cost_zero,
             card_pile,
             copies,
-        } => process_effect_card_discover_select(
-            id_source, id_targets, state, cost_zero, card_pile, copies,
-        ),
+        } => {
+            let id_target = first_target(state, kind, id_source, id_targets);
+            process_effect_card_discover_select(id_target, state, cost_zero, card_pile, copies)
+        }
         EffectKind::CardPileEventRollClear => process_effect_card_pile_event_roll_clear(state),
         EffectKind::NeowCardsRoll {
             colorless,
@@ -886,8 +1014,17 @@ pub fn process_effect_queue(state: &mut GameState) {
 // with world facts. Every active context is checked against the Room directly
 fn ensure_context_validity(state: &GameState) {
     assert!(
-        state.effect_pending.is_some() || state.id_card_pile_selected.is_empty(),
+        state.effect_pending.is_some() || state.id_selected.is_empty(),
         "staged selections outlived their halt"
+    );
+
+    // The snapshot shows the staged selections as Cards: only a pick of several Cards leaves any at a halt
+    assert!(
+        state
+            .id_selected
+            .iter()
+            .all(|&id| state.entities[id].kind == EntityKind::Card),
+        "a staged selection at rest isn't a Card"
     );
     if state.game_over {
         return;

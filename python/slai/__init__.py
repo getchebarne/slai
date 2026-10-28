@@ -190,6 +190,7 @@ get_event_option_templates = _rs.get_event_option_templates
 EffectDamagePhysical = _rs.EffectDamagePhysical
 EffectDamagePhysicalIfPoisoned = _rs.EffectDamagePhysicalIfPoisoned
 EffectHeelHookProc = _rs.EffectHeelHookProc
+EffectSkewerProc = _rs.EffectSkewerProc
 EffectEscapePlanCheck = _rs.EffectEscapePlanCheck
 EffectCardBottle = _rs.EffectCardBottle
 EffectGlassKnifeDecay = _rs.EffectGlassKnifeDecay
@@ -281,6 +282,7 @@ Effect = (
     EffectDamagePhysical
     | EffectDamagePhysicalIfPoisoned
     | EffectHeelHookProc
+    | EffectSkewerProc
     | EffectEscapePlanCheck
     | EffectCardBottle
     | EffectGlassKnifeDecay
@@ -553,6 +555,7 @@ __all__ = [
     "EffectDamagePhysical",
     "EffectDamagePhysicalIfPoisoned",
     "EffectHeelHookProc",
+    "EffectSkewerProc",
     "EffectEscapePlanCheck",
     "EffectCardBottle",
     "EffectGlassKnifeDecay",
