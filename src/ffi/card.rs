@@ -153,6 +153,8 @@ pub struct PyCard {
     pub effects_play: Vec<PyEffect>,
     pub effects_discard: Vec<PyEffect>, // When discarded from the hand
     pub effects_draw: Vec<PyEffect>,    // When drawn
+
+    pub price: Option<u16>, // While the Shop offers it
 }
 
 // Display-name lookups
@@ -534,5 +536,6 @@ fn build_py_card(
             .map(snapshot_effect)
             .collect(),
         effects_draw: card.card_effects_draw.iter().map(snapshot_effect).collect(),
+        price: card.price,
     }
 }

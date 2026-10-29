@@ -41,6 +41,7 @@ pub struct PyPotion {
     pub combat_only: bool,
     pub doubled: bool,
     pub effects: Vec<PyEffect>,
+    pub price: Option<u16>, // While the Shop offers it
 }
 
 pub(crate) fn snapshot_potion(id: usize, entity: &Entity) -> PyPotion {
@@ -52,5 +53,6 @@ pub(crate) fn snapshot_potion(id: usize, entity: &Entity) -> PyPotion {
         combat_only: entity.potion_combat_only,
         doubled: entity.potion_doubled,
         effects: entity.potion_effects.iter().map(snapshot_effect).collect(),
+        price: entity.price,
     }
 }

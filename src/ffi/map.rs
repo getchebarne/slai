@@ -1,4 +1,6 @@
+use pyo3::inspect::PyStaticExpr;
 use pyo3::prelude::*;
+use pyo3::sync::PyOnceLock;
 
 use super::macros::mirror_enum;
 
@@ -26,24 +28,53 @@ pub struct PyRoom {
     pub id: usize,
     pub room_kind: PyRoomKind,
     pub edges: Vec<usize>,
+
+    // Its row and column in the Map's `rooms`
+    pub y: usize,
+    pub x: usize,
 }
 
-#[pyclass(
-    skip_from_py_object,
-    frozen,
-    get_all,
-    name = "Map",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone)]
+#[pyclass(frozen, get_all, name = "Map", module = "slai.slai")]
 pub struct PyMap {
-    pub rooms: Vec<Vec<Option<PyRoom>>>,
+    pub rooms: PyRooms,
     pub y_current: Option<usize>,
     pub x_current: Option<usize>,
     pub room_kind_resolved: Option<PyRoomKind>, // What the current Room resolved into ("?" stays Unknown in `rooms`); a Shop rules out a Shop from the next "?"
     pub boss: PyMonsterEncounter, // The act's boss as the map shows it; from the A20 stop's RoomExit on, the second boss
     pub boss_fights_after: u8, // Boss fights still to come after `boss`'s: 1 in Act 3 from A20 until the second one starts, else 0
     pub identity_hash: u64,
+}
+
+// The Room grid, made into its Python lists on the first read; every read returns the same lists
+pub struct PyRooms {
+    grid: Vec<Vec<Option<PyRoom>>>,
+    object: PyOnceLock<Py<PyAny>>,
+}
+
+// Typed as the grid's lists; the field's getter converts by reference
+impl<'py> IntoPyObject<'py> for PyRooms {
+    type Target = PyAny;
+    type Output = Bound<'py, PyAny>;
+    type Error = PyErr;
+    const OUTPUT_TYPE: PyStaticExpr = <Vec<Vec<Option<PyRoom>>> as IntoPyObject<'py>>::OUTPUT_TYPE;
+
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        (&self).into_pyobject(py).map(|rooms| rooms.to_owned())
+    }
+}
+
+impl<'a, 'py> IntoPyObject<'py> for &'a PyRooms {
+    type Target = PyAny;
+    type Output = Borrowed<'a, 'py, PyAny>;
+    type Error = PyErr;
+    const OUTPUT_TYPE: PyStaticExpr = <Vec<Vec<Option<PyRoom>>> as IntoPyObject<'py>>::OUTPUT_TYPE;
+
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        let rooms = self.object.get_or_try_init(py, || {
+            self.grid.clone().into_pyobject(py).map(Bound::unbind)
+        })?;
+        Ok(rooms.bind_borrowed(py))
+    }
 }
 
 // Position-independent hash of the Room topology (kinds + edges) — a stable map identity for the
@@ -64,18 +95,22 @@ fn map_identity_hash(state: &GameState) -> u64 {
 }
 
 pub(crate) fn snapshot_map(state: &GameState) -> PyMap {
-    let rooms = state
+    let grid = state
         .id_rooms
         .iter()
-        .map(|row| {
+        .enumerate()
+        .map(|(y, row)| {
             row.iter()
-                .map(|cell| {
+                .enumerate()
+                .map(|(x, cell)| {
                     cell.map(|id_room| {
                         let room = &state.entities[id_room];
                         PyRoom {
                             id: id_room,
                             room_kind: room.room_kind.into(),
                             edges: edge_indices(room.room_edges).collect(),
+                            y,
+                            x,
                         }
                     })
                 })
@@ -89,7 +124,10 @@ pub(crate) fn snapshot_map(state: &GameState) -> PyMap {
         Location::BossRoom | Location::BossTreasure => (Some(MAP_HEIGHT), Some(0)),
     };
     PyMap {
-        rooms,
+        rooms: PyRooms {
+            grid,
+            object: PyOnceLock::new(),
+        },
         y_current,
         x_current,
         room_kind_resolved: state.room_kind_resolved.map(Into::into),

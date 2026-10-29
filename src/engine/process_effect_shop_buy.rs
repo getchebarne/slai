@@ -23,39 +23,37 @@ pub fn process_effect_shop_buy(id_target: Option<usize>, state: &mut GameState, 
         "ShopBuy outside the Shop context"
     );
     let Shop {
-        id_cards_price,
-        id_relics_price,
-        id_potions_price,
+        id_cards,
+        id_relics,
+        id_potions,
         purge_cost,
         ..
     } = &mut state.shop;
 
     // Take the offer out of its slot; its price settles the sale
-    let (idx, price_bought) = {
-        let offers: &mut Vec<(usize, u16)> = match slot {
-            ShopSlot::Card => id_cards_price,
-            ShopSlot::Relic => id_relics_price,
-            ShopSlot::Potion => id_potions_price,
-        };
-        let idx = offers
-            .iter()
-            .position(|&(id, _)| id == id_bought)
-            .expect("Bought entry is a shop entry");
-        let (_, price) = offers.remove(idx);
-        (idx, price)
+    let offers: &mut Vec<usize> = match slot {
+        ShopSlot::Card => id_cards,
+        ShopSlot::Relic => id_relics,
+        ShopSlot::Potion => id_potions,
     };
+    let idx = offers
+        .iter()
+        .position(|&id| id == id_bought)
+        .expect("Bought entry is a shop entry");
+    offers.remove(idx);
+    let price_bought = state.entities[id_bought]
+        .price
+        .take()
+        .expect("Shop stock carries a price");
 
     // The Relic name is only meaningful on the Relic slot
     let name_bought = (slot == ShopSlot::Relic).then(|| state.entities[id_bought].relic_name);
 
     // Membership Card bought mid-shop: retro-discount the remaining stock and purge
     if name_bought == Some(RelicName::MembershipCard) {
-        for (_, price) in id_cards_price
-            .iter_mut()
-            .chain(id_relics_price.iter_mut())
-            .chain(id_potions_price.iter_mut())
-        {
-            *price = ((*price as u32 + 1) / 2) as u16;
+        for &id in id_cards.iter().chain(&*id_relics).chain(&*id_potions) {
+            let entity = &mut state.entities[id];
+            entity.price = entity.price.map(|price| ((price as u32 + 1) / 2) as u16);
         }
 
         // Smiling Mask: the fixed purge cost is exempt from discounts
@@ -70,14 +68,17 @@ pub fn process_effect_shop_buy(id_target: Option<usize>, state: &mut GameState, 
             ShopSlot::Card => {
                 let bought = &state.entities[id_bought];
                 let (color, kind) = (bought.card_color, bought.card_kind);
-                let offer = make_card_restock(state, color, kind);
-                state.shop.id_cards_price.insert(idx, offer);
+                let id_new = make_card_restock(state, color, kind);
+                state.shop.id_cards.insert(idx, id_new);
             }
             ShopSlot::Potion => {
                 let sacred_bark = has_relic(&state.id_relics, RelicName::SacredBark);
-                let (id_new, price) = make_potion(&mut state.entities, &mut state.rng, sacred_bark);
-                let price = apply_shop_discounts(price, &state.id_relics);
-                id_potions_price.insert(idx, (id_new, price));
+                let id_new = make_potion(&mut state.entities, &mut state.rng, sacred_bark);
+                let potion = &mut state.entities[id_new];
+                potion.price = potion
+                    .price
+                    .map(|price| apply_shop_discounts(price, &state.id_relics));
+                id_potions.insert(idx, id_new);
             }
             ShopSlot::Relic => {
                 // Restock as if the sale settled: the bought Relic counts for spawn gates and price

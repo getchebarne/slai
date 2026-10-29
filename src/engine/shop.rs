@@ -47,11 +47,7 @@ use crate::utils::relic_tier_by_roll;
 use crate::utils::roll_card_rarity;
 
 // The Courier restock keeps one float through variance and both discounts
-pub(super) fn make_card_restock(
-    state: &mut GameState,
-    color: CardColor,
-    kind: CardKind,
-) -> (usize, u16) {
+pub(super) fn make_card_restock(state: &mut GameState, color: CardColor, kind: CardKind) -> usize {
     let colorless = color == CardColor::Colorless;
     let card = if colorless {
         // A fresh rarity roll, never the bought Card's rarity
@@ -65,7 +61,7 @@ pub(super) fn make_card_restock(
         let offset = state.entities[state.id_character].character_reward_roll_offset;
         sample_card_colored(&mut state.rng, offset, kind, &state.id_relics)
     };
-    let card = if egg_upgrades_kind(card.card_kind, &state.id_relics) {
+    let mut card = if egg_upgrades_kind(card.card_kind, &state.id_relics) {
         get_card(card.card_name, true)
     } else {
         card
@@ -80,8 +76,8 @@ pub(super) fn make_card_restock(
     if has_relic(&state.id_relics, RelicName::MembershipCard) {
         price *= 0.5;
     }
-    let id_card = push_entity(&mut state.entities, card);
-    (id_card, price as u16)
+    card.price = Some(price as u16);
+    push_entity(&mut state.entities, card)
 }
 
 // The Courier x0.8 then Membership Card x0.5, each rounded half-up in turn
@@ -112,11 +108,12 @@ pub(super) fn restock_relic(
 ) {
     let tier = roll_shop_relic_tier(&mut state.rng);
     let name = draw_relic(state, id_relics_settled, tier, true);
-    let (id_relic_new, price) = make_relic_with_price(&mut state.entities, &mut state.rng, name);
-    state.shop.id_relics_price.insert(
-        idx,
-        (id_relic_new, apply_shop_discounts(price, id_relics_settled)),
-    );
+    let id_relic_new = make_relic_with_price(&mut state.entities, &mut state.rng, name);
+    let relic = &mut state.entities[id_relic_new];
+    relic.price = relic
+        .price
+        .map(|price| apply_shop_discounts(price, id_relics_settled));
+    state.shop.id_relics.insert(idx, id_relic_new);
 }
 
 fn roll_var_card(rng: &mut impl Rng) -> f32 {
@@ -137,11 +134,8 @@ fn get_card_base_price(rarity: CardRarity) -> u16 {
 }
 
 // Card names already placed in this shop, so the shop's Cards stay distinct
-fn get_shop_placed_card_names(entities: &[Entity], cards: &[(usize, u16)]) -> Vec<CardName> {
-    cards
-        .iter()
-        .map(|&(id, _)| entities[id].card_name)
-        .collect()
+fn get_shop_placed_card_names(entities: &[Entity], id_cards: &[usize]) -> Vec<CardName> {
+    id_cards.iter().map(|&id| entities[id].card_name).collect()
 }
 
 fn sample_card(
@@ -178,29 +172,30 @@ fn make_card(
     card: Entity,
     base_price: u16,
     id_relics: &[Option<usize>; RelicName::COUNT],
-) -> (usize, u16) {
+) -> usize {
     let card_price = (base_price as f32 * roll_var_card(rng)) as u16;
 
     // Eggs upgrade matching stock up front, so the shelf shows the Card as obtained
-    let card = if egg_upgrades_kind(card.card_kind, id_relics) {
+    let mut card = if egg_upgrades_kind(card.card_kind, id_relics) {
         get_card(card.card_name, true)
     } else {
         card
     };
 
-    (push_entity(entities, card), card_price)
+    card.price = Some(card_price);
+    push_entity(entities, card)
 }
 
 pub(super) fn make_card_colored(
     entities: &mut Vec<Entity>,
     rng: &mut impl Rng,
-    cards: &[(usize, u16)],
+    id_cards: &[usize],
     kind: CardKind,
     id_character: usize,
     id_relics: &[Option<usize>; RelicName::COUNT],
-) -> (usize, u16) {
+) -> usize {
     // A Card already on the shelf re-rolls rarity and Card together
-    let cards_placed = get_shop_placed_card_names(entities, cards);
+    let cards_placed = get_shop_placed_card_names(entities, id_cards);
     let offset = entities[id_character].character_reward_roll_offset;
     let card = loop {
         let card = sample_card_colored(rng, offset, kind, id_relics);
@@ -217,7 +212,7 @@ pub(super) fn make_card_colorless(
     rng: &mut impl Rng,
     rarity: CardRarity,
     id_relics: &[Option<usize>; RelicName::COUNT],
-) -> (usize, u16) {
+) -> usize {
     let card = sample_card(rng, CardColor::Colorless, None, rarity);
     let base =
         get_card_base_price(rarity) * SHOP_PRICE_COLORLESS_NUMER / SHOP_PRICE_COLORLESS_DENOM;
@@ -229,8 +224,8 @@ pub(super) fn make_relic_with_price(
     entities: &mut Vec<Entity>,
     rng: &mut impl Rng,
     name: RelicName,
-) -> (usize, u16) {
-    let relic = get_relic(name);
+) -> usize {
+    let mut relic = get_relic(name);
     let base_price = match relic.relic_tier {
         RelicTier::Common => SHOP_PRICE_RELIC_COMMON,
         RelicTier::Uncommon => SHOP_PRICE_RELIC_UNCOMMON,
@@ -241,26 +236,26 @@ pub(super) fn make_relic_with_price(
             unreachable!("Shops never stock {:?} Relics", relic.relic_tier)
         }
     };
-    let id_relic = push_entity(entities, relic);
     let relic_price = (base_price as f32 * roll_var_relic_n_potion(rng) + 0.5) as u16;
-    (id_relic, relic_price)
+    relic.price = Some(relic_price);
+    push_entity(entities, relic)
 }
 
 pub(super) fn make_potion(
     entities: &mut Vec<Entity>,
     rng: &mut impl Rng,
     sacred_bark: bool,
-) -> (usize, u16) {
+) -> usize {
     // Sample Potion and its base price
     let name = get_random_potion_name(rng, false);
-    let entity = get_potion(name, sacred_bark);
+    let mut entity = get_potion(name, sacred_bark);
     let base_price = match entity.potion_rarity {
         PotionRarity::Common => SHOP_PRICE_POTION_COMMON,
         PotionRarity::Uncommon => SHOP_PRICE_POTION_UNCOMMON,
         PotionRarity::Rare => SHOP_PRICE_POTION_RARE,
     };
 
-    let id_potion = push_entity(entities, entity);
     let potion_price = (base_price as f32 * roll_var_relic_n_potion(rng) + 0.5) as u16;
-    (id_potion, potion_price)
+    entity.price = Some(potion_price);
+    push_entity(entities, entity)
 }

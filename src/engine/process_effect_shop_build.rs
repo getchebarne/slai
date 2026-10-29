@@ -16,7 +16,6 @@ use crate::types::CardKind;
 use crate::types::CardRarity;
 use crate::types::RelicName;
 use crate::types::RelicTier;
-use crate::types::Shop;
 use crate::types::shop_reset;
 use crate::utils::draw_relic;
 use crate::utils::has_relic;
@@ -24,7 +23,7 @@ use crate::utils::purge_price;
 
 pub fn process_effect_shop_build(state: &mut GameState) {
     // Stock builds straight into the context's retained buffers
-    shop_reset(&mut state.shop);
+    shop_reset(&mut state.shop, &mut state.entities);
     // Colored: 2 Attack + 2 Skill + 1 Power
     for kind in [
         CardKind::Attack,
@@ -33,26 +32,26 @@ pub fn process_effect_shop_build(state: &mut GameState) {
         CardKind::Skill,
         CardKind::Power,
     ] {
-        let card = make_card_colored(
+        let id_card = make_card_colored(
             &mut state.entities,
             &mut state.rng,
-            &state.shop.id_cards_price,
+            &state.shop.id_cards,
             kind,
             state.id_character,
             &state.id_relics,
         );
-        state.shop.id_cards_price.push(card);
+        state.shop.id_cards.push(id_card);
     }
 
     // Colorless: 1 Uncommon + 1 Rare
     for rarity in [CardRarity::Uncommon, CardRarity::Rare] {
-        let card = make_card_colorless(
+        let id_card = make_card_colorless(
             &mut state.entities,
             &mut state.rng,
             rarity,
             &state.id_relics,
         );
-        state.shop.id_cards_price.push(card);
+        state.shop.id_cards.push(id_card);
     }
 
     // Relics: 2 random-tier, 1 shop-tier, each drawn off the back of its run pool
@@ -60,52 +59,49 @@ pub fn process_effect_shop_build(state: &mut GameState) {
     for _ in 0..2 {
         let tier = roll_shop_relic_tier(&mut state.rng);
         let name = draw_relic(state, &id_relics, tier, true);
-        let offer = make_relic_with_price(&mut state.entities, &mut state.rng, name);
-        state.shop.id_relics_price.push(offer);
+        let id_relic = make_relic_with_price(&mut state.entities, &mut state.rng, name);
+        state.shop.id_relics.push(id_relic);
     }
     let name = draw_relic(state, &id_relics, RelicTier::Shop, true);
-    let offer = make_relic_with_price(&mut state.entities, &mut state.rng, name);
-    state.shop.id_relics_price.push(offer);
+    let id_relic = make_relic_with_price(&mut state.entities, &mut state.rng, name);
+    state.shop.id_relics.push(id_relic);
 
     // Potions: 3 (rarity rolled by get_random_potion_name)
     let sacred_bark = has_relic(&state.id_relics, RelicName::SacredBark);
     for _ in 0..SHOP_SLOTS_POTION {
-        state.shop.id_potions_price.push(make_potion(
+        state.shop.id_potions.push(make_potion(
             &mut state.entities,
             &mut state.rng,
             sacred_bark,
         ));
     }
 
-    let Shop {
-        id_cards_price,
-        id_relics_price,
-        id_potions_price,
-        ..
-    } = &mut state.shop;
-
     // Sale tag: one random colored Card 50% off, before the A16 markup
     let idx = state.rng.random_range(0..SHOP_SLOTS_CARD_COLORED);
-    id_cards_price[idx].1 /= SHOP_SALE_DIVISOR;
+    let card_sale = &mut state.entities[state.shop.id_cards[idx]];
+    card_sale.price = card_sale.price.map(|price| price / SHOP_SALE_DIVISOR);
+
+    let shop = &state.shop;
+    let id_stock = shop
+        .id_cards
+        .iter()
+        .chain(&shop.id_relics)
+        .chain(&shop.id_potions);
 
     // A16+ price bumps; the purge cost is exempt
     if state.ascension >= ASCENSION_SHOP_PRICE_BUMP_LEVEL {
-        for (_, price) in id_cards_price
-            .iter_mut()
-            .chain(&mut *id_relics_price)
-            .chain(&mut *id_potions_price)
-        {
-            *price = bump_price_a16(*price);
+        for &id in id_stock.clone() {
+            let entity = &mut state.entities[id];
+            entity.price = entity.price.map(bump_price_a16);
         }
     }
 
     // The Courier / Membership Card: 20% / 50% off everything
-    for (_, price) in id_cards_price
-        .iter_mut()
-        .chain(&mut *id_relics_price)
-        .chain(&mut *id_potions_price)
-    {
-        *price = apply_shop_discounts(*price, &state.id_relics);
+    for &id in id_stock {
+        let entity = &mut state.entities[id];
+        entity.price = entity
+            .price
+            .map(|price| apply_shop_discounts(price, &state.id_relics));
     }
 
     state.shop.purge_cost = purge_price(state.shop_purge_cost_run, &state.id_relics);

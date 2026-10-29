@@ -112,18 +112,18 @@ impl GameEnv {
 
     // Start a fresh run. Returns the initial obs
     #[pyo3(signature = (seed=42))]
-    fn reset(&mut self, seed: u64) -> PyGameState {
+    fn reset(&mut self, py: Python<'_>, seed: u64) -> PyResult<PyGameState> {
         let asc = self.state.ascension;
         self.state = create_game_state(asc, seed, self.state.fast_mode, self.state.neow);
-        snapshot_state(&self.state)
+        snapshot_state(py, &self.state)
     }
 
     // Apply an action. Returns `(obs, terminated)`; a won run terminates only after its last boss fight
-    fn step(&mut self, action: PyAction) -> PyResult<(PyGameState, bool)> {
+    fn step(&mut self, py: Python<'_>, action: PyAction) -> PyResult<(PyGameState, bool)> {
         let internal =
             to_internal_action(action).map_err(pyo3::exceptions::PyValueError::new_err)?;
         step(&mut self.state, internal).map_err(pyo3::exceptions::PyValueError::new_err)?;
-        let obs = snapshot_state(&self.state);
+        let obs = snapshot_state(py, &self.state)?;
         Ok((obs, self.state.game_over))
     }
 
