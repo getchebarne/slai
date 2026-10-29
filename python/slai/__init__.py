@@ -235,7 +235,6 @@ EffectBonfireOffer = _rs.EffectBonfireOffer
 EffectMonsterSpawn = _rs.EffectMonsterSpawn
 EffectCombatStart = _rs.EffectCombatStart
 EffectAdventurerSearch = _rs.EffectAdventurerSearch
-EffectMindBloomFight = _rs.EffectMindBloomFight
 EffectRelicGrantSpecific = _rs.EffectRelicGrantSpecific
 EffectEventAdvanceState = _rs.EffectEventAdvanceState
 EffectScrapOozeReach = _rs.EffectScrapOozeReach
@@ -260,12 +259,12 @@ EffectKnowingSkullCostBump = _rs.EffectKnowingSkullCostBump
 EffectJoustBet = _rs.EffectJoustBet
 EffectRelicGrantPool = _rs.EffectRelicGrantPool
 EffectDebuffsClear = _rs.EffectDebuffsClear
-EffectGremlinSummon = _rs.EffectGremlinSummon
 EffectHexaghostBurnIncrease = _rs.EffectHexaghostBurnIncrease
 EffectModifierRemove = _rs.EffectModifierRemove
 EffectMonsterEscape = _rs.EffectMonsterEscape
 EffectMonsterRemove = _rs.EffectMonsterRemove
 EffectMonsterSplit = _rs.EffectMonsterSplit
+EffectMonsterSummon = _rs.EffectMonsterSummon
 EffectCardStasisSteal = _rs.EffectCardStasisSteal
 EffectRewardRollCards = _rs.EffectRewardRollCards
 EffectNeowCardsRoll = _rs.EffectNeowCardsRoll
@@ -327,7 +326,6 @@ Effect = (
     | EffectMonsterSpawn
     | EffectCombatStart
     | EffectAdventurerSearch
-    | EffectMindBloomFight
     | EffectRelicGrantSpecific
     | EffectEventAdvanceState
     | EffectScrapOozeReach
@@ -352,12 +350,12 @@ Effect = (
     | EffectJoustBet
     | EffectRelicGrantPool
     | EffectDebuffsClear
-    | EffectGremlinSummon
     | EffectHexaghostBurnIncrease
     | EffectModifierRemove
     | EffectMonsterEscape
     | EffectMonsterRemove
     | EffectMonsterSplit
+    | EffectMonsterSummon
     | EffectCardStasisSteal
     | EffectRewardRollCards
     | EffectNeowCardsRoll
@@ -600,7 +598,6 @@ __all__ = [
     "EffectMonsterSpawn",
     "EffectCombatStart",
     "EffectAdventurerSearch",
-    "EffectMindBloomFight",
     "EffectRelicGrantSpecific",
     "EffectEventAdvanceState",
     "EffectScrapOozeReach",
@@ -625,12 +622,12 @@ __all__ = [
     "EffectJoustBet",
     "EffectRelicGrantPool",
     "EffectDebuffsClear",
-    "EffectGremlinSummon",
     "EffectHexaghostBurnIncrease",
     "EffectModifierRemove",
     "EffectMonsterEscape",
     "EffectMonsterRemove",
     "EffectMonsterSplit",
+    "EffectMonsterSummon",
     "EffectCardStasisSteal",
     "EffectRewardRollCards",
     "EffectNeowCardsRoll",

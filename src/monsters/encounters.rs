@@ -12,6 +12,7 @@ use crate::effect::Target;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::monsters::GREMLIN_POOL;
+use crate::monsters::gremlin_leader::EFFECT_GREMLIN_SUMMON;
 use crate::types::MonsterEncounter;
 use crate::types::MonsterName;
 use crate::utils::flush_effects_from_buf_to_queue_front;
@@ -435,8 +436,9 @@ pub fn spawn_encounter_monsters(state: &mut GameState, encounter: MonsterEncount
                 push_monster_spawn(effects, MonsterName::Sentry, slot);
             }
         }
-        MonsterEncounter::TheGuardian => push_monster_spawn(effects, MonsterName::TheGuardian, 0),
-        MonsterEncounter::Hexaghost => push_monster_spawn(effects, MonsterName::Hexaghost, 0),
+        // Every Act 1 boss stands in slot 2, in its Boss Room as in Mind Bloom's I am War
+        MonsterEncounter::TheGuardian => push_monster_spawn(effects, MonsterName::TheGuardian, 2),
+        MonsterEncounter::Hexaghost => push_monster_spawn(effects, MonsterName::Hexaghost, 2),
         MonsterEncounter::SlimeBoss => {
             // Slot 2 leaves room for the Larges in slots 1 and 3, and for their splits
             push_monster_spawn(effects, MonsterName::SlimeBoss, 2)
@@ -511,11 +513,7 @@ pub fn spawn_encounter_monsters(state: &mut GameState, encounter: MonsterEncount
         MonsterEncounter::GremlinLeader => {
             // Two weighted gremlins take the first two posts as Minions, then the leader
             for _ in 0..2 {
-                effects.push(Effect {
-                    kind: EffectKind::GremlinSummon,
-                    id_source: None,
-                    target: Target::Direct(None),
-                });
+                effects.push(EFFECT_GREMLIN_SUMMON);
             }
             push_monster_spawn(effects, MonsterName::GremlinLeader, 3);
         }
@@ -580,6 +578,12 @@ pub fn spawn_encounter_monsters(state: &mut GameState, encounter: MonsterEncount
         MonsterEncounter::Transient => push_monster_spawn(effects, MonsterName::Transient, 0),
         MonsterEncounter::WrithingMass => push_monster_spawn(effects, MonsterName::WrithingMass, 0),
         MonsterEncounter::Nemesis => push_monster_spawn(effects, MonsterName::Nemesis, 0),
+        MonsterEncounter::Reptomancer => {
+            // The opening daggers hold the first two posts, slots 1 and 4, around Reptomancer's slot 2
+            push_monster_spawn(effects, MonsterName::SnakeDagger, 1);
+            push_monster_spawn(effects, MonsterName::Reptomancer, 2);
+            push_monster_spawn(effects, MonsterName::SnakeDagger, 4);
+        }
         MonsterEncounter::SpireGrowth => push_monster_spawn(effects, MonsterName::SpireGrowth, 0),
     }
 

@@ -7,6 +7,7 @@ use crate::effect::ReadAt;
 use crate::effect::RelicRoll;
 use crate::effect::Rounding;
 use crate::effect::SelectionKind;
+use crate::effect::Summon;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
 use crate::events::EFFECT_EVENT_CONSUME;
@@ -18,16 +19,37 @@ use crate::game::GameState;
 use crate::types::CardName;
 use crate::types::CardPile;
 use crate::types::DeltaSign;
+use crate::types::MonsterName;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 use crate::utils::run_floor;
 
-// I am War: fight an Act 1 boss, rolled when chosen, not at the open
-const OPTION_WAR: &[Effect] = &[Effect {
-    kind: EffectKind::MindBloomFight,
-    id_source: None,
-    target: Target::Direct(None),
-}];
+// I am War's boss: an Act 1 boss, rolled when chosen, not at the open, in slot 2 as in its Boss Room
+static SUMMON_WAR: Summon = Summon {
+    pool: &[
+        MonsterName::TheGuardian,
+        MonsterName::Hexaghost,
+        MonsterName::SlimeBoss,
+    ],
+    posts: &[2],
+    minion: false,
+};
+
+// I am War: fight that boss
+const OPTION_WAR: &[Effect] = &[
+    Effect {
+        kind: EffectKind::MonsterSummon {
+            summon: &SUMMON_WAR,
+        },
+        id_source: None,
+        target: Target::Direct(None),
+    },
+    Effect {
+        kind: EffectKind::CombatStart { elite: false },
+        id_source: None,
+        target: Target::Direct(None),
+    },
+];
 
 // The War purse: 50 gold and a Rare Relic, paid by `fight_loot`
 pub const FIGHT_LOOT_BASE: EventLoot = EventLoot {

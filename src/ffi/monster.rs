@@ -33,12 +33,13 @@ mirror_enum!(PyMonsterKind from MonsterKind, "MonsterKind", {
 mirror_enum!(PyMonsterName from MonsterName, "MonsterName", {
     AwakenedOne, Cultist, Darkling, Deca, Donu, Exploder, FungiBeast, GremlinFat, GremlinNob,
     GremlinThief, GremlinTsundere, GremlinWarrior, GremlinWizard, Hexaghost, JawWorm, JawWormHard,
-    Lagavulin, Looter, LouseDefensive, LouseNormal, Maw, Nemesis, OrbWalker, Repulsor, Sentry,
-    SlaverBlue, SlaverRed, SlimeAcidLarge, SlimeAcidMedium, SlimeAcidSmall, SlimeBoss,
-    SlimeSpikeLarge, SlimeSpikeMedium, SlimeSpikeSmall, Spiker, SpireGrowth, TheGuardian, TimeEater,
-    Transient, WrithingMass, Byrd, Centurion, Chosen, Healer, Mugger, ShelledParasite, SnakePlant,
-    Snecko, SphericGuardian, BookOfStabbing, GremlinLeader, Taskmaster, BronzeAutomaton, BronzeOrb,
-    Champ, TheCollector, TorchHead, BanditBear, BanditLeader, BanditPointy,
+    Lagavulin, Looter, LouseDefensive, LouseNormal, Maw, Nemesis, OrbWalker, Reptomancer, Repulsor,
+    Sentry, SlaverBlue, SlaverRed, SlimeAcidLarge, SlimeAcidMedium, SlimeAcidSmall, SlimeBoss,
+    SlimeSpikeLarge, SlimeSpikeMedium, SlimeSpikeSmall, SnakeDagger, Spiker, SpireGrowth,
+    TheGuardian, TimeEater, Transient, WrithingMass, Byrd, Centurion, Chosen, Healer, Mugger,
+    ShelledParasite, SnakePlant, Snecko, SphericGuardian, BookOfStabbing, GremlinLeader, Taskmaster,
+    BronzeAutomaton, BronzeOrb, Champ, TheCollector, TorchHead, BanditBear, BanditLeader,
+    BanditPointy,
 });
 
 mirror_enum!(PyMonsterEncounter from MonsterEncounter, "MonsterEncounter", {
@@ -49,8 +50,8 @@ mirror_enum!(PyMonsterEncounter from MonsterEncounter, "MonsterEncounter", {
     CenturionAndHealer, Snecko, CultistAndChosen, ThreeCultists, ShelledParasiteAndFungi,
     ChosenAndByrds, SentryAndSphere, GremlinLeader, Slavers, BookOfStabbing, BronzeAutomaton,
     TheCollector, Champ, OrbWalker, ThreeDarklings, ThreeShapes, FourShapes, JawWormHorde, Maw,
-    SphereAndTwoShapes, SpireGrowth, Transient, WrithingMass, Nemesis, AwakenedOne, DonuAndDeca,
-    TimeEater,
+    SphereAndTwoShapes, SpireGrowth, Transient, WrithingMass, Nemesis, Reptomancer, AwakenedOne,
+    DonuAndDeca, TimeEater,
 });
 
 #[pyclass(
@@ -143,6 +144,7 @@ pub struct PyIntent {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyMonster {
     pub id: usize,
+    pub slot: u8, // The roster index: Monsters act in slot order, and a summon takes its leader's first free post
     pub name: PyMonsterName,
     pub health: u16,
     pub health_max: u16,
@@ -171,9 +173,9 @@ pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
         .combat
         .id_monsters
         .iter()
-        .flatten()
-        .copied()
-        .map(|id_monster| {
+        .enumerate()
+        .filter_map(|(slot, &id_monster)| id_monster.map(|id_monster| (slot, id_monster)))
+        .map(|(slot, id_monster)| {
             let monster = &state.entities[id_monster];
 
             let len_history = monster.monster_move_history_len as usize;
@@ -282,6 +284,7 @@ pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
 
             PyMonster {
                 id: id_monster,
+                slot: slot as u8,
                 name: monster.monster_name.into(),
                 health: monster.vitals.health,
                 health_max: monster.vitals.health_max,

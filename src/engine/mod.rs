@@ -61,7 +61,6 @@ pub mod process_effect_girya_lift;
 pub mod process_effect_glass_knife_decay;
 pub mod process_effect_gold_delta;
 pub mod process_effect_gold_steal;
-pub mod process_effect_gremlin_summon;
 pub mod process_effect_half_dead_rebirth;
 pub mod process_effect_hand_of_greed_proc;
 pub mod process_effect_health_delta;
@@ -77,7 +76,6 @@ pub mod process_effect_match_flip_unseen;
 pub mod process_effect_mausoleum_open;
 pub mod process_effect_max_health_delta;
 pub mod process_effect_mayhem_proc;
-pub mod process_effect_mind_bloom_fight;
 pub mod process_effect_modifier_delta;
 pub mod process_effect_modifier_multiply;
 pub mod process_effect_modifier_remove;
@@ -86,6 +84,7 @@ pub mod process_effect_monster_escape;
 pub mod process_effect_monster_remove;
 pub mod process_effect_monster_spawn;
 pub mod process_effect_monster_split;
+pub mod process_effect_monster_summon;
 pub mod process_effect_move_execute;
 pub mod process_effect_move_update;
 pub mod process_effect_neow_cards_roll;
@@ -198,7 +197,6 @@ use self::process_effect_girya_lift::process_effect_girya_lift;
 use self::process_effect_glass_knife_decay::process_effect_glass_knife_decay;
 use self::process_effect_gold_delta::process_effect_gold_delta;
 use self::process_effect_gold_steal::process_effect_gold_steal;
-use self::process_effect_gremlin_summon::process_effect_gremlin_summon;
 use self::process_effect_half_dead_rebirth::process_effect_half_dead_rebirth;
 use self::process_effect_hand_of_greed_proc::process_effect_hand_of_greed_proc;
 use self::process_effect_health_delta::process_effect_health_delta;
@@ -214,7 +212,6 @@ use self::process_effect_match_flip_unseen::process_effect_match_flip_unseen;
 use self::process_effect_mausoleum_open::process_effect_mausoleum_open;
 use self::process_effect_max_health_delta::process_effect_max_health_delta;
 use self::process_effect_mayhem_proc::process_effect_mayhem_proc;
-use self::process_effect_mind_bloom_fight::process_effect_mind_bloom_fight;
 use self::process_effect_modifier_delta::process_effect_modifier_delta;
 use self::process_effect_modifier_multiply::process_effect_modifier_multiply;
 use self::process_effect_modifier_remove::process_effect_modifier_remove;
@@ -223,6 +220,7 @@ use self::process_effect_monster_escape::process_effect_monster_escape;
 use self::process_effect_monster_remove::process_effect_monster_remove;
 use self::process_effect_monster_spawn::process_effect_monster_spawn;
 use self::process_effect_monster_split::process_effect_monster_split;
+use self::process_effect_monster_summon::process_effect_monster_summon;
 use self::process_effect_move_execute::process_effect_move_execute;
 use self::process_effect_move_update::process_effect_move_update;
 use self::process_effect_neow_cards_roll::process_effect_neow_cards_roll;
@@ -615,7 +613,6 @@ fn dispatch_by_kind(
         }
         EffectKind::ActTransition => process_effect_act_transition(state),
         EffectKind::AdventurerSearch => process_effect_adventurer_search(state),
-        EffectKind::MindBloomFight => process_effect_mind_bloom_fight(state),
         EffectKind::BonfireOffer => {
             enqueue_rest_of_targets(state, kind, id_source, id_targets);
             process_effect_bonfire_offer(id_targets.first().copied(), state)
@@ -858,6 +855,7 @@ fn dispatch_by_kind(
         EffectKind::MonsterSplit { name, slot_offset } => {
             process_effect_monster_split(id_source, state, name, slot_offset)
         }
+        EffectKind::MonsterSummon { summon } => process_effect_monster_summon(state, summon),
         EffectKind::MonsterEscape => {
             enqueue_rest_of_targets(state, kind, id_source, id_targets);
             process_effect_monster_escape(id_targets.first().copied(), state)
@@ -867,7 +865,6 @@ fn dispatch_by_kind(
             process_effect_monster_remove(id_targets.first().copied(), state)
         }
         EffectKind::GoldSteal { amount } => process_effect_gold_steal(id_source, state, amount),
-        EffectKind::GremlinSummon => process_effect_gremlin_summon(state),
         EffectKind::DebuffsClear => {
             enqueue_rest_of_targets(state, kind, id_source, id_targets);
             process_effect_debuffs_clear(id_targets.first().copied(), state)

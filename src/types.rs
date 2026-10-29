@@ -454,6 +454,7 @@ pub enum MonsterName {
     Maw,
     Nemesis,
     OrbWalker,
+    Reptomancer,
     Repulsor,
     Sentry,
     SlaverBlue,
@@ -465,6 +466,7 @@ pub enum MonsterName {
     SlimeSpikeLarge,
     SlimeSpikeMedium,
     SlimeSpikeSmall,
+    SnakeDagger,
     Spiker,
     SpireGrowth,
     TheGuardian,
@@ -577,6 +579,7 @@ pub enum MonsterEncounter {
 
     // Act 3 elite
     Nemesis,
+    Reptomancer,
 
     // Act 3 boss
     AwakenedOne,
