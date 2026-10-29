@@ -8,7 +8,7 @@ use crate::types::RelicTier;
 
 // Every 3rd reshuffle grants 2 energy; counter persists across combats
 // See:
-//    - `process_effect_shuffle_card_pile_discard_into_card_pile_draw.rs`
+//    - `process_effect_shuffle_relic_hooks.rs`
 pub static SUNDIAL: RelicTemplate = RelicTemplate {
     name: RelicName::Sundial,
     tier: RelicTier::Uncommon,
