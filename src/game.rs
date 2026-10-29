@@ -212,7 +212,7 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
     let encounter_boss = roll_boss(1, &mut rng);
 
     // Act-1 event pools
-    let (pool_events, pool_event_special) = pools_for_act(1);
+    let (pool_events, pool_event_special, _) = pools_for_act(1);
 
     // One shuffled pool per tier for the whole run
     let mut pool_relic_common = POOL_COMMON_RELIC.to_vec();

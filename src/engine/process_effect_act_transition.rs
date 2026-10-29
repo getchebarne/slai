@@ -60,12 +60,12 @@ pub fn process_effect_act_transition(state: &mut GameState) {
         &mut state.rng,
     );
 
-    // Events: the Act list replaces, shrines re-add fresh, run-scoped specials carry over
-    let (pool_events, pool_special_additions) = pools_for_act(state.act);
+    // Events: the Act list replaces, shrines re-add fresh, run-scoped specials carry over unless the Act drops them
+    let (pool_events, pool_special_additions, pool_special_drops) = pools_for_act(state.act);
     state.pool_events = pool_events.to_vec();
     state
         .pool_event_special
-        .retain(|name| !POOL_EVENT_SHRINES.contains(name));
+        .retain(|name| !POOL_EVENT_SHRINES.contains(name) && !pool_special_drops.contains(name));
     state
         .pool_event_special
         .extend_from_slice(POOL_EVENT_SHRINES);
