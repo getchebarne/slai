@@ -67,6 +67,7 @@ pub struct PyRelic {
     pub effects_pickup: Vec<PyEffect>,
     pub effects_rest: Vec<PyEffect>,
     pub effects_counter: Vec<PyEffect>,
+    pub price: Option<u16>, // While the Shop offers it
 }
 
 pub(crate) fn snapshot_relic(id: usize, entity: &Entity) -> PyRelic {
@@ -112,5 +113,6 @@ pub(crate) fn snapshot_relic(id: usize, entity: &Entity) -> PyRelic {
             .iter()
             .map(snapshot_effect)
             .collect(),
+        price: entity.price,
     }
 }

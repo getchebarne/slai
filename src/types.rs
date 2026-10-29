@@ -3,6 +3,7 @@ use strum::EnumIter;
 
 use crate::consts::MAX_MONSTERS;
 use crate::consts::PANACHE_PLAYS;
+use crate::entity::Entity;
 
 // Vitals: physical combat state. Shared by Character and Monsters
 #[derive(Debug, Clone, Copy)]
@@ -190,18 +191,27 @@ pub fn event_reset(event: &mut Event) {
 pub struct Shop {
     pub active: bool,
 
-    // The stock as offers: (entity id, price)
-    pub id_cards_price: Vec<(usize, u16)>,
-    pub id_relics_price: Vec<(usize, u16)>,
-    pub id_potions_price: Vec<(usize, u16)>,
+    // The stock; each entity in it carries its price
+    pub id_cards: Vec<usize>,
+    pub id_relics: Vec<usize>,
+    pub id_potions: Vec<usize>,
     pub purge_cost: u16,
     pub purged: bool,
 }
 
-pub fn shop_reset(shop: &mut Shop) {
-    shop.id_cards_price.clear();
-    shop.id_relics_price.clear();
-    shop.id_potions_price.clear();
+// The unsold stock leaves the Shop: its entities lose their prices
+pub fn shop_reset(shop: &mut Shop, entities: &mut [Entity]) {
+    for &id_stock in shop
+        .id_cards
+        .iter()
+        .chain(&shop.id_relics)
+        .chain(&shop.id_potions)
+    {
+        entities[id_stock].price = None;
+    }
+    shop.id_cards.clear();
+    shop.id_relics.clear();
+    shop.id_potions.clear();
     shop.purge_cost = 0;
     shop.purged = false;
 }

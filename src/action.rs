@@ -736,9 +736,9 @@ fn fill_legal_actions_event(state: &mut GameState) {
 
 fn fill_legal_actions_shop(state: &mut GameState) {
     let Shop {
-        id_cards_price,
-        id_relics_price,
-        id_potions_price,
+        id_cards,
+        id_relics,
+        id_potions,
         purge_cost,
         purged,
         ..
@@ -750,25 +750,30 @@ fn fill_legal_actions_shop(state: &mut GameState) {
     // Snapshots
     let gold = state.entities[state.id_character].character_gold;
     let belt_room = belt_has_room(&state.id_potions, state.potion_slots_max);
+    let affordable = |id: usize| {
+        gold >= state.entities[id]
+            .price
+            .expect("Shop stock carries a price")
+    };
 
     // Cards
-    for &(id_card, price) in id_cards_price {
-        if gold >= price {
+    for &id_card in id_cards {
+        if affordable(id_card) {
             state.legal_actions.push(Action::ShopBuyCard { id_card });
         }
     }
 
     // Relics
-    for &(id_relic, price) in id_relics_price {
-        if gold >= price {
+    for &id_relic in id_relics {
+        if affordable(id_relic) {
             state.legal_actions.push(Action::ShopBuyRelic { id_relic });
         }
     }
 
     // Potions (Sozu: unobtainable, so unbuyable)
     if belt_room && !has_relic(&state.id_relics, RelicName::Sozu) {
-        for &(id_potion, price) in id_potions_price {
-            if gold >= price {
+        for &id_potion in id_potions {
+            if affordable(id_potion) {
                 state
                     .legal_actions
                     .push(Action::ShopBuyPotion { id_potion });

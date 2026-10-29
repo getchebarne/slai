@@ -19,7 +19,7 @@ use super::context::snapshot_event;
 use super::context::snapshot_rest_site;
 use super::context::snapshot_reward;
 use super::context::snapshot_shop;
-use super::effect::PyEffectPending;
+use super::effect::PyEffectPendingObject;
 use super::effect::snapshot_effect_pending;
 use super::event::PyEventName;
 use super::map::PyMap;
@@ -29,26 +29,21 @@ use super::potion::snapshot_potion;
 use super::relic::PyRelic;
 use super::relic::snapshot_relic;
 
-#[pyclass(
-    skip_from_py_object,
-    frozen,
-    get_all,
-    name = "GameState",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone)]
+// The contexts, Character, Map and pending Effect are Python objects built once
+#[pyclass(frozen, get_all, name = "GameState", module = "slai.slai")]
+#[derive(Debug)]
 pub struct PyGameState {
     // Contexts: None while inactive; all None = Focus::Map
-    pub combat: Option<PyCombat>,
-    pub reward: Option<PyReward>,
-    pub event: Option<PyEvent>,
-    pub shop: Option<PyShop>,
-    pub rest_site: Option<PyRestSite>,
-    pub chest: Option<PyChest>,
+    pub combat: Option<Py<PyCombat>>,
+    pub reward: Option<Py<PyReward>>,
+    pub event: Option<Py<PyEvent>>,
+    pub shop: Option<Py<PyShop>>,
+    pub rest_site: Option<Py<PyRestSite>>,
+    pub chest: Option<Py<PyChest>>,
     pub game_over: bool,
     pub ascension: u8,
     pub act: u8,
-    pub character: PyCharacter,
+    pub character: Py<PyCharacter>,
     pub card_pile_deck: Vec<PyCard>,
     pub relics: Vec<PyRelic>, // In pickup order
     pub potions: Vec<PyPotion>,
@@ -60,27 +55,51 @@ pub struct PyGameState {
     pub unknown_chance_treasure: f32,
     pub pool_events: Vec<PyEventName>, // Events a "?" can still become, regular then special; each is drawn without replacement
     pub pool_event_special: Vec<PyEventName>,
-    pub map: PyMap,
-    pub effect_pending: Option<PyEffectPending>,
+    pub map: Py<PyMap>,
+    pub effect_pending: Option<PyEffectPendingObject>,
     pub card_pile_selected: Vec<PyCard>,
 }
 
 // Snapshot builders
-pub fn snapshot_state(state: &GameState) -> PyGameState {
+pub fn snapshot_state(py: Python<'_>, state: &GameState) -> PyResult<PyGameState> {
     // Owned Relics in pickup order
     let mut id_relics: Vec<usize> = state.id_relics.iter().flatten().copied().collect();
     id_relics.sort_unstable_by_key(|&id| state.entities[id].relic_seq);
-    PyGameState {
-        combat: state.combat.active.then(|| snapshot_combat(state)),
-        reward: state.reward.active.then(|| snapshot_reward(state)),
-        event: state.event.active.then(|| snapshot_event(state)),
-        shop: state.shop.active.then(|| snapshot_shop(state)),
-        rest_site: state.rest_site.active.then(|| snapshot_rest_site(state)),
-        chest: state.chest.active.then(|| snapshot_chest(state)),
+    Ok(PyGameState {
+        combat: state
+            .combat
+            .active
+            .then(|| Py::new(py, snapshot_combat(state)))
+            .transpose()?,
+        reward: state
+            .reward
+            .active
+            .then(|| Py::new(py, snapshot_reward(state)))
+            .transpose()?,
+        event: state
+            .event
+            .active
+            .then(|| Py::new(py, snapshot_event(state)))
+            .transpose()?,
+        shop: state
+            .shop
+            .active
+            .then(|| Py::new(py, snapshot_shop(state)))
+            .transpose()?,
+        rest_site: state
+            .rest_site
+            .active
+            .then(|| Py::new(py, snapshot_rest_site(state)))
+            .transpose()?,
+        chest: state
+            .chest
+            .active
+            .then(|| Py::new(py, snapshot_chest(state)))
+            .transpose()?,
         game_over: state.game_over,
         ascension: state.ascension,
         act: state.act,
-        character: snapshot_character(state),
+        character: Py::new(py, snapshot_character(state))?,
         card_pile_deck: state
             .id_card_pile_deck
             .iter()
@@ -107,8 +126,12 @@ pub fn snapshot_state(state: &GameState) -> PyGameState {
             .iter()
             .map(|&name| name.into())
             .collect(),
-        map: snapshot_map(state),
-        effect_pending: state.effect_pending.as_ref().map(snapshot_effect_pending),
+        map: Py::new(py, snapshot_map(state))?,
+        effect_pending: state
+            .effect_pending
+            .as_ref()
+            .map(|effect| snapshot_effect_pending(py, effect))
+            .transpose()?,
         // A fight's selections stage its own Cards
         card_pile_selected: state
             .id_selected
@@ -126,5 +149,5 @@ pub fn snapshot_state(state: &GameState) -> PyGameState {
                 }
             })
             .collect(),
-    }
+    })
 }

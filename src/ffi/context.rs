@@ -85,16 +85,8 @@ pub struct PyEnergy {
     pub energy_max: u16,
 }
 
-#[pyclass(
-    skip_from_py_object,
-    eq,
-    hash,
-    frozen,
-    get_all,
-    name = "Combat",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[pyclass(eq, hash, frozen, get_all, name = "Combat", module = "slai.slai")]
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub struct PyCombat {
     pub card_pile_hand: Vec<PyCard>,
     pub card_pile_draw: Vec<PyCard>,
@@ -124,16 +116,8 @@ pub struct PyCombat {
     pub gold_stolen: u16, // The killed thieves' purse, claimed apart from the room's gold
 }
 
-#[pyclass(
-    skip_from_py_object,
-    eq,
-    hash,
-    frozen,
-    get_all,
-    name = "Reward",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[pyclass(eq, hash, frozen, get_all, name = "Reward", module = "slai.slai")]
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub struct PyReward {
     pub cards: Vec<Vec<PyCard>>,
     pub relics: Vec<PyRelic>,
@@ -144,37 +128,18 @@ pub struct PyReward {
     pub cards_forced: bool,       // Cannot skip Card rewards (The Library)
 }
 
-#[pyclass(
-    skip_from_py_object,
-    eq,
-    hash,
-    frozen,
-    get_all,
-    name = "Shop",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[pyclass(eq, hash, frozen, get_all, name = "Shop", module = "slai.slai")]
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub struct PyShop {
     pub cards: Vec<PyCard>,
-    pub card_prices: Vec<u16>,
     pub relics: Vec<PyRelic>,
-    pub relic_prices: Vec<u16>,
     pub potions: Vec<PyPotion>,
-    pub potion_prices: Vec<u16>,
     pub purge_cost: u16,
     pub purged: bool,
 }
 
-#[pyclass(
-    skip_from_py_object,
-    eq,
-    hash,
-    frozen,
-    get_all,
-    name = "Event",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[pyclass(eq, hash, frozen, get_all, name = "Event", module = "slai.slai")]
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub struct PyEvent {
     pub name: PyEventName,
     pub consumed: bool,
@@ -196,30 +161,14 @@ pub struct PyEvent {
     pub match_attempts: u8,
 }
 
-#[pyclass(
-    skip_from_py_object,
-    eq,
-    hash,
-    frozen,
-    get_all,
-    name = "RestSite",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[pyclass(eq, hash, frozen, get_all, name = "RestSite", module = "slai.slai")]
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub struct PyRestSite {
     pub done: bool,
 }
 
-#[pyclass(
-    skip_from_py_object,
-    eq,
-    hash,
-    frozen,
-    get_all,
-    name = "Chest",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[pyclass(eq, hash, frozen, get_all, name = "Chest", module = "slai.slai")]
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub struct PyChest {
     pub kind: PyChestKind,
     pub opened: bool,
@@ -365,34 +314,19 @@ pub(crate) fn snapshot_shop(state: &GameState) -> PyShop {
     let shop = &state.shop;
     PyShop {
         cards: shop
-            .id_cards_price
+            .id_cards
             .iter()
-            .map(|&(id, _)| snapshot_card(state, id))
-            .collect(),
-        card_prices: shop
-            .id_cards_price
-            .iter()
-            .map(|&(_, price)| price)
+            .map(|&id| snapshot_card(state, id))
             .collect(),
         relics: shop
-            .id_relics_price
+            .id_relics
             .iter()
-            .map(|&(id, _)| snapshot_relic(id, &state.entities[id]))
-            .collect(),
-        relic_prices: shop
-            .id_relics_price
-            .iter()
-            .map(|&(_, price)| price)
+            .map(|&id| snapshot_relic(id, &state.entities[id]))
             .collect(),
         potions: shop
-            .id_potions_price
+            .id_potions
             .iter()
-            .map(|&(id, _)| snapshot_potion(id, &state.entities[id]))
-            .collect(),
-        potion_prices: shop
-            .id_potions_price
-            .iter()
-            .map(|&(_, price)| price)
+            .map(|&id| snapshot_potion(id, &state.entities[id]))
             .collect(),
         purge_cost: shop.purge_cost,
         purged: shop.purged,

@@ -64,7 +64,7 @@ fn queue_pickup_effects(state: &mut GameState, id_relic: usize) {
         RelicName::EggFrozen | RelicName::EggMolten | RelicName::EggToxic => {
             let mut id_cards_offered: Vec<usize> = Vec::new();
             if state.shop.active {
-                id_cards_offered.extend(state.shop.id_cards_price.iter().map(|&(id, _)| id));
+                id_cards_offered.extend(&state.shop.id_cards);
             }
             if state.reward.active {
                 id_cards_offered.extend(state.reward.id_cards.iter().flatten());

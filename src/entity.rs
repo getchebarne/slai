@@ -93,6 +93,9 @@ pub struct Entity {
     pub modifiers: Modifiers,
     pub dead: bool,
 
+    // Shop stock: Card, Relic or Potion. Some while the Shop offers it
+    pub price: Option<u16>,
+
     // Character-only
     pub character_name: &'static str,
     pub character_reward_roll_offset: i8,
@@ -190,6 +193,7 @@ pub const ENTITY_ZERO: Entity = Entity {
     monster_move_history_len: 0,
     monster_move_uses: [0; MAX_MONSTER_MOVES],
     dead: false,
+    price: None,
     card_name: CardName::Strike,
     card_kind: CardKind::Attack,
     card_color: CardColor::Colorless,

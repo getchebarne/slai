@@ -1,3 +1,5 @@
+use std::convert::Infallible;
+
 use pyo3::inspect::PyStaticExpr;
 use pyo3::prelude::*;
 use pyo3::type_hint_union;
@@ -150,8 +152,37 @@ flat_variants!(@enum PyEffectPending {
     RestToke => PyEffectRestToke
 });
 
-pub(crate) fn snapshot_effect_pending(effect: &Effect) -> PyEffectPending {
-    match snapshot_effect(effect) {
+// The pending effect as its Python object, built once per snapshot; typed as PyEffectPending's union
+#[derive(Debug)]
+pub struct PyEffectPendingObject(Py<PyAny>);
+
+impl<'py> IntoPyObject<'py> for PyEffectPendingObject {
+    type Target = PyAny;
+    type Output = Bound<'py, PyAny>;
+    type Error = Infallible;
+    const OUTPUT_TYPE: PyStaticExpr = <PyEffectPending as IntoPyObject<'py>>::OUTPUT_TYPE;
+
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        Ok(self.0.into_bound(py))
+    }
+}
+
+impl<'a, 'py> IntoPyObject<'py> for &'a PyEffectPendingObject {
+    type Target = PyAny;
+    type Output = Borrowed<'a, 'py, PyAny>;
+    type Error = Infallible;
+    const OUTPUT_TYPE: PyStaticExpr = <PyEffectPending as IntoPyObject<'py>>::OUTPUT_TYPE;
+
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        Ok(self.0.bind_borrowed(py))
+    }
+}
+
+pub(crate) fn snapshot_effect_pending(
+    py: Python<'_>,
+    effect: &Effect,
+) -> PyResult<PyEffectPendingObject> {
+    let effect_pending = match snapshot_effect(effect) {
         PyEffect::BonfireOffer(v) => PyEffectPending::BonfireOffer(v),
         PyEffect::CardAdopt(v) => PyEffectPending::CardAdopt(v),
         PyEffect::CardBottle(v) => PyEffectPending::CardBottle(v),
@@ -171,7 +202,10 @@ pub(crate) fn snapshot_effect_pending(effect: &Effect) -> PyEffectPending {
         PyEffect::RestSmith(v) => PyEffectPending::RestSmith(v),
         PyEffect::RestToke(v) => PyEffectPending::RestToke(v),
         other => unreachable!("effect kind cannot halt: {:?}", other),
-    }
+    };
+    Ok(PyEffectPendingObject(
+        effect_pending.into_pyobject(py)?.unbind(),
+    ))
 }
 
 pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {

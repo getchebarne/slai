@@ -340,9 +340,9 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
         },
         shop: Shop {
             active: false,
-            id_cards_price: Vec::with_capacity(SHOP_SLOTS_CARD_TOTAL),
-            id_relics_price: Vec::with_capacity(SHOP_SLOTS_RELIC),
-            id_potions_price: Vec::with_capacity(SHOP_SLOTS_POTION),
+            id_cards: Vec::with_capacity(SHOP_SLOTS_CARD_TOTAL),
+            id_relics: Vec::with_capacity(SHOP_SLOTS_RELIC),
+            id_potions: Vec::with_capacity(SHOP_SLOTS_POTION),
             purge_cost: 0,
             purged: false,
         },

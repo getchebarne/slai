@@ -48,7 +48,7 @@ pub fn process_effect_card_upgrade(id_target: Option<usize>, state: &mut GameSta
         }
     }
 
-    // Snapshot runtime-preserved fields: cost, cost override, free-to-play-once, bottled status
+    // Snapshot runtime-preserved fields: cost, cost override, free-to-play-once, bottled status, price
     let (cost, cost_override) = if card_upgraded.card_cost == u16::from(card_template.cost) {
         (card.card_cost, card.card_cost_override)
     } else {
@@ -73,4 +73,5 @@ pub fn process_effect_card_upgrade(id_target: Option<usize>, state: &mut GameSta
     state.entities[id_target].card_cost_override = cost_override;
     state.entities[id_target].card_free_to_play_once = card.card_free_to_play_once;
     state.entities[id_target].card_bottled = card.card_bottled;
+    state.entities[id_target].price = card.price;
 }
