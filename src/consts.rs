@@ -118,8 +118,11 @@ pub const COLORLESS_RARE_CHANCE: f32 = 0.3;
 // Wheel of Change pays 100 per act
 pub const WHEEL_GOLD_PER_ACT: u16 = 100;
 
-// Acts, 1-based; the run ends at the ACT_FINAL boss
+// Acts, 1-based; the run ends after the last boss fight of act ACT_FINAL
 pub const ACT_FINAL: u8 = 2;
+
+// A20+: Act 3's first boss fight is followed by a second, against one of the other two bosses
+pub const ASCENSION_DOUBLE_BOSS_LEVEL: u8 = 20;
 
 // Map
 pub const MAP_HEIGHT: usize = 15;
