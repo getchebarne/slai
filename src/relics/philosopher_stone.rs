@@ -2,10 +2,10 @@ use crate::relics::RelicTemplate;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
-// +1 energy; all Monsters (including mid-combat spawns) start with 1 Strength
+// +1 energy; a Monster gains 1 Strength as it spawns or splits, and a Darkling as it reincarnates
 // See:
 //    - `process_effect_combat_start.rs`
-//    - `process_effect_monster_spawn.rs`
+//    - `process_effect_philosopher_stone_proc.rs`
 pub static PHILOSOPHER_STONE: RelicTemplate = RelicTemplate {
     name: RelicName::PhilosopherStone,
     tier: RelicTier::Boss,

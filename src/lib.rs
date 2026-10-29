@@ -377,6 +377,8 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEffectNeowCardsRoll;
     #[pymodule_export]
+    use super::ffi::PyEffectPhilosopherStoneProc;
+    #[pymodule_export]
     use super::ffi::PyEffectPotionAddRandom;
     #[pymodule_export]
     use super::ffi::PyEffectPotionDiscard;

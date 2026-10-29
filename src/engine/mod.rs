@@ -89,6 +89,7 @@ pub mod process_effect_monster_split;
 pub mod process_effect_move_execute;
 pub mod process_effect_move_update;
 pub mod process_effect_neow_cards_roll;
+pub mod process_effect_philosopher_stone_proc;
 pub mod process_effect_poison_tick;
 pub mod process_effect_potion_add_random;
 pub mod process_effect_potion_adopt;
@@ -225,6 +226,7 @@ use self::process_effect_monster_split::process_effect_monster_split;
 use self::process_effect_move_execute::process_effect_move_execute;
 use self::process_effect_move_update::process_effect_move_update;
 use self::process_effect_neow_cards_roll::process_effect_neow_cards_roll;
+use self::process_effect_philosopher_stone_proc::process_effect_philosopher_stone_proc;
 use self::process_effect_poison_tick::process_effect_poison_tick;
 use self::process_effect_potion_add_random::process_effect_potion_add_random;
 use self::process_effect_potion_adopt::process_effect_potion_adopt;
@@ -809,6 +811,10 @@ fn dispatch_by_kind(
         EffectKind::HalfDeadRebirth => {
             enqueue_rest_of_targets(state, kind, id_source, id_targets);
             process_effect_half_dead_rebirth(id_targets.first().copied(), state)
+        }
+        EffectKind::PhilosopherStoneProc => {
+            enqueue_rest_of_targets(state, kind, id_source, id_targets);
+            process_effect_philosopher_stone_proc(id_targets.first().copied(), state)
         }
         EffectKind::DefensiveMode => {
             enqueue_rest_of_targets(state, kind, id_source, id_targets);

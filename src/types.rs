@@ -433,6 +433,7 @@ pub enum CardRarity {
 pub enum MonsterName {
     AwakenedOne,
     Cultist,
+    Darkling,
     Deca,
     Donu,
     Exploder,
@@ -562,6 +563,7 @@ pub enum MonsterEncounter {
 
     // Act 3 easy
     OrbWalker,
+    ThreeDarklings,
     ThreeShapes,
 
     // Act 3 hard

@@ -31,14 +31,14 @@ mirror_enum!(PyMonsterKind from MonsterKind, "MonsterKind", {
 });
 
 mirror_enum!(PyMonsterName from MonsterName, "MonsterName", {
-    AwakenedOne, Cultist, Deca, Donu, Exploder, FungiBeast, GremlinFat, GremlinNob, GremlinThief,
-    GremlinTsundere, GremlinWarrior, GremlinWizard, Hexaghost, JawWorm, JawWormHard, Lagavulin,
-    Looter, LouseDefensive, LouseNormal, Maw, Nemesis, OrbWalker, Repulsor, Sentry, SlaverBlue,
-    SlaverRed, SlimeAcidLarge, SlimeAcidMedium, SlimeAcidSmall, SlimeBoss, SlimeSpikeLarge,
-    SlimeSpikeMedium, SlimeSpikeSmall, Spiker, SpireGrowth, TheGuardian, TimeEater, Transient,
-    WrithingMass, Byrd, Centurion, Chosen, Healer, Mugger, ShelledParasite, SnakePlant, Snecko,
-    SphericGuardian, BookOfStabbing, GremlinLeader, Taskmaster, BronzeAutomaton, BronzeOrb, Champ,
-    TheCollector, TorchHead, BanditBear, BanditLeader, BanditPointy,
+    AwakenedOne, Cultist, Darkling, Deca, Donu, Exploder, FungiBeast, GremlinFat, GremlinNob,
+    GremlinThief, GremlinTsundere, GremlinWarrior, GremlinWizard, Hexaghost, JawWorm, JawWormHard,
+    Lagavulin, Looter, LouseDefensive, LouseNormal, Maw, Nemesis, OrbWalker, Repulsor, Sentry,
+    SlaverBlue, SlaverRed, SlimeAcidLarge, SlimeAcidMedium, SlimeAcidSmall, SlimeBoss,
+    SlimeSpikeLarge, SlimeSpikeMedium, SlimeSpikeSmall, Spiker, SpireGrowth, TheGuardian, TimeEater,
+    Transient, WrithingMass, Byrd, Centurion, Chosen, Healer, Mugger, ShelledParasite, SnakePlant,
+    Snecko, SphericGuardian, BookOfStabbing, GremlinLeader, Taskmaster, BronzeAutomaton, BronzeOrb,
+    Champ, TheCollector, TorchHead, BanditBear, BanditLeader, BanditPointy,
 });
 
 mirror_enum!(PyMonsterEncounter from MonsterEncounter, "MonsterEncounter", {
@@ -48,8 +48,9 @@ mirror_enum!(PyMonsterEncounter from MonsterEncounter, "MonsterEncounter", {
     SphericGuardian, Chosen, ShelledParasite, ThreeByrds, TwoThieves, SnakePlant,
     CenturionAndHealer, Snecko, CultistAndChosen, ThreeCultists, ShelledParasiteAndFungi,
     ChosenAndByrds, SentryAndSphere, GremlinLeader, Slavers, BookOfStabbing, BronzeAutomaton,
-    TheCollector, Champ, OrbWalker, ThreeShapes, FourShapes, JawWormHorde, Maw, SphereAndTwoShapes,
-    SpireGrowth, Transient, WrithingMass, Nemesis, AwakenedOne, DonuAndDeca, TimeEater,
+    TheCollector, Champ, OrbWalker, ThreeDarklings, ThreeShapes, FourShapes, JawWormHorde, Maw,
+    SphereAndTwoShapes, SpireGrowth, Transient, WrithingMass, Nemesis, AwakenedOne, DonuAndDeca,
+    TimeEater,
 });
 
 #[pyclass(

@@ -236,6 +236,7 @@ pub enum EffectKind {
         rare_only: bool,
     }, // Neow's card offer: 3 Cards into the event's roll, for its selection
     NoOp,
+    PhilosopherStoneProc,
     PoisonTick {
         amount: u16,
     },

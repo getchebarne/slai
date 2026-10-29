@@ -10,6 +10,7 @@ pub mod centurion;
 pub mod champ;
 pub mod chosen;
 pub mod cultist;
+pub mod darkling;
 pub mod deca;
 pub mod donu;
 pub mod encounters;
@@ -86,6 +87,7 @@ use strum::EnumCount;
 
 use crate::types::MonsterName;
 use crate::types::Vitals;
+use crate::utils::monsters_alive;
 use rand::Rng;
 
 // Static definition of a Monster: everything spawn-time except per-Monster rolls
@@ -139,6 +141,7 @@ pub const ALL_MONSTERS: &[&'static MonsterTemplate] = &[
     &champ::CHAMP,
     &chosen::CHOSEN,
     &cultist::CULTIST,
+    &darkling::DARKLING,
     &deca::DECA,
     &donu::DONU,
     &exploder::EXPLODER,
@@ -309,6 +312,7 @@ pub fn monster_template(monster_name: MonsterName) -> &'static MonsterTemplate {
     match monster_name {
         MonsterName::AwakenedOne => &awakened_one::AWAKENED_ONE,
         MonsterName::Cultist => &cultist::CULTIST,
+        MonsterName::Darkling => &darkling::DARKLING,
         MonsterName::JawWorm => &jaw_worm::JAW_WORM,
         MonsterName::JawWormHard => &jaw_worm::JAW_WORM_HARD,
         MonsterName::TheGuardian => &the_guardian::THE_GUARDIAN,
@@ -443,6 +447,19 @@ pub fn get_next_move(
             rng,
         ),
         MonsterName::Cultist => cultist::get_next_move_cultist(entity.monster_move_current),
+        MonsterName::Darkling => {
+            let slot = id_monsters
+                .iter()
+                .position(|&slot| slot == Some(entity_id))
+                .expect("a rolling Darkling holds its slot");
+            darkling::get_next_move_darkling(
+                entity.monster_move_current,
+                history,
+                slot,
+                entity.monster_half_dead,
+                rng,
+            )
+        }
         MonsterName::JawWorm => {
             jaw_worm::get_next_move_jaw_worm(entity.monster_move_current, history, rng)
         }
@@ -629,10 +646,19 @@ pub fn get_next_move(
 }
 
 // A Monster brought to 0 HP dies unless its own rule makes it half-dead
-pub fn monster_half_dies(entity: &Entity) -> bool {
-    match entity.monster_name {
+pub fn monster_half_dies(
+    entities: &[Entity],
+    id_monster: usize,
+    id_monsters: &[Option<usize>; MAX_MONSTERS],
+) -> bool {
+    let monster = &entities[id_monster];
+    match monster.monster_name {
         // The Awakened One's first form, which holds Unawakened
-        MonsterName::AwakenedOne => has_modifier(&entity.modifiers, ModifierKind::Unawakened),
+        MonsterName::AwakenedOne => has_modifier(&monster.modifiers, ModifierKind::Unawakened),
+
+        // A Darkling, while another Darkling still stands
+        MonsterName::Darkling => monsters_alive(entities, id_monsters)
+            .any(|id| id != id_monster && entities[id].monster_name == MonsterName::Darkling),
         _ => false,
     }
 }
