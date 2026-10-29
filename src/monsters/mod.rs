@@ -13,6 +13,7 @@ pub mod cultist;
 pub mod deca;
 pub mod donu;
 pub mod encounters;
+pub mod exploder;
 pub mod fungi_beast;
 pub mod gremlin_fat;
 pub mod gremlin_leader;
@@ -32,6 +33,7 @@ pub mod maw;
 pub mod mugger;
 pub mod nemesis;
 pub mod orb_walker;
+pub mod repulsor;
 pub mod sentry;
 pub mod shelled_parasite;
 pub mod slaver_blue;
@@ -46,6 +48,7 @@ pub mod slime_spike_small;
 pub mod snake_plant;
 pub mod snecko;
 pub mod spheric_guardian;
+pub mod spiker;
 pub mod spire_growth;
 pub mod taskmaster;
 pub mod the_collector;
@@ -138,6 +141,7 @@ pub const ALL_MONSTERS: &[&'static MonsterTemplate] = &[
     &cultist::CULTIST,
     &deca::DECA,
     &donu::DONU,
+    &exploder::EXPLODER,
     &fungi_beast::FUNGI_BEAST,
     &gremlin_fat::GREMLIN_FAT,
     &gremlin_leader::GREMLIN_LEADER,
@@ -158,6 +162,7 @@ pub const ALL_MONSTERS: &[&'static MonsterTemplate] = &[
     &mugger::MUGGER,
     &orb_walker::ORB_WALKER,
     &nemesis::NEMESIS,
+    &repulsor::REPULSOR,
     &sentry::SENTRY,
     &shelled_parasite::SHELLED_PARASITE,
     &slaver_blue::SLAVER_BLUE,
@@ -172,6 +177,7 @@ pub const ALL_MONSTERS: &[&'static MonsterTemplate] = &[
     &snake_plant::SNAKE_PLANT,
     &snecko::SNECKO,
     &spheric_guardian::SPHERIC_GUARDIAN,
+    &spiker::SPIKER,
     &spire_growth::SPIRE_GROWTH,
     &taskmaster::TASKMASTER,
     &the_collector::THE_COLLECTOR,
@@ -357,6 +363,9 @@ pub fn monster_template(monster_name: MonsterName) -> &'static MonsterTemplate {
         MonsterName::WrithingMass => &writhing_mass::WRITHING_MASS,
         MonsterName::Nemesis => &nemesis::NEMESIS,
         MonsterName::SpireGrowth => &spire_growth::SPIRE_GROWTH,
+        MonsterName::Exploder => &exploder::EXPLODER,
+        MonsterName::Repulsor => &repulsor::REPULSOR,
+        MonsterName::Spiker => &spiker::SPIKER,
     }
 }
 
@@ -611,6 +620,11 @@ pub fn get_next_move(
             ascension_level,
             rng,
         ),
+        MonsterName::Exploder => exploder::get_next_move_exploder(history),
+        MonsterName::Repulsor => repulsor::get_next_move_repulsor(history, rng),
+        MonsterName::Spiker => {
+            spiker::get_next_move_spiker(history, &entity.monster_move_uses, rng)
+        }
     }
 }
 

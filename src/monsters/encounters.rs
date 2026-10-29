@@ -299,6 +299,25 @@ fn roll_humanoid_strong(rng: &mut impl Rng) -> MonsterName {
     }
 }
 
+// Two of each Shape; 3 Shapes and 4 Shapes take the first three or four after a shuffle
+const SHAPE_POOL: [MonsterName; 6] = [
+    MonsterName::Repulsor,
+    MonsterName::Repulsor,
+    MonsterName::Exploder,
+    MonsterName::Exploder,
+    MonsterName::Spiker,
+    MonsterName::Spiker,
+];
+
+fn roll_shape(rng: &mut impl Rng) -> MonsterName {
+    match rng.random_range(0..3) {
+        0 => MonsterName::Spiker,
+        1 => MonsterName::Repulsor,
+        2 => MonsterName::Exploder,
+        _ => unreachable!(),
+    }
+}
+
 fn push_monster_spawn(effects: &mut Vec<Effect>, name: MonsterName, slot: usize) {
     effects.push(Effect {
         kind: EffectKind::MonsterSpawn {
@@ -496,12 +515,31 @@ pub fn spawn_encounter_monsters(state: &mut GameState, encounter: MonsterEncount
         }
         MonsterEncounter::Champ => push_monster_spawn(effects, MonsterName::Champ, 0),
         MonsterEncounter::OrbWalker => push_monster_spawn(effects, MonsterName::OrbWalker, 0),
+        MonsterEncounter::ThreeShapes => {
+            let mut pool = SHAPE_POOL;
+            shuffle(&mut pool, rng);
+            for (slot, &name) in pool[..3].iter().enumerate() {
+                push_monster_spawn(effects, name, slot);
+            }
+        }
+        MonsterEncounter::FourShapes => {
+            let mut pool = SHAPE_POOL;
+            shuffle(&mut pool, rng);
+            for (slot, &name) in pool[..4].iter().enumerate() {
+                push_monster_spawn(effects, name, slot);
+            }
+        }
         MonsterEncounter::JawWormHorde => {
             for slot in 0..3 {
                 push_monster_spawn(effects, MonsterName::JawWormHard, slot);
             }
         }
         MonsterEncounter::Maw => push_monster_spawn(effects, MonsterName::Maw, 0),
+        MonsterEncounter::SphereAndTwoShapes => {
+            push_monster_spawn(effects, roll_shape(rng), 0);
+            push_monster_spawn(effects, roll_shape(rng), 1);
+            push_monster_spawn(effects, MonsterName::SphericGuardian, 2);
+        }
         MonsterEncounter::DonuAndDeca => {
             push_monster_spawn(effects, MonsterName::Deca, 0);
             push_monster_spawn(effects, MonsterName::Donu, 1);
