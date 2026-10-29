@@ -31,25 +31,27 @@ mirror_enum!(PyMonsterKind from MonsterKind, "MonsterKind", {
 });
 
 mirror_enum!(PyMonsterName from MonsterName, "MonsterName", {
-    AwakenedOne, Cultist, Deca, Donu, FungiBeast, GremlinFat, GremlinNob, GremlinThief,
-    GremlinTsundere, GremlinWarrior, GremlinWizard, Hexaghost, JawWorm, JawWormHard, Lagavulin,
-    Looter, LouseDefensive, LouseNormal, Maw, Nemesis, OrbWalker, Reptomancer, Sentry, SlaverBlue,
-    SlaverRed, SlimeAcidLarge, SlimeAcidMedium, SlimeAcidSmall, SlimeBoss, SlimeSpikeLarge,
-    SlimeSpikeMedium, SlimeSpikeSmall, SnakeDagger, SpireGrowth, TheGuardian, TimeEater, Transient,
-    WrithingMass, Byrd, Centurion, Chosen, Healer, Mugger, ShelledParasite, SnakePlant, Snecko,
-    SphericGuardian, BookOfStabbing, GremlinLeader, Taskmaster, BronzeAutomaton, BronzeOrb, Champ,
-    TheCollector, TorchHead, BanditBear, BanditLeader, BanditPointy,
+    AwakenedOne, Cultist, Darkling, Deca, Donu, Exploder, FungiBeast, GremlinFat, GremlinNob,
+    GremlinThief, GremlinTsundere, GremlinWarrior, GremlinWizard, Hexaghost, JawWorm, JawWormHard,
+    Lagavulin, Looter, LouseDefensive, LouseNormal, Maw, Nemesis, OrbWalker, Reptomancer, Repulsor,
+    Sentry, SlaverBlue, SlaverRed, SlimeAcidLarge, SlimeAcidMedium, SlimeAcidSmall, SlimeBoss,
+    SlimeSpikeLarge, SlimeSpikeMedium, SlimeSpikeSmall, SnakeDagger, Spiker, SpireGrowth,
+    TheGuardian, TimeEater, Transient, WrithingMass, Byrd, Centurion, Chosen, Healer, Mugger,
+    ShelledParasite, SnakePlant, Snecko, SphericGuardian, BookOfStabbing, GremlinLeader, Taskmaster,
+    BronzeAutomaton, BronzeOrb, Champ, TheCollector, TorchHead, BanditBear, BanditLeader,
+    BanditPointy,
 });
 
 mirror_enum!(PyMonsterEncounter from MonsterEncounter, "MonsterEncounter", {
     Cultist, JawWorm, TwoLouse, SmallSlimes, BlueSlaver, RedSlaver, Looter, TwoFungiBeasts,
     ThreeLouse, LargeSlime, LotsOfSlimes, GremlinGang, ExordiumThugs, ExordiumWildlife, GremlinNob,
     Lagavulin, ThreeSentries, TheGuardian, Hexaghost, SlimeBoss, ThreeFungiBeasts, LagavulinEvent,
-    TwoOrbWalkers, SphericGuardian, Chosen, ShelledParasite, ThreeByrds, TwoThieves, SnakePlant,
+    SphericGuardian, Chosen, ShelledParasite, ThreeByrds, TwoThieves, SnakePlant,
     CenturionAndHealer, Snecko, CultistAndChosen, ThreeCultists, ShelledParasiteAndFungi,
     ChosenAndByrds, SentryAndSphere, GremlinLeader, Slavers, BookOfStabbing, BronzeAutomaton,
-    TheCollector, Champ, OrbWalker, JawWormHorde, Maw, SpireGrowth, Transient, WrithingMass,
-    Nemesis, Reptomancer, AwakenedOne, DonuAndDeca, TimeEater,
+    TheCollector, Champ, OrbWalker, ThreeDarklings, ThreeShapes, FourShapes, JawWormHorde, Maw,
+    SphereAndTwoShapes, SpireGrowth, Transient, WrithingMass, Nemesis, Reptomancer, AwakenedOne,
+    DonuAndDeca, TimeEater,
 });
 
 #[pyclass(

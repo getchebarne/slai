@@ -433,8 +433,10 @@ pub enum CardRarity {
 pub enum MonsterName {
     AwakenedOne,
     Cultist,
+    Darkling,
     Deca,
     Donu,
+    Exploder,
     FungiBeast,
     GremlinFat,
     GremlinNob,
@@ -453,6 +455,7 @@ pub enum MonsterName {
     Nemesis,
     OrbWalker,
     Reptomancer,
+    Repulsor,
     Sentry,
     SlaverBlue,
     SlaverRed,
@@ -464,6 +467,7 @@ pub enum MonsterName {
     SlimeSpikeMedium,
     SlimeSpikeSmall,
     SnakeDagger,
+    Spiker,
     SpireGrowth,
     TheGuardian,
     TimeEater,
@@ -531,7 +535,6 @@ pub enum MonsterEncounter {
     // Event-only (never pooled)
     ThreeFungiBeasts,
     LagavulinEvent,
-    TwoOrbWalkers,
 
     // Act 2 easy
     SphericGuardian,
@@ -562,10 +565,14 @@ pub enum MonsterEncounter {
 
     // Act 3 easy
     OrbWalker,
+    ThreeDarklings,
+    ThreeShapes,
 
     // Act 3 hard
+    FourShapes,
     JawWormHorde,
     Maw,
+    SphereAndTwoShapes,
     SpireGrowth,
     Transient,
     WrithingMass,
@@ -618,6 +625,7 @@ pub enum EventName {
     MatchAndKeep,
     MindBloom,
     Mushrooms,
+    MysteriousSphere,
     Neow,
     Nest,
     Nloth,

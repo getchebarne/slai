@@ -125,6 +125,7 @@ flat_variants!(PyEffect {
     HalfDeadRebirth => PyEffectHalfDeadRebirth as "EffectHalfDeadRebirth" { target: PyTarget },
     HealthSet => PyEffectHealthSet as "EffectHealthSet" { amount: PyAmountScalar, target: PyTarget },
     RoomEnter => PyEffectRoomEnter as "EffectRoomEnter",
+    PhilosopherStoneProc => PyEffectPhilosopherStoneProc as "EffectPhilosopherStoneProc" { target: PyTarget },
 });
 
 // The kinds that can park in `state.effect_pending`
@@ -632,6 +633,11 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
             location: Location::BossRoom,
             landing: false,
         } => PyEffect::RoomEnter(PyEffectRoomEnter),
+        EffectKind::PhilosopherStoneProc => {
+            PyEffect::PhilosopherStoneProc(PyEffectPhilosopherStoneProc {
+                target: require_target(target),
+            })
+        }
         other => unreachable!(
             "snapshot_effect: unexpected EffectKind on static Card effect: {:?}",
             other

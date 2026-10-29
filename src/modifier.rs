@@ -39,6 +39,7 @@ pub enum ModifierKind {
     PlatedArmor,
     Poison,
     Reactive,
+    Regrow,
     Retain,
     Ritual,
     Shackled,
@@ -375,6 +376,14 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     ModifierDef {
         kind: ModifierKind::Reactive,
         priority: 50,
+        is_buff: true,
+        stacks_duration: false,
+        stacks_min: 1,
+        stacks_max: 1,
+    },
+    ModifierDef {
+        kind: ModifierKind::Regrow,
+        priority: PRIORITY_DEFAULT,
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
