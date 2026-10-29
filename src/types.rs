@@ -435,6 +435,7 @@ pub enum MonsterName {
     Cultist,
     Deca,
     Donu,
+    Exploder,
     FungiBeast,
     GremlinFat,
     GremlinNob,
@@ -452,6 +453,7 @@ pub enum MonsterName {
     Maw,
     Nemesis,
     OrbWalker,
+    Repulsor,
     Sentry,
     SlaverBlue,
     SlaverRed,
@@ -462,6 +464,7 @@ pub enum MonsterName {
     SlimeSpikeLarge,
     SlimeSpikeMedium,
     SlimeSpikeSmall,
+    Spiker,
     SpireGrowth,
     TheGuardian,
     TimeEater,
@@ -560,10 +563,13 @@ pub enum MonsterEncounter {
 
     // Act 3 easy
     OrbWalker,
+    ThreeShapes,
 
     // Act 3 hard
+    FourShapes,
     JawWormHorde,
     Maw,
+    SphereAndTwoShapes,
     SpireGrowth,
     Transient,
     WrithingMass,
