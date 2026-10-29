@@ -32,6 +32,7 @@ pub mod maw;
 pub mod mugger;
 pub mod nemesis;
 pub mod orb_walker;
+pub mod reptomancer;
 pub mod sentry;
 pub mod shelled_parasite;
 pub mod slaver_blue;
@@ -43,6 +44,7 @@ pub mod slime_boss;
 pub mod slime_spike_large;
 pub mod slime_spike_medium;
 pub mod slime_spike_small;
+pub mod snake_dagger;
 pub mod snake_plant;
 pub mod snecko;
 pub mod spheric_guardian;
@@ -158,6 +160,7 @@ pub const ALL_MONSTERS: &[&'static MonsterTemplate] = &[
     &mugger::MUGGER,
     &orb_walker::ORB_WALKER,
     &nemesis::NEMESIS,
+    &reptomancer::REPTOMANCER,
     &sentry::SENTRY,
     &shelled_parasite::SHELLED_PARASITE,
     &slaver_blue::SLAVER_BLUE,
@@ -169,6 +172,7 @@ pub const ALL_MONSTERS: &[&'static MonsterTemplate] = &[
     &slime_spike_large::SLIME_SPIKE_LARGE,
     &slime_spike_medium::SLIME_SPIKE_MEDIUM,
     &slime_spike_small::SLIME_SPIKE_SMALL,
+    &snake_dagger::SNAKE_DAGGER,
     &snake_plant::SNAKE_PLANT,
     &snecko::SNECKO,
     &spheric_guardian::SPHERIC_GUARDIAN,
@@ -357,6 +361,8 @@ pub fn monster_template(monster_name: MonsterName) -> &'static MonsterTemplate {
         MonsterName::WrithingMass => &writhing_mass::WRITHING_MASS,
         MonsterName::Nemesis => &nemesis::NEMESIS,
         MonsterName::SpireGrowth => &spire_growth::SPIRE_GROWTH,
+        MonsterName::Reptomancer => &reptomancer::REPTOMANCER,
+        MonsterName::SnakeDagger => &snake_dagger::SNAKE_DAGGER,
     }
 }
 
@@ -371,10 +377,6 @@ pub const GREMLIN_POOL: [MonsterName; 8] = [
     MonsterName::GremlinTsundere,
     MonsterName::GremlinWizard,
 ];
-
-pub fn roll_gremlin(rng: &mut impl Rng) -> MonsterName {
-    GREMLIN_POOL[rng.random_range(0..GREMLIN_POOL.len())]
-}
 
 pub fn push_move_history(entity: &mut Entity, move_idx: u8) {
     let len = entity.monster_move_history_len as usize;
@@ -611,6 +613,10 @@ pub fn get_next_move(
             ascension_level,
             rng,
         ),
+        MonsterName::Reptomancer => {
+            reptomancer::get_next_move_reptomancer(history, entity_id, id_monsters, rng)
+        }
+        MonsterName::SnakeDagger => snake_dagger::get_next_move_snake_dagger(history),
     }
 }
 

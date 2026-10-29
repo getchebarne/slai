@@ -4,11 +4,13 @@ use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
+use crate::effect::Summon;
 use crate::effect::TARGET_MONSTERS_ALL;
 use crate::effect::Target;
 use crate::entity::Intent;
 use crate::entity::Move;
 use crate::modifier::ModifierKind;
+use crate::monsters::GREMLIN_POOL;
 use crate::monsters::MonsterTemplate;
 use crate::monsters::make_move;
 use crate::monsters::move_attack;
@@ -17,23 +19,28 @@ use crate::types::MonsterName;
 use rand::Rng;
 
 // The three gremlin posts' slots, in fill order, all left of the Leader's slot 3
-pub const GREMLIN_POSTS: [usize; 3] = [1, 2, 0];
+const GREMLIN_POSTS: [usize; 3] = [1, 2, 0];
+
+// One gremlin off the weighted pool into the first free post, as a Minion
+static SUMMON_GREMLIN: Summon = Summon {
+    pool: &GREMLIN_POOL,
+    posts: &GREMLIN_POSTS,
+    minion: true,
+};
+
+// The Leader's two opening summons and Rally's two
+pub const EFFECT_GREMLIN_SUMMON: Effect = Effect {
+    kind: EffectKind::MonsterSummon {
+        summon: &SUMMON_GREMLIN,
+    },
+    id_source: None,
+    target: Target::Direct(None),
+};
 
 // Rally: two summons off the weighted gremlin pool
 static MOVE_RALLY: Move = make_move(
     "Rally!",
-    &[
-        Effect {
-            kind: EffectKind::GremlinSummon,
-            id_source: None,
-            target: Target::Direct(None),
-        },
-        Effect {
-            kind: EffectKind::GremlinSummon,
-            id_source: None,
-            target: Target::Direct(None),
-        },
-    ],
+    &[EFFECT_GREMLIN_SUMMON, EFFECT_GREMLIN_SUMMON],
     Intent::Unknown,
 );
 

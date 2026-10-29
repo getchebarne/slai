@@ -79,7 +79,6 @@ flat_variants!(PyEffect {
     MonsterSpawn => PyEffectMonsterSpawn as "EffectMonsterSpawn" { name: PyMonsterName },
     CombatStart => PyEffectCombatStart as "EffectCombatStart",
     AdventurerSearch => PyEffectAdventurerSearch as "EffectAdventurerSearch",
-    MindBloomFight => PyEffectMindBloomFight as "EffectMindBloomFight",
     RelicGrantSpecific => PyEffectRelicGrantSpecific as "EffectRelicGrantSpecific" { name: PyRelicName },
     EventAdvanceState => PyEffectEventAdvanceState as "EffectEventAdvanceState" { delta: i8 },
     ScrapOozeReach => PyEffectScrapOozeReach as "EffectScrapOozeReach" { chance: u8, advance_on_miss: bool },
@@ -110,12 +109,12 @@ flat_variants!(PyEffect {
     JoustBet => PyEffectJoustBet as "EffectJoustBet" { on_owner: bool },
     RelicGrantPool => PyEffectRelicGrantPool as "EffectRelicGrantPool" { pool: Vec<PyRelicName> },
     DebuffsClear => PyEffectDebuffsClear as "EffectDebuffsClear" { target: PyTarget },
-    GremlinSummon => PyEffectGremlinSummon as "EffectGremlinSummon",
     HexaghostBurnIncrease => PyEffectHexaghostBurnIncrease as "EffectHexaghostBurnIncrease" { count: u8 },
     ModifierRemove => PyEffectModifierRemove as "EffectModifierRemove" { kind: PyModifierKind, target: PyTarget },
     MonsterEscape => PyEffectMonsterEscape as "EffectMonsterEscape" { target: PyTarget },
     MonsterRemove => PyEffectMonsterRemove as "EffectMonsterRemove" { target: PyTarget },
     MonsterSplit => PyEffectMonsterSplit as "EffectMonsterSplit" { name: PyMonsterName, target: PyTarget },
+    MonsterSummon => PyEffectMonsterSummon as "EffectMonsterSummon" { pool: Vec<PyMonsterName> },
     CardStasisSteal => PyEffectCardStasisSteal as "EffectCardStasisSteal",
     RewardRollCards => PyEffectRewardRollCards as "EffectRewardRollCards" { bundles: u8, trigger: PyRewardRollTrigger },
     NeowCardsRoll => PyEffectNeowCardsRoll as "EffectNeowCardsRoll" { colorless: bool, rare_only: bool },
@@ -220,13 +219,12 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
                     | EffectKind::EventConsume
                     | EffectKind::Gamble { .. }
                     | EffectKind::GoldDelta { .. }
-                    | EffectKind::GremlinSummon
                     | EffectKind::HexaghostBurnIncrease { .. }
                     | EffectKind::JoustBet { .. }
                     | EffectKind::KnowingSkullCostBump
                     | EffectKind::MausoleumOpen
-                    | EffectKind::MindBloomFight
                     | EffectKind::MonsterSpawn { .. }
+                    | EffectKind::MonsterSummon { .. }
                     | EffectKind::NeowCardsRoll { .. }
                     | EffectKind::PotionAddRandom { .. }
                     | EffectKind::RelicGrantPool { .. }
@@ -432,7 +430,6 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
         }
         EffectKind::CombatStart { .. } => PyEffect::CombatStart(PyEffectCombatStart),
         EffectKind::AdventurerSearch => PyEffect::AdventurerSearch(PyEffectAdventurerSearch),
-        EffectKind::MindBloomFight => PyEffect::MindBloomFight(PyEffectMindBloomFight),
         EffectKind::RelicGrantSpecific { name } => {
             PyEffect::RelicGrantSpecific(PyEffectRelicGrantSpecific { name: name.into() })
         }
@@ -569,7 +566,6 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
         EffectKind::DebuffsClear => PyEffect::DebuffsClear(PyEffectDebuffsClear {
             target: require_target(target),
         }),
-        EffectKind::GremlinSummon => PyEffect::GremlinSummon(PyEffectGremlinSummon),
         EffectKind::HexaghostBurnIncrease { count } => {
             PyEffect::HexaghostBurnIncrease(PyEffectHexaghostBurnIncrease { count })
         }
@@ -586,6 +582,13 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
         EffectKind::MonsterSplit { name, .. } => PyEffect::MonsterSplit(PyEffectMonsterSplit {
             name: name.into(),
             target: require_target(target),
+        }),
+        EffectKind::MonsterSummon { summon } => PyEffect::MonsterSummon(PyEffectMonsterSummon {
+            pool: summon
+                .pool
+                .iter()
+                .map(|&monster_name| monster_name.into())
+                .collect(),
         }),
         EffectKind::CardStasisSteal => PyEffect::CardStasisSteal(PyEffectCardStasisSteal),
         EffectKind::RewardRollCards { bundles, trigger } => {
