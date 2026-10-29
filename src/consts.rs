@@ -61,8 +61,11 @@ pub const FACTOR_WEAK: f32 = 0.75;
 pub const FACTOR_WEAK_PAPER_KRANE: f32 = 0.60;
 pub const FACTOR_VULN: f32 = 1.50;
 pub const FACTOR_VULN_ODD_MUSHROOM: f32 = 1.25;
+pub const FACTOR_SLOW_PER_STACK: f32 = 0.10;
 pub const FACTOR_FRAIL: f32 = 0.75;
 pub const MODE_SHIFT_INCREASE_PER_CYCLE: i16 = 10;
+pub const IT_IS_TIME_INCREASE_PER_USE: u16 = 5;
+pub const IT_IS_TIME_INCREASE_MAX: u16 = 30;
 pub const HEXAGHOST_DIVIDER_HITS: u8 = 6;
 
 // Divider rolls `character_health / DIVISOR + 1` per hit at move selection

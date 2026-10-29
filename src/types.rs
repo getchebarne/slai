@@ -436,6 +436,7 @@ pub enum MonsterName {
     Deca,
     Donu,
     FungiBeast,
+    GiantHead,
     GremlinFat,
     GremlinNob,
     GremlinThief,
@@ -569,6 +570,7 @@ pub enum MonsterEncounter {
     WrithingMass,
 
     // Act 3 elite
+    GiantHead,
     Nemesis,
 
     // Act 3 boss

@@ -12,11 +12,12 @@ use crate::utils::flush_effects_from_buf_to_queue_front;
 use crate::utils::get_id_actor;
 use crate::utils::has_relic;
 use crate::utils::scale_attack_damage;
+use crate::utils::slow_factor;
 use crate::utils::strike_dummy_bonus;
 use crate::utils::vuln_factor;
 use crate::utils::weak_factor;
 
-// Physical damage on a list of targets: every target's hit, then each Thorns reflect, the last target's first, then the remaining hits; Str+Vigor+Weak/Vuln scale it unless it was scaled as its play started, x2 DoubleDmg, Intangible clamp, if_poisoned needs Poison
+// Physical damage on a list of targets: every target's hit, then each Thorns reflect, the last target's first, then the remaining hits; Str+Vigor+Weak/Slow/Vuln scale it unless it was scaled as its play started, x2 DoubleDmg, Intangible clamp, if_poisoned needs Poison
 #[allow(clippy::too_many_arguments)]
 pub fn process_effect_damage_physical(
     id_source: Option<usize>,
@@ -105,6 +106,7 @@ pub fn process_effect_damage_physical(
                     has_modifier(mods_source_actor, ModifierKind::Weak),
                     weak_paper_krane,
                 ),
+                slow_factor(modifier_stacks(mods_target, ModifierKind::Slow)),
                 vuln_factor(
                     has_modifier(mods_target, ModifierKind::Vulnerable),
                     vuln_odd_mushroom,

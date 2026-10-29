@@ -7,6 +7,7 @@ use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
 use crate::modifier::modifier_stacks;
 use crate::utils::scale_attack_damage;
+use crate::utils::slow_factor;
 use crate::utils::vuln_factor;
 use crate::utils::weak_factor;
 
@@ -37,6 +38,7 @@ pub fn process_effect_skewer_proc(
         has_modifier(char_modifiers, ModifierKind::DoubleDamage),
         has_modifier(char_modifiers, ModifierKind::PenNib),
         weak_factor(has_modifier(char_modifiers, ModifierKind::Weak), false),
+        slow_factor(modifier_stacks(mods_target, ModifierKind::Slow)),
         vuln_factor(has_modifier(mods_target, ModifierKind::Vulnerable), false),
         has_modifier(mods_target, ModifierKind::Flight),
     );

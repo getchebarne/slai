@@ -312,6 +312,7 @@ pub enum EffectKind {
     SkewerProc {
         damage: u16,
     }, // One per X of Skewer's play: scales its damage as the play starts and queues one hit at the back that keeps it
+    SlowProc,
     SneakyStrikeProc {
         energy: u8,
     },

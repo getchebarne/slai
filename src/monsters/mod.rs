@@ -14,6 +14,7 @@ pub mod deca;
 pub mod donu;
 pub mod encounters;
 pub mod fungi_beast;
+pub mod giant_head;
 pub mod gremlin_fat;
 pub mod gremlin_leader;
 pub mod gremlin_nob;
@@ -139,6 +140,7 @@ pub const ALL_MONSTERS: &[&'static MonsterTemplate] = &[
     &deca::DECA,
     &donu::DONU,
     &fungi_beast::FUNGI_BEAST,
+    &giant_head::GIANT_HEAD,
     &gremlin_fat::GREMLIN_FAT,
     &gremlin_leader::GREMLIN_LEADER,
     &gremlin_nob::GREMLIN_NOB,
@@ -357,6 +359,7 @@ pub fn monster_template(monster_name: MonsterName) -> &'static MonsterTemplate {
         MonsterName::WrithingMass => &writhing_mass::WRITHING_MASS,
         MonsterName::Nemesis => &nemesis::NEMESIS,
         MonsterName::SpireGrowth => &spire_growth::SPIRE_GROWTH,
+        MonsterName::GiantHead => &giant_head::GIANT_HEAD,
     }
 }
 
@@ -608,6 +611,12 @@ pub fn get_next_move(
         MonsterName::SpireGrowth => spire_growth::get_next_move_spire_growth(
             history,
             has_modifier(&entities[id_character].modifiers, ModifierKind::Constricted),
+            ascension_level,
+            rng,
+        ),
+        MonsterName::GiantHead => giant_head::get_next_move_giant_head(
+            history,
+            &entity.monster_move_uses,
             ascension_level,
             rng,
         ),

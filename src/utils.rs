@@ -22,6 +22,7 @@ use crate::consts::CARD_REWARD_UPGRADE_CHANCE_ACT3;
 use crate::consts::CARD_REWARD_UPGRADE_CHANCE_ACT3_A12;
 use crate::consts::COLORLESS_RARE_CHANCE;
 use crate::consts::FACTOR_FRAIL;
+use crate::consts::FACTOR_SLOW_PER_STACK;
 use crate::consts::FACTOR_VULN;
 use crate::consts::FACTOR_VULN_ODD_MUSHROOM;
 use crate::consts::FACTOR_WEAK;
@@ -478,13 +479,20 @@ pub fn vuln_factor(is_vulnerable: bool, odd_mushroom: bool) -> f32 {
     }
 }
 
-// Shared by the live damage pipeline and the FFI intent view
+// Slow: its holder takes 10% more per stack, the factor computed in f32 as 1 + stacks * 0.1
+pub fn slow_factor(slow_stacks: i16) -> f32 {
+    1.0 + slow_stacks as f32 * FACTOR_SLOW_PER_STACK
+}
+
+// Shared by the live damage pipeline and the FFI intent view; Weak, Slow and Vulnerable multiply in that order, each rounded in f32
+#[allow(clippy::too_many_arguments)]
 pub fn scale_attack_damage(
     base: u16,
     source_str_stacks: i16,
     double_damage: bool,
     pen_nib: bool,
     weak_factor: f32,
+    slow_factor: f32,
     vuln_factor: f32,
     flight: bool,
 ) -> u16 {
@@ -495,7 +503,9 @@ pub fn scale_attack_damage(
     if pen_nib {
         value *= 2.0;
     }
-    value *= weak_factor * vuln_factor;
+    value *= weak_factor;
+    value *= slow_factor;
+    value *= vuln_factor;
     if flight {
         value *= 0.5;
     }

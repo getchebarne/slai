@@ -514,6 +514,7 @@ pub fn spawn_encounter_monsters(state: &mut GameState, encounter: MonsterEncount
         }
         MonsterEncounter::Transient => push_monster_spawn(effects, MonsterName::Transient, 0),
         MonsterEncounter::WrithingMass => push_monster_spawn(effects, MonsterName::WrithingMass, 0),
+        MonsterEncounter::GiantHead => push_monster_spawn(effects, MonsterName::GiantHead, 0),
         MonsterEncounter::Nemesis => push_monster_spawn(effects, MonsterName::Nemesis, 0),
         MonsterEncounter::SpireGrowth => push_monster_spawn(effects, MonsterName::SpireGrowth, 0),
     }

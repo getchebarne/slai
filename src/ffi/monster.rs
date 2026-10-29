@@ -20,6 +20,7 @@ use crate::types::RelicName;
 use crate::utils::entity_requires_target;
 use crate::utils::has_relic;
 use crate::utils::scale_attack_damage;
+use crate::utils::slow_factor;
 use crate::utils::vuln_factor;
 use crate::utils::weak_factor;
 
@@ -31,7 +32,7 @@ mirror_enum!(PyMonsterKind from MonsterKind, "MonsterKind", {
 });
 
 mirror_enum!(PyMonsterName from MonsterName, "MonsterName", {
-    AwakenedOne, Cultist, Deca, Donu, FungiBeast, GremlinFat, GremlinNob, GremlinThief,
+    AwakenedOne, Cultist, Deca, Donu, FungiBeast, GiantHead, GremlinFat, GremlinNob, GremlinThief,
     GremlinTsundere, GremlinWarrior, GremlinWizard, Hexaghost, JawWorm, JawWormHard, Lagavulin,
     Looter, LouseDefensive, LouseNormal, Maw, Nemesis, OrbWalker, Sentry, SlaverBlue, SlaverRed,
     SlimeAcidLarge, SlimeAcidMedium, SlimeAcidSmall, SlimeBoss, SlimeSpikeLarge, SlimeSpikeMedium,
@@ -49,7 +50,7 @@ mirror_enum!(PyMonsterEncounter from MonsterEncounter, "MonsterEncounter", {
     CenturionAndHealer, Snecko, CultistAndChosen, ThreeCultists, ShelledParasiteAndFungi,
     ChosenAndByrds, SentryAndSphere, GremlinLeader, Slavers, BookOfStabbing, BronzeAutomaton,
     TheCollector, Champ, OrbWalker, JawWormHorde, Maw, SpireGrowth, Transient, WrithingMass,
-    Nemesis, AwakenedOne, DonuAndDeca, TimeEater,
+    GiantHead, Nemesis, AwakenedOne, DonuAndDeca, TimeEater,
 });
 
 #[pyclass(
@@ -210,7 +211,7 @@ pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
                     | Intent::Unknown => (None, None),
                 };
 
-                // The Monster's copy of the move holds the hit as chosen: Divider's and the Transient's locked damage, Multi-Stab's and Nom's locked counts
+                // The Monster's copy of the move holds the hit as chosen: Divider's, It Is Time's and the Transient's locked damage, Multi-Stab's and Nom's locked counts
                 let move_effects =
                     &monster.monster_move_effects[..monster.monster_move_effects_len as usize];
                 let hit = move_effects.iter().find_map(|effect| match effect.kind {
@@ -238,6 +239,7 @@ pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
                             has_modifier(&monster.modifiers, ModifierKind::Weak),
                             has_relic(&state.id_relics, RelicName::PaperKrane),
                         ),
+                        slow_factor(modifier_stacks(mods_char, ModifierKind::Slow)),
                         vuln_factor(
                             has_modifier(mods_char, ModifierKind::Vulnerable),
                             has_relic(&state.id_relics, RelicName::OddMushroom),
