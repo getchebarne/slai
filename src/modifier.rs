@@ -45,6 +45,7 @@ pub enum ModifierKind {
     Shackled,
     SharpHide,
     Shifting,
+    Slow,
     Splittable,
     SporeCloud,
     Strength,
@@ -428,6 +429,14 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
         stacks_duration: false,
         stacks_min: 1,
         stacks_max: 1,
+    },
+    ModifierDef {
+        kind: ModifierKind::Slow,
+        priority: PRIORITY_DEFAULT,
+        is_buff: false,
+        stacks_duration: false,
+        stacks_min: 0, // Listed at 0 from spawn and again after each round end's reset
+        stacks_max: i16::MAX,
     },
     ModifierDef {
         kind: ModifierKind::Splittable,

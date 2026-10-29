@@ -16,6 +16,7 @@ pub mod donu;
 pub mod encounters;
 pub mod exploder;
 pub mod fungi_beast;
+pub mod giant_head;
 pub mod gremlin_fat;
 pub mod gremlin_leader;
 pub mod gremlin_nob;
@@ -148,6 +149,7 @@ pub const ALL_MONSTERS: &[&'static MonsterTemplate] = &[
     &donu::DONU,
     &exploder::EXPLODER,
     &fungi_beast::FUNGI_BEAST,
+    &giant_head::GIANT_HEAD,
     &gremlin_fat::GREMLIN_FAT,
     &gremlin_leader::GREMLIN_LEADER,
     &gremlin_nob::GREMLIN_NOB,
@@ -376,6 +378,7 @@ pub fn monster_template(monster_name: MonsterName) -> &'static MonsterTemplate {
         MonsterName::Spiker => &spiker::SPIKER,
         MonsterName::Reptomancer => &reptomancer::REPTOMANCER,
         MonsterName::SnakeDagger => &snake_dagger::SNAKE_DAGGER,
+        MonsterName::GiantHead => &giant_head::GIANT_HEAD,
     }
 }
 
@@ -648,6 +651,12 @@ pub fn get_next_move(
             reptomancer::get_next_move_reptomancer(history, entity_id, id_monsters, rng)
         }
         MonsterName::SnakeDagger => snake_dagger::get_next_move_snake_dagger(history),
+        MonsterName::GiantHead => giant_head::get_next_move_giant_head(
+            history,
+            &entity.monster_move_uses,
+            ascension_level,
+            rng,
+        ),
     }
 }
 

@@ -1,7 +1,7 @@
 pub const MAX_MOVE_HISTORY: usize = 64;
 
-// Hexaghost's, The Guardian's and The Champ's tables are the largest: 7 moves
-pub const MAX_MONSTER_MOVES: usize = 7;
+// The Giant Head's tables are the largest: 9 moves
+pub const MAX_MONSTER_MOVES: usize = 9;
 
 // Per-Card effect array cap; bump if any Card legitimately exceeds 6
 pub const MAX_EFFECTS_PER_CARD: usize = 6;
@@ -61,6 +61,7 @@ pub const FACTOR_WEAK: f32 = 0.75;
 pub const FACTOR_WEAK_PAPER_KRANE: f32 = 0.60;
 pub const FACTOR_VULN: f32 = 1.50;
 pub const FACTOR_VULN_ODD_MUSHROOM: f32 = 1.25;
+pub const FACTOR_SLOW_PER_STACK: f32 = 0.10;
 pub const FACTOR_FRAIL: f32 = 0.75;
 pub const MODE_SHIFT_INCREASE_PER_CYCLE: i16 = 10;
 pub const HEXAGHOST_DIVIDER_HITS: u8 = 6;

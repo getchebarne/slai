@@ -22,6 +22,7 @@ use crate::utils::is_play_restriction_satisfied;
 use crate::utils::play_cap_reached;
 use crate::utils::scale_attack_damage;
 use crate::utils::scale_block_gain;
+use crate::utils::slow_factor;
 use crate::utils::strike_dummy_bonus;
 use crate::utils::vuln_factor;
 use crate::utils::weak_factor;
@@ -336,6 +337,7 @@ pub(crate) fn snapshot_adjusted_effects(
             double,
             pen_nib,
             weak_factor(weak, false),
+            slow_factor(0),
             vuln_factor(false, false),
             false,
         )

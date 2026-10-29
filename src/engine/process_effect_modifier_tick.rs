@@ -39,6 +39,11 @@ pub fn process_effect_modifier_tick(id_target: Option<usize>, state: &mut GameSt
             });
         }
 
+        // Slow: the play count starts over at 0 each round end, and Slow stays listed
+        if has_modifier(modifiers, ModifierKind::Slow) {
+            modifiers.stacks[ModifierKind::Slow as usize] = 0;
+        }
+
         // A Monster's Intangible skips the round end it landed in; its other Modifiers stop being new here
         let intangible_new = modifiers.is_new[ModifierKind::Intangible as usize];
         modifier_set_not_new(modifiers);

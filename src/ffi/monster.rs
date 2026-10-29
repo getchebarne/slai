@@ -20,6 +20,7 @@ use crate::types::RelicName;
 use crate::utils::entity_requires_target;
 use crate::utils::has_relic;
 use crate::utils::scale_attack_damage;
+use crate::utils::slow_factor;
 use crate::utils::vuln_factor;
 use crate::utils::weak_factor;
 
@@ -31,15 +32,15 @@ mirror_enum!(PyMonsterKind from MonsterKind, "MonsterKind", {
 });
 
 mirror_enum!(PyMonsterName from MonsterName, "MonsterName", {
-    AwakenedOne, Cultist, Darkling, Deca, Donu, Exploder, FungiBeast, GremlinFat, GremlinNob,
-    GremlinThief, GremlinTsundere, GremlinWarrior, GremlinWizard, Hexaghost, JawWorm, JawWormHard,
-    Lagavulin, Looter, LouseDefensive, LouseNormal, Maw, Nemesis, OrbWalker, Reptomancer, Repulsor,
-    Sentry, SlaverBlue, SlaverRed, SlimeAcidLarge, SlimeAcidMedium, SlimeAcidSmall, SlimeBoss,
-    SlimeSpikeLarge, SlimeSpikeMedium, SlimeSpikeSmall, SnakeDagger, Spiker, SpireGrowth,
-    TheGuardian, TimeEater, Transient, WrithingMass, Byrd, Centurion, Chosen, Healer, Mugger,
-    ShelledParasite, SnakePlant, Snecko, SphericGuardian, BookOfStabbing, GremlinLeader, Taskmaster,
-    BronzeAutomaton, BronzeOrb, Champ, TheCollector, TorchHead, BanditBear, BanditLeader,
-    BanditPointy,
+    AwakenedOne, Cultist, Darkling, Deca, Donu, Exploder, FungiBeast, GiantHead, GremlinFat,
+    GremlinNob, GremlinThief, GremlinTsundere, GremlinWarrior, GremlinWizard, Hexaghost, JawWorm,
+    JawWormHard, Lagavulin, Looter, LouseDefensive, LouseNormal, Maw, Nemesis, OrbWalker,
+    Reptomancer, Repulsor, Sentry, SlaverBlue, SlaverRed, SlimeAcidLarge, SlimeAcidMedium,
+    SlimeAcidSmall, SlimeBoss, SlimeSpikeLarge, SlimeSpikeMedium, SlimeSpikeSmall, SnakeDagger,
+    Spiker, SpireGrowth, TheGuardian, TimeEater, Transient, WrithingMass, Byrd, Centurion, Chosen,
+    Healer, Mugger, ShelledParasite, SnakePlant, Snecko, SphericGuardian, BookOfStabbing,
+    GremlinLeader, Taskmaster, BronzeAutomaton, BronzeOrb, Champ, TheCollector, TorchHead,
+    BanditBear, BanditLeader, BanditPointy,
 });
 
 mirror_enum!(PyMonsterEncounter from MonsterEncounter, "MonsterEncounter", {
@@ -50,8 +51,8 @@ mirror_enum!(PyMonsterEncounter from MonsterEncounter, "MonsterEncounter", {
     CenturionAndHealer, Snecko, CultistAndChosen, ThreeCultists, ShelledParasiteAndFungi,
     ChosenAndByrds, SentryAndSphere, GremlinLeader, Slavers, BookOfStabbing, BronzeAutomaton,
     TheCollector, Champ, OrbWalker, ThreeDarklings, ThreeShapes, FourShapes, JawWormHorde, Maw,
-    SphereAndTwoShapes, SpireGrowth, Transient, WrithingMass, Nemesis, Reptomancer, AwakenedOne,
-    DonuAndDeca, TimeEater,
+    SphereAndTwoShapes, SpireGrowth, Transient, WrithingMass, GiantHead, Nemesis, Reptomancer,
+    AwakenedOne, DonuAndDeca, TimeEater,
 });
 
 #[pyclass(
@@ -241,6 +242,7 @@ pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
                             has_modifier(&monster.modifiers, ModifierKind::Weak),
                             has_relic(&state.id_relics, RelicName::PaperKrane),
                         ),
+                        slow_factor(modifier_stacks(mods_char, ModifierKind::Slow)),
                         vuln_factor(
                             has_modifier(mods_char, ModifierKind::Vulnerable),
                             has_relic(&state.id_relics, RelicName::OddMushroom),

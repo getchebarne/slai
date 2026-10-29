@@ -121,6 +121,7 @@ pub mod process_effect_shop_purge;
 pub mod process_effect_shuffle_card_pile_discard_into_card_pile_draw;
 pub mod process_effect_singing_bowl_proc;
 pub mod process_effect_skewer_proc;
+pub mod process_effect_slow_proc;
 pub mod process_effect_sneaky_strike_proc;
 pub mod process_effect_storm_of_steel_proc;
 pub mod process_effect_strength_lose_temp;
@@ -257,6 +258,7 @@ use self::process_effect_shop_purge::process_effect_shop_purge;
 use self::process_effect_shuffle_card_pile_discard_into_card_pile_draw::process_effect_shuffle_card_pile_discard_into_card_pile_draw;
 use self::process_effect_singing_bowl_proc::process_effect_singing_bowl_proc;
 use self::process_effect_skewer_proc::process_effect_skewer_proc;
+use self::process_effect_slow_proc::process_effect_slow_proc;
 use self::process_effect_sneaky_strike_proc::process_effect_sneaky_strike_proc;
 use self::process_effect_storm_of_steel_proc::process_effect_storm_of_steel_proc;
 use self::process_effect_strength_lose_temp::process_effect_strength_lose_temp;
@@ -888,6 +890,10 @@ fn dispatch_by_kind(
         EffectKind::TimeWarpProc => {
             enqueue_rest_of_targets(state, kind, id_source, id_targets);
             process_effect_time_warp_proc(id_targets.first().copied(), state)
+        }
+        EffectKind::SlowProc => {
+            enqueue_rest_of_targets(state, kind, id_source, id_targets);
+            process_effect_slow_proc(id_targets.first().copied(), state)
         }
         EffectKind::HexaghostBurnIncrease { count } => {
             process_effect_hexaghost_burn_increase(state, count)
