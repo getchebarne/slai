@@ -118,7 +118,7 @@ impl GameEnv {
         snapshot_state(&self.state)
     }
 
-    // Apply an action. Returns `(obs, terminated)`
+    // Apply an action. Returns `(obs, terminated)`; a won run terminates only after its last boss fight
     fn step(&mut self, action: PyAction) -> PyResult<(PyGameState, bool)> {
         let internal =
             to_internal_action(action).map_err(pyo3::exceptions::PyValueError::new_err)?;

@@ -1517,6 +1517,7 @@ class EventName:
     MatchAndKeep: Final[EventName]
     MindBloom: Final[EventName]
     Mushrooms: Final[EventName]
+    MysteriousSphere: Final[EventName]
     Neow: Final[EventName]
     Nest: Final[EventName]
     Nloth: Final[EventName]
@@ -1702,6 +1703,8 @@ class Map:
     @property
     def boss(self, /) -> MonsterEncounter: ...
     @property
+    def boss_fights_after(self, /) -> int: ...
+    @property
     def identity_hash(self, /) -> int: ...
     @property
     def room_kind_resolved(self, /) -> RoomKind |None: ...
@@ -1869,6 +1872,7 @@ class MonsterEncounter:
     DonuAndDeca: Final[MonsterEncounter]
     ExordiumThugs: Final[MonsterEncounter]
     ExordiumWildlife: Final[MonsterEncounter]
+    FourShapes: Final[MonsterEncounter]
     GremlinGang: Final[MonsterEncounter]
     GremlinLeader: Final[MonsterEncounter]
     GremlinNob: Final[MonsterEncounter]
@@ -1892,6 +1896,7 @@ class MonsterEncounter:
     SmallSlimes: Final[MonsterEncounter]
     SnakePlant: Final[MonsterEncounter]
     Snecko: Final[MonsterEncounter]
+    SphereAndTwoShapes: Final[MonsterEncounter]
     SphericGuardian: Final[MonsterEncounter]
     SpireGrowth: Final[MonsterEncounter]
     TheCollector: Final[MonsterEncounter]
@@ -1902,11 +1907,11 @@ class MonsterEncounter:
     ThreeFungiBeasts: Final[MonsterEncounter]
     ThreeLouse: Final[MonsterEncounter]
     ThreeSentries: Final[MonsterEncounter]
+    ThreeShapes: Final[MonsterEncounter]
     TimeEater: Final[MonsterEncounter]
     Transient: Final[MonsterEncounter]
     TwoFungiBeasts: Final[MonsterEncounter]
     TwoLouse: Final[MonsterEncounter]
-    TwoOrbWalkers: Final[MonsterEncounter]
     TwoThieves: Final[MonsterEncounter]
     WrithingMass: Final[MonsterEncounter]
     def __eq__(self, other: object) -> bool: ...
@@ -1963,6 +1968,7 @@ class MonsterName:
     Darkling: Final[MonsterName]
     Deca: Final[MonsterName]
     Donu: Final[MonsterName]
+    Exploder: Final[MonsterName]
     FungiBeast: Final[MonsterName]
     GremlinFat: Final[MonsterName]
     GremlinLeader: Final[MonsterName]
@@ -1983,6 +1989,7 @@ class MonsterName:
     Mugger: Final[MonsterName]
     Nemesis: Final[MonsterName]
     OrbWalker: Final[MonsterName]
+    Repulsor: Final[MonsterName]
     Sentry: Final[MonsterName]
     ShelledParasite: Final[MonsterName]
     SlaverBlue: Final[MonsterName]
@@ -1997,6 +2004,7 @@ class MonsterName:
     SnakePlant: Final[MonsterName]
     Snecko: Final[MonsterName]
     SphericGuardian: Final[MonsterName]
+    Spiker: Final[MonsterName]
     SpireGrowth: Final[MonsterName]
     Taskmaster: Final[MonsterName]
     TheCollector: Final[MonsterName]

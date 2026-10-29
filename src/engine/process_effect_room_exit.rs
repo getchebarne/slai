@@ -28,7 +28,7 @@ pub fn process_effect_room_exit(state: &mut GameState) {
         return;
     }
 
-    // A mid-run Boss Room opens onto its treasure Room, whose exit starts the next act
+    // A Boss Room before the final act opens onto its treasure Room, whose exit starts the next act
     match state.location {
         Location::BossRoom if state.act < ACT_FINAL => {
             state.effect_queue.push_front(Effect {
@@ -44,6 +44,20 @@ pub fn process_effect_room_exit(state: &mut GameState) {
         Location::BossTreasure => {
             state.effect_queue.push_front(Effect {
                 kind: EffectKind::ActTransition,
+                id_source: None,
+                target: Target::Direct(None),
+            });
+            return;
+        }
+
+        // A boss fight still to come opens in a fresh Boss Room, its boss moved into `encounter_boss`
+        Location::BossRoom if !state.encounter_pool_boss.is_empty() => {
+            state.encounter_boss = state.encounter_pool_boss.remove(0);
+            state.effect_queue.push_front(Effect {
+                kind: EffectKind::RoomEnter {
+                    location: Location::BossRoom,
+                    landing: false,
+                },
                 id_source: None,
                 target: Target::Direct(None),
             });

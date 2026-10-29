@@ -56,7 +56,7 @@ pub enum Location {
     Start,
     Overworld { y: usize, x: usize },
     BossRoom,
-    BossTreasure, // The boss chest's Room, entered on leaving a mid-run Boss Room
+    BossTreasure, // The boss chest's Room, entered on leaving a Boss Room before the final act
 }
 
 // GameState: the single source of truth
@@ -66,7 +66,7 @@ pub struct GameState {
     pub ascension: u8,
     pub rng: SmallRng,
 
-    // Current act, 1-based; runs end at the ACT_FINAL boss
+    // Current act, 1-based; the run ends after the last boss fight of act ACT_FINAL
     pub act: u8,
 
     // Engine state
@@ -105,6 +105,9 @@ pub struct GameState {
     pub encounter_pool_normal: Vec<MonsterEncounter>,
     pub encounter_pool_elite: Vec<MonsterEncounter>,
     pub encounter_boss: MonsterEncounter,
+
+    // The act's boss fights after `encounter_boss`'s, front first; only their count is shown, and leaving the Boss Room moves the front into `encounter_boss`
+    pub encounter_pool_boss: Vec<MonsterEncounter>,
 
     // Master deck (persists across combats)
     pub id_card_pile_deck: Vec<usize>,
@@ -247,6 +250,7 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
         encounter_pool_normal,
         encounter_pool_elite,
         encounter_boss,
+        encounter_pool_boss: Vec::new(),
         effect_queue,
         card_play_queue: VecDeque::new(),
         phase_queue: VecDeque::new(),

@@ -129,7 +129,7 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
             state.event.active = false;
         }
     } else {
-        // Final boss: the run ends below; every other fight rolls its reward
+        // A final-act boss fight rolls no reward; every other fight rolls its reward
         if !(matches!(state.location, Location::BossRoom) && state.act >= ACT_FINAL) {
             // A "?" that resolved to a plain fight rewards as a normal Monster Room
             let room_kind =
@@ -195,13 +195,19 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
 
     queue_combat_end_relics(state);
 
-    // Final-act boss victory: the run ends once the combat-end Relics have resolved, resting on Map
+    // Final-act boss victory: the act's last boss fight ends the run once the combat-end Relics have resolved, resting on Map
     if matches!(state.location, Location::BossRoom) && state.act >= ACT_FINAL {
-        state.phase_queue.push_back(Effect {
-            kind: EffectKind::GameOver,
-            id_source: None,
-            target: Target::Direct(None),
-        });
+        if state.encounter_pool_boss.is_empty() {
+            state.phase_queue.push_back(Effect {
+                kind: EffectKind::GameOver,
+                id_source: None,
+                target: Target::Direct(None),
+            });
+        } else {
+            // A boss fight still to come waits behind an empty Reward, whose RoomExit enters it
+            reward_reset(&mut state.reward);
+            state.reward.active = true;
+        }
     }
 }
 
