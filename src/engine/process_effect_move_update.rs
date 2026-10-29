@@ -1,13 +1,10 @@
 use crate::consts::HEXAGHOST_DIVIDER_DIVISOR;
-use crate::consts::IT_IS_TIME_INCREASE_MAX;
-use crate::consts::IT_IS_TIME_INCREASE_PER_USE;
 use crate::consts::MODE_SHIFT_INCREASE_PER_CYCLE;
 use crate::effect::EffectKind;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::monsters::book_of_stabbing;
 use crate::monsters::get_next_move;
-use crate::monsters::giant_head;
 use crate::monsters::hexaghost;
 use crate::monsters::maw;
 use crate::monsters::push_move_history;
@@ -80,24 +77,13 @@ pub fn process_effect_move_update(
         0
     };
 
-    // It Is Time's damage locks in at selection: 5 more per It Is Time used before it, 30 more at most
-    let damage_bonus = if entity.monster_name == MonsterName::GiantHead
-        && move_next == giant_head::IDX_MOVE_IT_IS_TIME
-    {
-        (IT_IS_TIME_INCREASE_PER_USE
-            * u16::from(entity.monster_move_uses[giant_head::IDX_MOVE_IT_IS_TIME]))
-        .min(IT_IS_TIME_INCREASE_MAX)
-    } else {
-        0
-    };
-
     // The locked values go into the copy
     for effect in entity.monster_move_effects[..move_chosen.effects_len as usize].iter_mut() {
         match &mut effect.kind {
             EffectKind::DamagePhysical {
                 amount, instances, ..
             } => {
-                *amount = damage_locked.unwrap_or(*amount) + damage_bonus;
+                *amount = damage_locked.unwrap_or(*amount);
                 *instances = instances_locked.map_or(*instances, u16::from);
             }
             EffectKind::ModifierDelta {

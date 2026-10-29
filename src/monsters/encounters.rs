@@ -1,5 +1,6 @@
 use rand::Rng;
 
+use crate::consts::ASCENSION_DOUBLE_BOSS_LEVEL;
 use crate::consts::NUM_ENCOUNTERS_EASY;
 use crate::consts::NUM_ENCOUNTERS_EASY_ACT2;
 use crate::consts::NUM_ENCOUNTERS_ELITE;
@@ -11,6 +12,7 @@ use crate::effect::Target;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::monsters::GREMLIN_POOL;
+use crate::monsters::gremlin_leader::EFFECT_GREMLIN_SUMMON;
 use crate::types::MonsterEncounter;
 use crate::types::MonsterName;
 use crate::utils::flush_effects_from_buf_to_queue_front;
@@ -249,12 +251,37 @@ pub fn roll_boss(act: u8, rng: &mut impl Rng) -> MonsterEncounter {
         MonsterEncounter::TheCollector,
         MonsterEncounter::Champ,
     ];
+    const BOSSES_ACT3: [MonsterEncounter; 3] = [
+        MonsterEncounter::AwakenedOne,
+        MonsterEncounter::TimeEater,
+        MonsterEncounter::DonuAndDeca,
+    ];
     let pool: &[MonsterEncounter] = match act {
         1 => &BOSSES_ACT1,
         2 => &BOSSES_ACT2,
+        3 => &BOSSES_ACT3,
         _ => unreachable!("no bosses for act {act}"),
     };
     pool[rng.random_range(0..pool.len())]
+}
+
+// The act's boss fights after `encounter_boss`'s: from A20, Act 3's first boss is followed by one of the other two
+pub fn roll_boss_pool(
+    act: u8,
+    ascension: u8,
+    encounter_boss: MonsterEncounter,
+    rng: &mut impl Rng,
+) -> Vec<MonsterEncounter> {
+    if act != 3 || ascension < ASCENSION_DOUBLE_BOSS_LEVEL {
+        return Vec::new();
+    }
+
+    loop {
+        let encounter = roll_boss(act, rng);
+        if encounter != encounter_boss {
+            return vec![encounter];
+        }
+    }
 }
 
 fn roll_louse(rng: &mut impl Rng) -> MonsterName {
@@ -295,6 +322,25 @@ fn roll_humanoid_strong(rng: &mut impl Rng) -> MonsterName {
         0 => MonsterName::Cultist,
         1 => roll_slaver(rng),
         2 => MonsterName::Looter,
+        _ => unreachable!(),
+    }
+}
+
+// Two of each Shape; 3 Shapes and 4 Shapes take the first three or four after a shuffle
+const SHAPE_POOL: [MonsterName; 6] = [
+    MonsterName::Repulsor,
+    MonsterName::Repulsor,
+    MonsterName::Exploder,
+    MonsterName::Exploder,
+    MonsterName::Spiker,
+    MonsterName::Spiker,
+];
+
+fn roll_shape(rng: &mut impl Rng) -> MonsterName {
+    match rng.random_range(0..3) {
+        0 => MonsterName::Spiker,
+        1 => MonsterName::Repulsor,
+        2 => MonsterName::Exploder,
         _ => unreachable!(),
     }
 }
@@ -390,8 +436,9 @@ pub fn spawn_encounter_monsters(state: &mut GameState, encounter: MonsterEncount
                 push_monster_spawn(effects, MonsterName::Sentry, slot);
             }
         }
-        MonsterEncounter::TheGuardian => push_monster_spawn(effects, MonsterName::TheGuardian, 0),
-        MonsterEncounter::Hexaghost => push_monster_spawn(effects, MonsterName::Hexaghost, 0),
+        // Every Act 1 boss stands in slot 2, in its Boss Room as in Mind Bloom's I am War
+        MonsterEncounter::TheGuardian => push_monster_spawn(effects, MonsterName::TheGuardian, 2),
+        MonsterEncounter::Hexaghost => push_monster_spawn(effects, MonsterName::Hexaghost, 2),
         MonsterEncounter::SlimeBoss => {
             // Slot 2 leaves room for the Larges in slots 1 and 3, and for their splits
             push_monster_spawn(effects, MonsterName::SlimeBoss, 2)
@@ -419,10 +466,6 @@ pub fn spawn_encounter_monsters(state: &mut GameState, encounter: MonsterEncount
                     target: TARGET_MONSTERS_ALL,
                 });
             }
-        }
-        MonsterEncounter::TwoOrbWalkers => {
-            push_monster_spawn(effects, MonsterName::OrbWalker, 0);
-            push_monster_spawn(effects, MonsterName::OrbWalker, 1);
         }
         MonsterEncounter::SphericGuardian => {
             push_monster_spawn(effects, MonsterName::SphericGuardian, 0)
@@ -470,11 +513,7 @@ pub fn spawn_encounter_monsters(state: &mut GameState, encounter: MonsterEncount
         MonsterEncounter::GremlinLeader => {
             // Two weighted gremlins take the first two posts as Minions, then the leader
             for _ in 0..2 {
-                effects.push(Effect {
-                    kind: EffectKind::GremlinSummon,
-                    id_source: None,
-                    target: Target::Direct(None),
-                });
+                effects.push(EFFECT_GREMLIN_SUMMON);
             }
             push_monster_spawn(effects, MonsterName::GremlinLeader, 3);
         }
@@ -496,12 +535,36 @@ pub fn spawn_encounter_monsters(state: &mut GameState, encounter: MonsterEncount
         }
         MonsterEncounter::Champ => push_monster_spawn(effects, MonsterName::Champ, 0),
         MonsterEncounter::OrbWalker => push_monster_spawn(effects, MonsterName::OrbWalker, 0),
+        MonsterEncounter::ThreeDarklings => {
+            for slot in 0..3 {
+                push_monster_spawn(effects, MonsterName::Darkling, slot);
+            }
+        }
+        MonsterEncounter::ThreeShapes => {
+            let mut pool = SHAPE_POOL;
+            shuffle(&mut pool, rng);
+            for (slot, &name) in pool[..3].iter().enumerate() {
+                push_monster_spawn(effects, name, slot);
+            }
+        }
+        MonsterEncounter::FourShapes => {
+            let mut pool = SHAPE_POOL;
+            shuffle(&mut pool, rng);
+            for (slot, &name) in pool[..4].iter().enumerate() {
+                push_monster_spawn(effects, name, slot);
+            }
+        }
         MonsterEncounter::JawWormHorde => {
             for slot in 0..3 {
                 push_monster_spawn(effects, MonsterName::JawWormHard, slot);
             }
         }
         MonsterEncounter::Maw => push_monster_spawn(effects, MonsterName::Maw, 0),
+        MonsterEncounter::SphereAndTwoShapes => {
+            push_monster_spawn(effects, roll_shape(rng), 0);
+            push_monster_spawn(effects, roll_shape(rng), 1);
+            push_monster_spawn(effects, MonsterName::SphericGuardian, 2);
+        }
         MonsterEncounter::DonuAndDeca => {
             push_monster_spawn(effects, MonsterName::Deca, 0);
             push_monster_spawn(effects, MonsterName::Donu, 1);
@@ -516,6 +579,12 @@ pub fn spawn_encounter_monsters(state: &mut GameState, encounter: MonsterEncount
         MonsterEncounter::WrithingMass => push_monster_spawn(effects, MonsterName::WrithingMass, 0),
         MonsterEncounter::GiantHead => push_monster_spawn(effects, MonsterName::GiantHead, 0),
         MonsterEncounter::Nemesis => push_monster_spawn(effects, MonsterName::Nemesis, 0),
+        MonsterEncounter::Reptomancer => {
+            // The opening daggers hold the first two posts, slots 1 and 4, around Reptomancer's slot 2
+            push_monster_spawn(effects, MonsterName::SnakeDagger, 1);
+            push_monster_spawn(effects, MonsterName::Reptomancer, 2);
+            push_monster_spawn(effects, MonsterName::SnakeDagger, 4);
+        }
         MonsterEncounter::SpireGrowth => push_monster_spawn(effects, MonsterName::SpireGrowth, 0),
     }
 

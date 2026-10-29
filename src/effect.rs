@@ -172,7 +172,6 @@ pub enum EffectKind {
     GoldSteal {
         amount: u8,
     },
-    GremlinSummon,
     HalfDeadRebirth,
     HandOfGreedProc {
         gold: u16,
@@ -203,7 +202,6 @@ pub enum EffectKind {
         amount: Amount,
     },
     MayhemProc,
-    MindBloomFight,
     ModifierDelta {
         kind: ModifierKind,
         stacks: i16,
@@ -220,12 +218,15 @@ pub enum EffectKind {
     MonsterRemove,
     MonsterSpawn {
         name: MonsterName,
-        minion: bool, // Gremlin Leader's summons
+        minion: bool, // The Gremlin Leader's and Reptomancer's summons
         slot: usize,
     },
     MonsterSplit {
         name: MonsterName,
         slot_offset: isize,
+    },
+    MonsterSummon {
+        summon: &'static Summon,
     },
     MoveExecute,
     MoveUpdate {
@@ -236,6 +237,7 @@ pub enum EffectKind {
         rare_only: bool,
     }, // Neow's card offer: 3 Cards into the event's roll, for its selection
     NoOp,
+    PhilosopherStoneProc,
     PoisonTick {
         amount: u16,
     },
@@ -335,6 +337,14 @@ pub enum EffectKind {
     UnceasingTopDraw,
     UnloadDiscard,
     WheelSpin,
+}
+
+// A summoner's data, one static per summoner, so `MonsterSummon` carries a single reference
+#[derive(Debug, PartialEq)]
+pub struct Summon {
+    pub pool: &'static [MonsterName], // Rolled as the summon lands; a repeated name weighs more
+    pub posts: &'static [usize],      // Roster slots in fill order; the first empty one is taken
+    pub minion: bool,
 }
 
 // How far the staged Relic is already resolved; each variant rolls only what remains

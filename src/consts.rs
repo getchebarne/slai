@@ -1,7 +1,7 @@
 pub const MAX_MOVE_HISTORY: usize = 64;
 
-// Hexaghost's, The Guardian's and The Champ's tables are the largest: 7 moves
-pub const MAX_MONSTER_MOVES: usize = 7;
+// The Giant Head's tables are the largest: 9 moves
+pub const MAX_MONSTER_MOVES: usize = 9;
 
 // Per-Card effect array cap; bump if any Card legitimately exceeds 6
 pub const MAX_EFFECTS_PER_CARD: usize = 6;
@@ -64,8 +64,6 @@ pub const FACTOR_VULN_ODD_MUSHROOM: f32 = 1.25;
 pub const FACTOR_SLOW_PER_STACK: f32 = 0.10;
 pub const FACTOR_FRAIL: f32 = 0.75;
 pub const MODE_SHIFT_INCREASE_PER_CYCLE: i16 = 10;
-pub const IT_IS_TIME_INCREASE_PER_USE: u16 = 5;
-pub const IT_IS_TIME_INCREASE_MAX: u16 = 30;
 pub const HEXAGHOST_DIVIDER_HITS: u8 = 6;
 
 // Divider rolls `character_health / DIVISOR + 1` per hit at move selection
@@ -121,8 +119,11 @@ pub const COLORLESS_RARE_CHANCE: f32 = 0.3;
 // Wheel of Change pays 100 per act
 pub const WHEEL_GOLD_PER_ACT: u16 = 100;
 
-// Acts, 1-based; the run ends at the ACT_FINAL boss
+// Acts, 1-based; the run ends after the last boss fight of act ACT_FINAL
 pub const ACT_FINAL: u8 = 2;
+
+// A20+: Act 3's first boss fight is followed by a second, against one of the other two bosses
+pub const ASCENSION_DOUBLE_BOSS_LEVEL: u8 = 20;
 
 // Map
 pub const MAP_HEIGHT: usize = 15;

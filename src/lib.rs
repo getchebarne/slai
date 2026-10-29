@@ -118,7 +118,7 @@ impl GameEnv {
         snapshot_state(&self.state)
     }
 
-    // Apply an action. Returns `(obs, terminated)`
+    // Apply an action. Returns `(obs, terminated)`; a won run terminates only after its last boss fight
     fn step(&mut self, action: PyAction) -> PyResult<(PyGameState, bool)> {
         let internal =
             to_internal_action(action).map_err(pyo3::exceptions::PyValueError::new_err)?;
@@ -331,8 +331,6 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEffectGoldDelta;
     #[pymodule_export]
-    use super::ffi::PyEffectGremlinSummon;
-    #[pymodule_export]
     use super::ffi::PyEffectHalfDeadRebirth;
     #[pymodule_export]
     use super::ffi::PyEffectHandOfGreedProc;
@@ -359,8 +357,6 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEffectMaxHealthDelta;
     #[pymodule_export]
-    use super::ffi::PyEffectMindBloomFight;
-    #[pymodule_export]
     use super::ffi::PyEffectModifierDelta;
     #[pymodule_export]
     use super::ffi::PyEffectModifierMultiply;
@@ -375,7 +371,11 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEffectMonsterSplit;
     #[pymodule_export]
+    use super::ffi::PyEffectMonsterSummon;
+    #[pymodule_export]
     use super::ffi::PyEffectNeowCardsRoll;
+    #[pymodule_export]
+    use super::ffi::PyEffectPhilosopherStoneProc;
     #[pymodule_export]
     use super::ffi::PyEffectPotionAddRandom;
     #[pymodule_export]

@@ -8,8 +8,10 @@ use crate::effect::Target;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
+use crate::modifier::modifier_clear;
 use crate::modifier::modifier_stacks;
 use crate::monsters::awakened_one;
+use crate::monsters::darkling;
 use crate::monsters::monster_half_dies;
 use crate::potions::remove_potion;
 use crate::types::Combat;
@@ -32,10 +34,10 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState, wit
     // Character death: clear pending work, mark dead, signal game over
     if id_target == state.id_character {
         // Mark of the Bloom: nothing revives the Character
-        let revivable = !has_relic(&state.id_relics, RelicName::MarkOfTheBloom);
+        let can_revive = !has_relic(&state.id_relics, RelicName::MarkOfTheBloom);
 
         // Fairy in a Bottle: consumed to revive by its own heal (doubled with Sacred Bark); checked before Lizard Tail
-        if revivable
+        if can_revive
             && let Some(id_potion) = state
                 .id_potions
                 .iter()
@@ -55,7 +57,7 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState, wit
         }
 
         // Lizard Tail: once per run, survive at half max HP instead
-        if revivable
+        if can_revive
             && let Some(id_relic) = state.id_relics[RelicName::LizardTail as usize]
             && !state.entities[id_relic].relic_used_up
         {
@@ -84,8 +86,10 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState, wit
     );
 
     // A Monster its own rule spares goes half-dead instead: it keeps its slot, its turns and the combat going, at 0 HP with no block; a half-dead Monster's next Death is its last
-    let monster = &mut state.entities[id_target];
-    if !monster.monster_half_dead && monster_half_dies(monster) {
+    if !state.entities[id_target].monster_half_dead
+        && monster_half_dies(&state.entities, id_target, &state.combat.id_monsters)
+    {
+        let monster = &mut state.entities[id_target];
         monster.monster_half_dead = true;
         monster.vitals.block = 0;
 
@@ -124,6 +128,20 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState, wit
             flush_effects_from_buf_to_queue_front(state);
             state.effect_queue.push_back(effect_move_update_rebirth);
         }
+
+        // A Darkling falls: every Modifier goes and Count is its move at once; Count is set again behind everything queued, over the roll its own attack queued
+        if state.entities[id_target].monster_name == MonsterName::Darkling {
+            modifier_clear(&mut state.entities[id_target].modifiers);
+            let effect_move_update_count = Effect {
+                kind: EffectKind::MoveUpdate {
+                    move_override: Some(darkling::IDX_MOVE_COUNT),
+                },
+                id_source: None,
+                target: Target::Direct(Some(id_target)),
+            };
+            state.effect_queue.push_front(effect_move_update_count);
+            state.effect_queue.push_back(effect_move_update_count);
+        }
         return;
     }
     let Combat {
@@ -138,6 +156,7 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState, wit
     let id_character = state.id_character;
 
     // Mark the Monster dead, half-dead no more, drop it from the roster, and check if combat continues
+    let was_half_dead = state.entities[id_target].monster_half_dead;
     state.entities[id_target].dead = true;
     state.entities[id_target].monster_half_dead = false;
     let slot = id_monsters.iter().position(|slot| *slot == Some(id_target));
@@ -153,8 +172,8 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState, wit
     state.entities[id_target].monster_gold_stolen = 0;
 
     if !any_left {
-        // No waiting Card play starts after the last kill, unless minions fall with their leader: then the turn end's self-plays still play, and the play gate refuses the rest
-        if !with_leader {
+        // No waiting Card play starts after the last kill, unless another Monster's rule makes it (minions falling with their leader, half-dead Darklings with the last one standing): then the turn end's self-plays still play, and the play gate refuses the rest
+        if !with_leader && !was_half_dead {
             state.card_play_queue.clear();
         }
 
@@ -208,6 +227,17 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState, wit
                     target: Target::Direct(Some(id)),
                 });
             }
+        }
+    }
+
+    // The last Darkling standing takes the half-dead ones down with it at once, in slot order; their on-death triggers wait at the back, where the last kill drops them
+    if target.monster_name == MonsterName::Darkling && !was_half_dead {
+        for &id_monster in id_monsters.iter().flatten().rev() {
+            state.effect_queue.push_front(Effect {
+                kind: EffectKind::Death { with_leader: false },
+                id_source: None,
+                target: Target::Direct(Some(id_monster)),
+            });
         }
     }
 

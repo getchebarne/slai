@@ -10,9 +10,11 @@ pub mod centurion;
 pub mod champ;
 pub mod chosen;
 pub mod cultist;
+pub mod darkling;
 pub mod deca;
 pub mod donu;
 pub mod encounters;
+pub mod exploder;
 pub mod fungi_beast;
 pub mod giant_head;
 pub mod gremlin_fat;
@@ -33,6 +35,8 @@ pub mod maw;
 pub mod mugger;
 pub mod nemesis;
 pub mod orb_walker;
+pub mod reptomancer;
+pub mod repulsor;
 pub mod sentry;
 pub mod shelled_parasite;
 pub mod slaver_blue;
@@ -44,9 +48,11 @@ pub mod slime_boss;
 pub mod slime_spike_large;
 pub mod slime_spike_medium;
 pub mod slime_spike_small;
+pub mod snake_dagger;
 pub mod snake_plant;
 pub mod snecko;
 pub mod spheric_guardian;
+pub mod spiker;
 pub mod spire_growth;
 pub mod taskmaster;
 pub mod the_collector;
@@ -84,6 +90,7 @@ use strum::EnumCount;
 
 use crate::types::MonsterName;
 use crate::types::Vitals;
+use crate::utils::monsters_alive;
 use rand::Rng;
 
 // Static definition of a Monster: everything spawn-time except per-Monster rolls
@@ -137,8 +144,10 @@ pub const ALL_MONSTERS: &[&'static MonsterTemplate] = &[
     &champ::CHAMP,
     &chosen::CHOSEN,
     &cultist::CULTIST,
+    &darkling::DARKLING,
     &deca::DECA,
     &donu::DONU,
+    &exploder::EXPLODER,
     &fungi_beast::FUNGI_BEAST,
     &giant_head::GIANT_HEAD,
     &gremlin_fat::GREMLIN_FAT,
@@ -160,6 +169,8 @@ pub const ALL_MONSTERS: &[&'static MonsterTemplate] = &[
     &mugger::MUGGER,
     &orb_walker::ORB_WALKER,
     &nemesis::NEMESIS,
+    &reptomancer::REPTOMANCER,
+    &repulsor::REPULSOR,
     &sentry::SENTRY,
     &shelled_parasite::SHELLED_PARASITE,
     &slaver_blue::SLAVER_BLUE,
@@ -171,9 +182,11 @@ pub const ALL_MONSTERS: &[&'static MonsterTemplate] = &[
     &slime_spike_large::SLIME_SPIKE_LARGE,
     &slime_spike_medium::SLIME_SPIKE_MEDIUM,
     &slime_spike_small::SLIME_SPIKE_SMALL,
+    &snake_dagger::SNAKE_DAGGER,
     &snake_plant::SNAKE_PLANT,
     &snecko::SNECKO,
     &spheric_guardian::SPHERIC_GUARDIAN,
+    &spiker::SPIKER,
     &spire_growth::SPIRE_GROWTH,
     &taskmaster::TASKMASTER,
     &the_collector::THE_COLLECTOR,
@@ -305,6 +318,7 @@ pub fn monster_template(monster_name: MonsterName) -> &'static MonsterTemplate {
     match monster_name {
         MonsterName::AwakenedOne => &awakened_one::AWAKENED_ONE,
         MonsterName::Cultist => &cultist::CULTIST,
+        MonsterName::Darkling => &darkling::DARKLING,
         MonsterName::JawWorm => &jaw_worm::JAW_WORM,
         MonsterName::JawWormHard => &jaw_worm::JAW_WORM_HARD,
         MonsterName::TheGuardian => &the_guardian::THE_GUARDIAN,
@@ -359,6 +373,11 @@ pub fn monster_template(monster_name: MonsterName) -> &'static MonsterTemplate {
         MonsterName::WrithingMass => &writhing_mass::WRITHING_MASS,
         MonsterName::Nemesis => &nemesis::NEMESIS,
         MonsterName::SpireGrowth => &spire_growth::SPIRE_GROWTH,
+        MonsterName::Exploder => &exploder::EXPLODER,
+        MonsterName::Repulsor => &repulsor::REPULSOR,
+        MonsterName::Spiker => &spiker::SPIKER,
+        MonsterName::Reptomancer => &reptomancer::REPTOMANCER,
+        MonsterName::SnakeDagger => &snake_dagger::SNAKE_DAGGER,
         MonsterName::GiantHead => &giant_head::GIANT_HEAD,
     }
 }
@@ -374,10 +393,6 @@ pub const GREMLIN_POOL: [MonsterName; 8] = [
     MonsterName::GremlinTsundere,
     MonsterName::GremlinWizard,
 ];
-
-pub fn roll_gremlin(rng: &mut impl Rng) -> MonsterName {
-    GREMLIN_POOL[rng.random_range(0..GREMLIN_POOL.len())]
-}
 
 pub fn push_move_history(entity: &mut Entity, move_idx: u8) {
     let len = entity.monster_move_history_len as usize;
@@ -437,6 +452,19 @@ pub fn get_next_move(
             rng,
         ),
         MonsterName::Cultist => cultist::get_next_move_cultist(entity.monster_move_current),
+        MonsterName::Darkling => {
+            let slot = id_monsters
+                .iter()
+                .position(|&slot| slot == Some(entity_id))
+                .expect("a rolling Darkling holds its slot");
+            darkling::get_next_move_darkling(
+                entity.monster_move_current,
+                history,
+                slot,
+                entity.monster_half_dead,
+                rng,
+            )
+        }
         MonsterName::JawWorm => {
             jaw_worm::get_next_move_jaw_worm(entity.monster_move_current, history, rng)
         }
@@ -614,6 +642,15 @@ pub fn get_next_move(
             ascension_level,
             rng,
         ),
+        MonsterName::Exploder => exploder::get_next_move_exploder(history),
+        MonsterName::Repulsor => repulsor::get_next_move_repulsor(history, rng),
+        MonsterName::Spiker => {
+            spiker::get_next_move_spiker(history, &entity.monster_move_uses, rng)
+        }
+        MonsterName::Reptomancer => {
+            reptomancer::get_next_move_reptomancer(history, entity_id, id_monsters, rng)
+        }
+        MonsterName::SnakeDagger => snake_dagger::get_next_move_snake_dagger(history),
         MonsterName::GiantHead => giant_head::get_next_move_giant_head(
             history,
             &entity.monster_move_uses,
@@ -624,10 +661,19 @@ pub fn get_next_move(
 }
 
 // A Monster brought to 0 HP dies unless its own rule makes it half-dead
-pub fn monster_half_dies(entity: &Entity) -> bool {
-    match entity.monster_name {
+pub fn monster_half_dies(
+    entities: &[Entity],
+    id_monster: usize,
+    id_monsters: &[Option<usize>; MAX_MONSTERS],
+) -> bool {
+    let monster = &entities[id_monster];
+    match monster.monster_name {
         // The Awakened One's first form, which holds Unawakened
-        MonsterName::AwakenedOne => has_modifier(&entity.modifiers, ModifierKind::Unawakened),
+        MonsterName::AwakenedOne => has_modifier(&monster.modifiers, ModifierKind::Unawakened),
+
+        // A Darkling, while another Darkling still stands
+        MonsterName::Darkling => monsters_alive(entities, id_monsters)
+            .any(|id| id != id_monster && entities[id].monster_name == MonsterName::Darkling),
         _ => false,
     }
 }
