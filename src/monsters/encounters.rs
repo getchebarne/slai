@@ -496,6 +496,11 @@ pub fn spawn_encounter_monsters(state: &mut GameState, encounter: MonsterEncount
         }
         MonsterEncounter::Champ => push_monster_spawn(effects, MonsterName::Champ, 0),
         MonsterEncounter::OrbWalker => push_monster_spawn(effects, MonsterName::OrbWalker, 0),
+        MonsterEncounter::ThreeDarklings => {
+            for slot in 0..3 {
+                push_monster_spawn(effects, MonsterName::Darkling, slot);
+            }
+        }
         MonsterEncounter::JawWormHorde => {
             for slot in 0..3 {
                 push_monster_spawn(effects, MonsterName::JawWormHard, slot);

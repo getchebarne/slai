@@ -31,7 +31,7 @@ mirror_enum!(PyMonsterKind from MonsterKind, "MonsterKind", {
 });
 
 mirror_enum!(PyMonsterName from MonsterName, "MonsterName", {
-    AwakenedOne, Cultist, Deca, Donu, FungiBeast, GremlinFat, GremlinNob, GremlinThief,
+    AwakenedOne, Cultist, Darkling, Deca, Donu, FungiBeast, GremlinFat, GremlinNob, GremlinThief,
     GremlinTsundere, GremlinWarrior, GremlinWizard, Hexaghost, JawWorm, JawWormHard, Lagavulin,
     Looter, LouseDefensive, LouseNormal, Maw, Nemesis, OrbWalker, Sentry, SlaverBlue, SlaverRed,
     SlimeAcidLarge, SlimeAcidMedium, SlimeAcidSmall, SlimeBoss, SlimeSpikeLarge, SlimeSpikeMedium,
@@ -48,8 +48,8 @@ mirror_enum!(PyMonsterEncounter from MonsterEncounter, "MonsterEncounter", {
     TwoOrbWalkers, SphericGuardian, Chosen, ShelledParasite, ThreeByrds, TwoThieves, SnakePlant,
     CenturionAndHealer, Snecko, CultistAndChosen, ThreeCultists, ShelledParasiteAndFungi,
     ChosenAndByrds, SentryAndSphere, GremlinLeader, Slavers, BookOfStabbing, BronzeAutomaton,
-    TheCollector, Champ, OrbWalker, JawWormHorde, Maw, SpireGrowth, Transient, WrithingMass,
-    Nemesis, AwakenedOne, DonuAndDeca, TimeEater,
+    TheCollector, Champ, OrbWalker, ThreeDarklings, JawWormHorde, Maw, SpireGrowth, Transient,
+    WrithingMass, Nemesis, AwakenedOne, DonuAndDeca, TimeEater,
 });
 
 #[pyclass(

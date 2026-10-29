@@ -2,11 +2,8 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
-use crate::modifier::ModifierKind;
 use crate::monsters::spawn_monster;
 use crate::types::MonsterName;
-use crate::types::RelicName;
-use crate::utils::has_relic;
 use crate::utils::push_entity;
 
 pub fn process_effect_monster_split(
@@ -54,16 +51,11 @@ pub fn process_effect_monster_split(
     state.combat.id_monsters[slot] = Some(id_monster);
 
     // Philosopher's Stone: split children get the Strength too
-    if has_relic(&state.id_relics, RelicName::PhilosopherStone) {
-        state.effect_queue.push_front(Effect {
-            kind: EffectKind::ModifierDelta {
-                kind: ModifierKind::Strength,
-                stacks: 1,
-            },
-            id_source: None,
-            target: Target::Direct(Some(id_monster)),
-        });
-    }
+    state.effect_queue.push_front(Effect {
+        kind: EffectKind::PhilosopherStoneProc,
+        id_source: None,
+        target: Target::Direct(Some(id_monster)),
+    });
 
     // Queue an effect to update its move
     state.effect_queue.push_front(Effect {
