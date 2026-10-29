@@ -492,10 +492,32 @@ pub const POOL_EVENT_SHRINES: &[EventName] = &[
     EventName::MatchAndKeep,
 ];
 
-// One-time specials first reachable in act 2
+// One-time specials that join the pool at act 2
 pub const POOL_EVENT_ACT2_SPECIAL: &[EventName] = &[
     EventName::Designer,
     EventName::Duplicator,
+    EventName::KnowingSkull,
+    EventName::Nloth,
+    EventName::TheJoust,
+];
+
+// The Moai Head is draw-gated in `draw_event` (Golden Idol, or at most half HP)
+pub const POOL_EVENT_ACT3: &[EventName] = &[
+    EventName::Falling,
+    EventName::MindBloom,
+    EventName::TheMoaiHead,
+    EventName::MysteriousSphere,
+    EventName::SensoryStone,
+    EventName::TombOfLordRedMask,
+    EventName::WindingHalls,
+];
+
+// One-time specials that join the pool at act 3
+pub const POOL_EVENT_ACT3_SPECIAL: &[EventName] = &[EventName::SecretPortal];
+
+// One-time specials last drawable in act 2: act 3 drops them from the pool
+pub const POOL_EVENT_ACT3_SPECIAL_DROPS: &[EventName] = &[
+    EventName::FaceTrader,
     EventName::KnowingSkull,
     EventName::Nloth,
     EventName::TheJoust,
@@ -519,11 +541,22 @@ const _: () = {
     }
 };
 
-// Per-act event pools: (act list, special-pool additions)
-pub fn pools_for_act(act: u8) -> (&'static [EventName], &'static [EventName]) {
+// Per-act event pools: (act list, special-pool additions, special-pool drops)
+pub fn pools_for_act(
+    act: u8,
+) -> (
+    &'static [EventName],
+    &'static [EventName],
+    &'static [EventName],
+) {
     match act {
-        1 => (POOL_EVENT_ACT1, POOL_EVENT_ACT1_SPECIAL),
-        2 => (POOL_EVENT_ACT2, POOL_EVENT_ACT2_SPECIAL),
+        1 => (POOL_EVENT_ACT1, POOL_EVENT_ACT1_SPECIAL, &[]),
+        2 => (POOL_EVENT_ACT2, POOL_EVENT_ACT2_SPECIAL, &[]),
+        3 => (
+            POOL_EVENT_ACT3,
+            POOL_EVENT_ACT3_SPECIAL,
+            POOL_EVENT_ACT3_SPECIAL_DROPS,
+        ),
         _ => unreachable!("no event pools for act {act}"),
     }
 }

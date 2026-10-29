@@ -120,7 +120,7 @@ pub const COLORLESS_RARE_CHANCE: f32 = 0.3;
 pub const WHEEL_GOLD_PER_ACT: u16 = 100;
 
 // Acts, 1-based; the run ends after the last boss fight of act ACT_FINAL
-pub const ACT_FINAL: u8 = 2;
+pub const ACT_FINAL: u8 = 3;
 
 // A20+: Act 3's first boss fight is followed by a second, against one of the other two bosses
 pub const ASCENSION_DOUBLE_BOSS_LEVEL: u8 = 20;
@@ -169,6 +169,7 @@ pub const RELIC_TIER_TH_UNCOMMON: u8 = 83;
 // Encounter sequence sizes
 pub const NUM_ENCOUNTERS_EASY: usize = 3;
 pub const NUM_ENCOUNTERS_EASY_ACT2: usize = 2;
+pub const NUM_ENCOUNTERS_EASY_ACT3: usize = 2;
 pub const NUM_ENCOUNTERS_HARD: usize = MAP_HEIGHT - NUM_ENCOUNTERS_EASY;
 pub const NUM_ENCOUNTERS_ELITE: usize = 10;
 pub const ENCOUNTER_POOL_CAPACITY_NORMAL: usize = NUM_ENCOUNTERS_EASY + 1 + NUM_ENCOUNTERS_HARD;
