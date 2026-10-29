@@ -376,9 +376,17 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
         if matches!(
             effect.kind,
             EffectKind::ShuffleCardPileDiscardIntoCardPileDraw
-        ) && !discard_nonempty_at_start
-        {
-            continue;
+        ) {
+            if !discard_nonempty_at_start {
+                continue;
+            }
+
+            // A Card's reshuffle fires its Relic hooks first
+            state.effect_buf.push(Effect {
+                kind: EffectKind::ShuffleRelicHooks,
+                id_source: None,
+                target: Target::Direct(None),
+            });
         }
         let mut effect = Effect {
             id_source: Some(id_card), // Stamp the Card's ID

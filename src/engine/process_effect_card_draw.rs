@@ -43,36 +43,16 @@ pub fn process_effect_card_draw(state: &mut GameState, count: u16) {
     // Overdraw never happens: the excess stays on the draw pile
     let count = count.min(MAX_SIZE_CARD_PILE_HAND.saturating_sub(id_card_pile_hand.len()) as u16);
 
-    // Initialize variables to track IDs and count of drawn Cards, and wether reshuffle is needed
-    let mut id_drawn = [0usize; 32];
-    let mut id_drawn_num = 0;
-    let mut shuffle_resume_remaining: Option<u16> = None;
+    // Out of cards partway: the reshuffle's Relic hooks fire before any Card is drawn, and even an empty discard pile reshuffles
+    let draw_pile_size = id_card_pile_draw.len() as u16;
+    if count > draw_pile_size {
+        let remaining = count - draw_pile_size;
 
-    // Try to draw all Cards
-    for idx in 0..count {
-        // Out of cards partway: reshuffle, even an empty discard, and draw the rest
-        if id_card_pile_draw.is_empty() {
-            shuffle_resume_remaining = Some(count - idx);
-            break;
-        }
-
-        // Remove Card from draw pile
-        let id_card = id_card_pile_draw.pop().unwrap();
-        id_card_pile_hand.push(id_card);
-        *id_card_last_drawn = Some(id_card);
-
-        // Update drawn IDs and count
-        if id_drawn_num < id_drawn.len() {
-            id_drawn[id_drawn_num] = id_card;
-            id_drawn_num += 1;
-        }
-    }
-
-    // Reshuffle -> redraw if needed
-    if let Some(remaining) = shuffle_resume_remaining {
         // Executes in reverse:
-        //     1. ShuffleCardPileDiscardIntoCardPileDraw
-        //     2. CardDraw (remaining)
+        //     1. ShuffleRelicHooks
+        //     2. CardDraw (the draw pile)
+        //     3. ShuffleCardPileDiscardIntoCardPileDraw
+        //     4. CardDraw (remaining)
         state.effect_queue.push_front(Effect {
             kind: EffectKind::CardDraw { count: remaining },
             id_source: None,
@@ -83,6 +63,39 @@ pub fn process_effect_card_draw(state: &mut GameState, count: u16) {
             id_source: None,
             target: Target::Direct(None),
         });
+        if draw_pile_size > 0 {
+            state.effect_queue.push_front(Effect {
+                kind: EffectKind::CardDraw {
+                    count: draw_pile_size,
+                },
+                id_source: None,
+                target: Target::Direct(None),
+            });
+        }
+        state.effect_queue.push_front(Effect {
+            kind: EffectKind::ShuffleRelicHooks,
+            id_source: None,
+            target: Target::Direct(None),
+        });
+        return;
+    }
+
+    // Initialize variables to track IDs and count of drawn Cards
+    let mut id_drawn = [0usize; 32];
+    let mut id_drawn_num = 0;
+
+    // Draw all Cards
+    for _ in 0..count {
+        // Remove Card from draw pile
+        let id_card = id_card_pile_draw.pop().unwrap();
+        id_card_pile_hand.push(id_card);
+        *id_card_last_drawn = Some(id_card);
+
+        // Update drawn IDs and count
+        if id_drawn_num < id_drawn.len() {
+            id_drawn[id_drawn_num] = id_card;
+            id_drawn_num += 1;
+        }
     }
 
     // Confusion (Snecko Eye, Snecko's Glare): every drawn Card's cost re-rolls to [0, 3]

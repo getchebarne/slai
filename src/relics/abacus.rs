@@ -4,7 +4,7 @@ use crate::types::RelicTier;
 
 // Gain 6 block whenever the discard pile is shuffled into the draw pile
 // See:
-//    - `process_effect_shuffle_card_pile_discard_into_card_pile_draw.rs`
+//    - `process_effect_shuffle_relic_hooks.rs`
 pub static ABACUS: RelicTemplate = RelicTemplate {
     name: RelicName::Abacus,
     tier: RelicTier::Shop,
