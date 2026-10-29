@@ -532,7 +532,6 @@ pub enum MonsterEncounter {
     // Event-only (never pooled)
     ThreeFungiBeasts,
     LagavulinEvent,
-    TwoOrbWalkers,
 
     // Act 2 easy
     SphericGuardian,
@@ -621,6 +620,7 @@ pub enum EventName {
     MatchAndKeep,
     MindBloom,
     Mushrooms,
+    MysteriousSphere,
     Neow,
     Nest,
     Nloth,
