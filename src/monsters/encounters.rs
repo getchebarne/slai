@@ -1,5 +1,6 @@
 use rand::Rng;
 
+use crate::consts::ASCENSION_DOUBLE_BOSS_LEVEL;
 use crate::consts::NUM_ENCOUNTERS_EASY;
 use crate::consts::NUM_ENCOUNTERS_EASY_ACT2;
 use crate::consts::NUM_ENCOUNTERS_ELITE;
@@ -249,12 +250,37 @@ pub fn roll_boss(act: u8, rng: &mut impl Rng) -> MonsterEncounter {
         MonsterEncounter::TheCollector,
         MonsterEncounter::Champ,
     ];
+    const BOSSES_ACT3: [MonsterEncounter; 3] = [
+        MonsterEncounter::AwakenedOne,
+        MonsterEncounter::TimeEater,
+        MonsterEncounter::DonuAndDeca,
+    ];
     let pool: &[MonsterEncounter] = match act {
         1 => &BOSSES_ACT1,
         2 => &BOSSES_ACT2,
+        3 => &BOSSES_ACT3,
         _ => unreachable!("no bosses for act {act}"),
     };
     pool[rng.random_range(0..pool.len())]
+}
+
+// The act's boss fights after `encounter_boss`'s: from A20, Act 3's first boss is followed by one of the other two
+pub fn roll_boss_pool(
+    act: u8,
+    ascension: u8,
+    encounter_boss: MonsterEncounter,
+    rng: &mut impl Rng,
+) -> Vec<MonsterEncounter> {
+    if act != 3 || ascension < ASCENSION_DOUBLE_BOSS_LEVEL {
+        return Vec::new();
+    }
+
+    loop {
+        let encounter = roll_boss(act, rng);
+        if encounter != encounter_boss {
+            return vec![encounter];
+        }
+    }
 }
 
 fn roll_louse(rng: &mut impl Rng) -> MonsterName {

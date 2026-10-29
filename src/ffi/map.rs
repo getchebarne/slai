@@ -41,7 +41,8 @@ pub struct PyMap {
     pub y_current: Option<usize>,
     pub x_current: Option<usize>,
     pub room_kind_resolved: Option<PyRoomKind>, // What the current Room resolved into ("?" stays Unknown in `rooms`); a Shop rules out a Shop from the next "?"
-    pub boss: PyMonsterEncounter,
+    pub boss: PyMonsterEncounter, // The act's boss as the map shows it; from the A20 stop's RoomExit on, the second boss
+    pub boss_fights_after: u8, // Boss fights still to come after `boss`'s: 1 in Act 3 from A20 until the second one starts, else 0
     pub identity_hash: u64,
 }
 
@@ -93,6 +94,7 @@ pub(crate) fn snapshot_map(state: &GameState) -> PyMap {
         x_current,
         room_kind_resolved: state.room_kind_resolved.map(Into::into),
         boss: state.encounter_boss.into(),
+        boss_fights_after: state.encounter_pool_boss.len() as u8,
         identity_hash: map_identity_hash(state),
     }
 }
