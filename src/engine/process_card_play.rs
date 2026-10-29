@@ -318,7 +318,7 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
         false
     };
 
-    let char_modifiers = &state.entities[id_character].modifiers;
+    let mods_char = &state.entities[id_character].modifiers;
 
     // Burst (skill-only) doubles; X-cost multiplies by X; they stack multiplicatively
     // X-cost reads `energy`, the X fixed when the play was queued
@@ -336,11 +336,11 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
         _ => 1,
     };
     let burst = !replay
-        && has_modifier(char_modifiers, ModifierKind::Burst)
+        && has_modifier(mods_char, ModifierKind::Burst)
         && card.card_kind == CardKind::Skill;
 
     // DuplicateNextCardPlay replays any Card kind; additive with Burst
-    let stacks_duplication = modifier_stacks(char_modifiers, ModifierKind::DuplicateNextCardPlay);
+    let stacks_duplication = modifier_stacks(mods_char, ModifierKind::DuplicateNextCardPlay);
     let duplication = !replay && stacks_duplication > 0;
 
     // Burst and Duplication spend their stack before the Card's effects resolve
@@ -376,9 +376,17 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
         if matches!(
             effect.kind,
             EffectKind::ShuffleCardPileDiscardIntoCardPileDraw
-        ) && !discard_nonempty_at_start
-        {
-            continue;
+        ) {
+            if !discard_nonempty_at_start {
+                continue;
+            }
+
+            // A Card's reshuffle fires its Relic hooks first
+            state.effect_buf.push(Effect {
+                kind: EffectKind::ShuffleRelicHooks,
+                id_source: None,
+                target: Target::Direct(None),
+            });
         }
         let mut effect = Effect {
             id_source: Some(id_card), // Stamp the Card's ID
@@ -429,8 +437,8 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
     }
 
     // After Image: gain `stacks` block on Card play
-    if has_modifier(char_modifiers, ModifierKind::AfterImage) {
-        let stacks = modifier_stacks(char_modifiers, ModifierKind::AfterImage);
+    if has_modifier(mods_char, ModifierKind::AfterImage) {
+        let stacks = modifier_stacks(mods_char, ModifierKind::AfterImage);
         state.effect_buf.push(Effect {
             kind: EffectKind::BlockGain {
                 amount: stacks as u16,
@@ -441,11 +449,11 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
     }
 
     // Panache: every 5th Card played while active hits all enemies for `stacks`; the sweep lands behind After Image
-    if has_modifier(char_modifiers, ModifierKind::Panache) {
+    if has_modifier(mods_char, ModifierKind::Panache) {
         *panache_countdown -= 1;
         if *panache_countdown == 0 {
             *panache_countdown = PANACHE_PLAYS;
-            let stacks = modifier_stacks(char_modifiers, ModifierKind::Panache);
+            let stacks = modifier_stacks(mods_char, ModifierKind::Panache);
             state.effect_buf.push(Effect {
                 kind: EffectKind::DamageDeal {
                     amount: stacks.max(0) as u16,
@@ -469,7 +477,7 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
     }
 
     // Vigor
-    if card.card_kind == CardKind::Attack && has_modifier(char_modifiers, ModifierKind::Vigor) {
+    if card.card_kind == CardKind::Attack && has_modifier(mods_char, ModifierKind::Vigor) {
         state.effect_buf.push(Effect {
             kind: EffectKind::ModifierRemove {
                 kind: ModifierKind::Vigor,
@@ -480,7 +488,7 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
     }
 
     // Pen Nib: the doubled Attack spends the charge
-    if card.card_kind == CardKind::Attack && has_modifier(char_modifiers, ModifierKind::PenNib) {
+    if card.card_kind == CardKind::Attack && has_modifier(mods_char, ModifierKind::PenNib) {
         state.effect_buf.push(Effect {
             kind: EffectKind::ModifierRemove {
                 kind: ModifierKind::PenNib,
@@ -491,8 +499,8 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
     }
 
     // Hex: playing a non-Attack shuffles Dazed into the draw pile
-    if card.card_kind != CardKind::Attack && has_modifier(char_modifiers, ModifierKind::Hex) {
-        let stacks = modifier_stacks(char_modifiers, ModifierKind::Hex);
+    if card.card_kind != CardKind::Attack && has_modifier(mods_char, ModifierKind::Hex) {
+        let stacks = modifier_stacks(mods_char, ModifierKind::Hex);
         state.effect_buf.push(Effect {
             kind: EffectKind::CardAdd {
                 card_name: CardName::Dazed,
@@ -656,9 +664,9 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
     }
 
     // Thousand Cuts: every Card played hits all enemies for `stacks`; the sweep lands once the played Card is routed
-    let char_modifiers = &state.entities[id_character].modifiers;
-    if has_modifier(char_modifiers, ModifierKind::ThousandCuts) {
-        let stacks = modifier_stacks(char_modifiers, ModifierKind::ThousandCuts);
+    let mods_char = &state.entities[id_character].modifiers;
+    if has_modifier(mods_char, ModifierKind::ThousandCuts) {
+        let stacks = modifier_stacks(mods_char, ModifierKind::ThousandCuts);
         state.effect_buf.push(Effect {
             kind: EffectKind::DamageDeal {
                 amount: stacks as u16,

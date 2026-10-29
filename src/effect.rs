@@ -310,6 +310,7 @@ pub enum EffectKind {
     },
     ShopPurge,
     ShuffleCardPileDiscardIntoCardPileDraw,
+    ShuffleRelicHooks,
     SingingBowlProc,
     SkewerProc {
         damage: u16,

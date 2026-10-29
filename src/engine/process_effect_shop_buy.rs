@@ -31,16 +31,18 @@ pub fn process_effect_shop_buy(id_target: Option<usize>, state: &mut GameState, 
     } = &mut state.shop;
 
     // Take the offer out of its slot; its price settles the sale
-    let offers: &mut Vec<usize> = match slot {
+    let id_offers: &mut Vec<usize> = match slot {
         ShopSlot::Card => id_cards,
         ShopSlot::Relic => id_relics,
         ShopSlot::Potion => id_potions,
     };
-    let idx = offers
+    let idx = id_offers
         .iter()
         .position(|&id| id == id_bought)
         .expect("Bought entry is a shop entry");
-    offers.remove(idx);
+    id_offers.remove(idx);
+
+    // What was paid for it
     let price_bought = state.entities[id_bought]
         .price
         .take()
@@ -68,17 +70,17 @@ pub fn process_effect_shop_buy(id_target: Option<usize>, state: &mut GameState, 
             ShopSlot::Card => {
                 let bought = &state.entities[id_bought];
                 let (color, kind) = (bought.card_color, bought.card_kind);
-                let id_new = make_card_restock(state, color, kind);
-                state.shop.id_cards.insert(idx, id_new);
+                let id_card = make_card_restock(state, color, kind);
+                state.shop.id_cards.insert(idx, id_card);
             }
             ShopSlot::Potion => {
                 let sacred_bark = has_relic(&state.id_relics, RelicName::SacredBark);
-                let id_new = make_potion(&mut state.entities, &mut state.rng, sacred_bark);
-                let potion = &mut state.entities[id_new];
+                let id_potion = make_potion(&mut state.entities, &mut state.rng, sacred_bark);
+                let potion = &mut state.entities[id_potion];
                 potion.price = potion
                     .price
                     .map(|price| apply_shop_discounts(price, &state.id_relics));
-                id_potions.insert(idx, id_new);
+                id_potions.insert(idx, id_potion);
             }
             ShopSlot::Relic => {
                 // Restock as if the sale settled: the bought Relic counts for spawn gates and price

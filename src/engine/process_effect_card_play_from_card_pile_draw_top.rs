@@ -29,8 +29,9 @@ pub fn process_effect_card_play_from_card_pile_draw_top(
         }
 
         // Executes in reverse:
-        //     1. ShuffleCardPileDiscardIntoCardPileDraw
-        //     2. CardPlayFromCardPileDrawTop (re-queued)
+        //     1. ShuffleRelicHooks
+        //     2. ShuffleCardPileDiscardIntoCardPileDraw
+        //     3. CardPlayFromCardPileDrawTop (re-queued)
         state.effect_queue.push_front(Effect {
             kind: EffectKind::CardPlayFromCardPileDrawTop,
             id_source: None,
@@ -38,6 +39,11 @@ pub fn process_effect_card_play_from_card_pile_draw_top(
         });
         state.effect_queue.push_front(Effect {
             kind: EffectKind::ShuffleCardPileDiscardIntoCardPileDraw,
+            id_source: None,
+            target: Target::Direct(None),
+        });
+        state.effect_queue.push_front(Effect {
+            kind: EffectKind::ShuffleRelicHooks,
             id_source: None,
             target: Target::Direct(None),
         });

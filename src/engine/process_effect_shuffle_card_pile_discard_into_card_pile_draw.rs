@@ -1,13 +1,8 @@
-use crate::effect::Effect;
-use crate::effect::EffectKind;
-use crate::effect::Target;
 use crate::game::GameState;
-use crate::relics::trigger_relic_counter;
 use crate::types::Combat;
-use crate::types::RelicName;
-use crate::utils::has_relic;
 use crate::utils::shuffle;
 
+// A reshuffle's Relic hooks run as ShuffleRelicHooks, which every caller queues ahead of it
 pub fn process_effect_shuffle_card_pile_discard_into_card_pile_draw(state: &mut GameState) {
     assert!(
         state.combat.active,
@@ -25,22 +20,4 @@ pub fn process_effect_shuffle_card_pile_discard_into_card_pile_draw(state: &mut 
     }
     id_card_pile_draw.append(id_card_pile_discard);
     shuffle(&mut id_card_pile_draw[..], &mut state.rng);
-
-    // Abacus: reshuffling the discard pile grants 6 block
-    if has_relic(&state.id_relics, RelicName::Abacus) {
-        state.effect_queue.push_back(Effect {
-            kind: EffectKind::BlockGain { amount: 6 },
-            id_source: None,
-            target: Target::Direct(Some(state.id_character)),
-        });
-    }
-
-    // Persistent reshuffle counter
-    if let Some(id) = state.id_relics[RelicName::Sundial as usize]
-        && trigger_relic_counter(&mut state.entities[id])
-    {
-        for &effect in state.entities[id].relic_effects_counter {
-            state.effect_queue.push_back(effect);
-        }
-    }
 }

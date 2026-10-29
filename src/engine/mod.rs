@@ -119,6 +119,7 @@ pub mod process_effect_shop_build;
 pub mod process_effect_shop_buy;
 pub mod process_effect_shop_purge;
 pub mod process_effect_shuffle_card_pile_discard_into_card_pile_draw;
+pub mod process_effect_shuffle_relic_hooks;
 pub mod process_effect_singing_bowl_proc;
 pub mod process_effect_skewer_proc;
 pub mod process_effect_slow_proc;
@@ -256,6 +257,7 @@ use self::process_effect_shop_build::process_effect_shop_build;
 use self::process_effect_shop_buy::process_effect_shop_buy;
 use self::process_effect_shop_purge::process_effect_shop_purge;
 use self::process_effect_shuffle_card_pile_discard_into_card_pile_draw::process_effect_shuffle_card_pile_discard_into_card_pile_draw;
+use self::process_effect_shuffle_relic_hooks::process_effect_shuffle_relic_hooks;
 use self::process_effect_singing_bowl_proc::process_effect_singing_bowl_proc;
 use self::process_effect_skewer_proc::process_effect_skewer_proc;
 use self::process_effect_slow_proc::process_effect_slow_proc;
@@ -570,6 +572,7 @@ fn dispatch_by_kind(
         EffectKind::ShuffleCardPileDiscardIntoCardPileDraw => {
             process_effect_shuffle_card_pile_discard_into_card_pile_draw(state)
         }
+        EffectKind::ShuffleRelicHooks => process_effect_shuffle_relic_hooks(state),
         EffectKind::CardRetain => {
             enqueue_rest_of_targets(state, kind, id_source, id_targets);
             process_effect_card_retain(id_targets.first().copied(), state)

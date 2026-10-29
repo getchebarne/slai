@@ -93,8 +93,8 @@ pub struct Entity {
     pub modifiers: Modifiers,
     pub dead: bool,
 
-    // Shop stock: Card, Relic or Potion
-    pub price: Option<u16>, // Some while the Shop offers it
+    // Shop stock: Card, Relic or Potion. Some while the Shop offers it
+    pub price: Option<u16>,
 
     // Character-only
     pub character_name: &'static str,

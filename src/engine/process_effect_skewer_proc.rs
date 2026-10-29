@@ -20,24 +20,24 @@ pub fn process_effect_skewer_proc(
 ) {
     let id_target = id_target.expect("SkewerProc requires id_target");
 
-    let char_modifiers = &state.entities[state.id_character].modifiers;
+    let mods_char = &state.entities[state.id_character].modifiers;
     let mods_target = &state.entities[id_target].modifiers;
-    let vigor = if has_modifier(char_modifiers, ModifierKind::Vigor) {
-        modifier_stacks(char_modifiers, ModifierKind::Vigor)
+    let vigor = if has_modifier(mods_char, ModifierKind::Vigor) {
+        modifier_stacks(mods_char, ModifierKind::Vigor)
     } else {
         0
     };
-    let str_stacks = if has_modifier(char_modifiers, ModifierKind::Strength) {
-        modifier_stacks(char_modifiers, ModifierKind::Strength)
+    let str_stacks = if has_modifier(mods_char, ModifierKind::Strength) {
+        modifier_stacks(mods_char, ModifierKind::Strength)
     } else {
         0
     };
     let amount = scale_attack_damage(
         (damage as i16 + vigor).max(0) as u16,
         str_stacks,
-        has_modifier(char_modifiers, ModifierKind::DoubleDamage),
-        has_modifier(char_modifiers, ModifierKind::PenNib),
-        weak_factor(has_modifier(char_modifiers, ModifierKind::Weak), false),
+        has_modifier(mods_char, ModifierKind::DoubleDamage),
+        has_modifier(mods_char, ModifierKind::PenNib),
+        weak_factor(has_modifier(mods_char, ModifierKind::Weak), false),
         slow_factor(modifier_stacks(mods_target, ModifierKind::Slow)),
         vuln_factor(has_modifier(mods_target, ModifierKind::Vulnerable), false),
         has_modifier(mods_target, ModifierKind::Flight),

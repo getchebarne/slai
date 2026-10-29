@@ -201,13 +201,13 @@ pub struct Shop {
 
 // The unsold stock leaves the Shop: its entities lose their prices
 pub fn shop_reset(shop: &mut Shop, entities: &mut [Entity]) {
-    for &id in shop
+    for &id_stock in shop
         .id_cards
         .iter()
         .chain(&shop.id_relics)
         .chain(&shop.id_potions)
     {
-        entities[id].price = None;
+        entities[id_stock].price = None;
     }
     shop.id_cards.clear();
     shop.id_relics.clear();

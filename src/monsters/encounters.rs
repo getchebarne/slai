@@ -3,6 +3,7 @@ use rand::Rng;
 use crate::consts::ASCENSION_DOUBLE_BOSS_LEVEL;
 use crate::consts::NUM_ENCOUNTERS_EASY;
 use crate::consts::NUM_ENCOUNTERS_EASY_ACT2;
+use crate::consts::NUM_ENCOUNTERS_EASY_ACT3;
 use crate::consts::NUM_ENCOUNTERS_ELITE;
 use crate::consts::NUM_ENCOUNTERS_HARD;
 use crate::effect::Effect;
@@ -63,6 +64,26 @@ const ENC_POOL_ELITE_ACT_2: &[(MonsterEncounter, f32)] = &[
     (MonsterEncounter::GremlinLeader, 1.0),
     (MonsterEncounter::Slavers, 1.0),
     (MonsterEncounter::BookOfStabbing, 1.0),
+];
+const ENC_POOL_EASY_ACT_3: &[(MonsterEncounter, f32)] = &[
+    (MonsterEncounter::ThreeDarklings, 2.0),
+    (MonsterEncounter::OrbWalker, 2.0),
+    (MonsterEncounter::ThreeShapes, 2.0),
+];
+const ENC_POOL_HARD_ACT_3: &[(MonsterEncounter, f32)] = &[
+    (MonsterEncounter::SpireGrowth, 1.0),
+    (MonsterEncounter::Transient, 1.0),
+    (MonsterEncounter::FourShapes, 1.0),
+    (MonsterEncounter::Maw, 1.0),
+    (MonsterEncounter::SphereAndTwoShapes, 1.0),
+    (MonsterEncounter::JawWormHorde, 1.0),
+    (MonsterEncounter::ThreeDarklings, 1.0),
+    (MonsterEncounter::WrithingMass, 1.0),
+];
+const ENC_POOL_ELITE_ACT_3: &[(MonsterEncounter, f32)] = &[
+    (MonsterEncounter::GiantHead, 2.0),
+    (MonsterEncounter::Nemesis, 2.0),
+    (MonsterEncounter::Reptomancer, 2.0),
 ];
 
 // Sort ascending by weight (stable for ties), normalize to sum 1.0
@@ -162,7 +183,10 @@ fn get_act_exclusions(
             MonsterEncounter::ChosenAndByrds,
             MonsterEncounter::CultistAndChosen,
         ],
-        _ => &[],
+        (3, MonsterEncounter::ThreeDarklings) => &[MonsterEncounter::ThreeDarklings],
+        (3, MonsterEncounter::ThreeShapes) => &[MonsterEncounter::FourShapes],
+        (1..=3, _) => &[],
+        _ => unreachable!("no exclusions for act {act}"),
     }
 }
 
@@ -183,6 +207,11 @@ pub fn generate_act_monsters(
             ENC_POOL_EASY_ACT_2,
             ENC_POOL_HARD_ACT_2,
             NUM_ENCOUNTERS_EASY_ACT2,
+        ),
+        3 => (
+            ENC_POOL_EASY_ACT_3,
+            ENC_POOL_HARD_ACT_3,
+            NUM_ENCOUNTERS_EASY_ACT3,
         ),
         _ => unreachable!("no encounter pools for act {act}"),
     };
@@ -228,6 +257,7 @@ pub fn generate_act_elites(act: u8, elite_list: &mut Vec<MonsterEncounter>, rng:
     let pool_elite = match act {
         1 => ENC_POOL_ELITE_ACT_1,
         2 => ENC_POOL_ELITE_ACT_2,
+        3 => ENC_POOL_ELITE_ACT_3,
         _ => unreachable!("no elite pool for act {act}"),
     };
     populate_encounter_list(

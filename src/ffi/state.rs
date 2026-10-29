@@ -29,7 +29,7 @@ use super::potion::snapshot_potion;
 use super::relic::PyRelic;
 use super::relic::snapshot_relic;
 
-// The contexts, character, map and pending effect are Python objects built once: every read returns the same object
+// The contexts, Character, Map and pending Effect are Python objects built once
 #[pyclass(frozen, get_all, name = "GameState", module = "slai.slai")]
 #[derive(Debug)]
 pub struct PyGameState {

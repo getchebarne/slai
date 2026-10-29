@@ -154,7 +154,8 @@ pub struct PyCard {
     pub effects_discard: Vec<PyEffect>, // When discarded from the hand
     pub effects_draw: Vec<PyEffect>,    // When drawn
 
-    pub price: Option<u16>, // While the Shop offers it
+    // Price while the Shop offers it
+    pub price: Option<u16>,
 }
 
 // Display-name lookups
@@ -305,31 +306,31 @@ pub(crate) fn snapshot_adjusted_effects(
     cost: u16,
     draw_pile_size: u16,
 ) -> Vec<PyEffect> {
-    let char_mods = &state.entities[state.id_character].modifiers;
+    let mods_char = &state.entities[state.id_character].modifiers;
 
     // Strike Dummy and Wrist Blade join the base damage before scaling, as in the engine
     let bonus = strike_dummy_bonus(card.card_name, &state.id_relics)
         + wrist_blade_bonus(card, cost, &state.id_relics);
-    let vigor = if has_modifier(char_mods, ModifierKind::Vigor) {
-        modifier_stacks(char_mods, ModifierKind::Vigor).max(0) as u16
+    let vigor = if has_modifier(mods_char, ModifierKind::Vigor) {
+        modifier_stacks(mods_char, ModifierKind::Vigor).max(0) as u16
     } else {
         0
     };
-    let str_stacks = if has_modifier(char_mods, ModifierKind::Strength) {
-        modifier_stacks(char_mods, ModifierKind::Strength)
+    let str_stacks = if has_modifier(mods_char, ModifierKind::Strength) {
+        modifier_stacks(mods_char, ModifierKind::Strength)
     } else {
         0
     };
-    let weak = has_modifier(char_mods, ModifierKind::Weak);
-    let double = has_modifier(char_mods, ModifierKind::DoubleDamage);
-    let pen_nib = has_modifier(char_mods, ModifierKind::PenNib);
-    let dex = if has_modifier(char_mods, ModifierKind::Dexterity) {
-        modifier_stacks(char_mods, ModifierKind::Dexterity)
+    let weak = has_modifier(mods_char, ModifierKind::Weak);
+    let double = has_modifier(mods_char, ModifierKind::DoubleDamage);
+    let pen_nib = has_modifier(mods_char, ModifierKind::PenNib);
+    let dex = if has_modifier(mods_char, ModifierKind::Dexterity) {
+        modifier_stacks(mods_char, ModifierKind::Dexterity)
     } else {
         0
     };
-    let frail = has_modifier(char_mods, ModifierKind::Frail);
-    let no_block = has_modifier(char_mods, ModifierKind::NoBlock);
+    let frail = has_modifier(mods_char, ModifierKind::Frail);
+    let no_block = has_modifier(mods_char, ModifierKind::NoBlock);
 
     // Every hit of the Card shows the same scaled damage; Player attacker: Paper Krane never applies
     let adjusted_damage = |base: u16| {
