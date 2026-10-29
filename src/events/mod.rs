@@ -21,6 +21,7 @@ mod masked_bandits;
 mod match_and_keep;
 mod mind_bloom;
 mod mushrooms;
+mod mysterious_sphere;
 mod neow;
 mod nest;
 mod nloth;
@@ -194,6 +195,7 @@ pub fn spawn_event(state: &mut GameState, name: EventName) -> Vec<usize> {
         EventName::FaceTrader => face_trader::spawn(state),
         EventName::Falling => falling::spawn(state),
         EventName::Mushrooms => mushrooms::spawn(state),
+        EventName::MysteriousSphere => mysterious_sphere::spawn(state),
         EventName::GoldenIdol => golden_idol::spawn(state),
         EventName::ScrapOoze => scrap_ooze::spawn(state),
         EventName::SecretPortal => secret_portal::spawn(state),
@@ -250,6 +252,7 @@ pub fn options_catalog(name: EventName, ascension: u8) -> &'static [EventOptionT
         EventName::FaceTrader => face_trader::catalog(ascension),
         EventName::Falling => falling::catalog(ascension),
         EventName::Mushrooms => mushrooms::catalog(ascension),
+        EventName::MysteriousSphere => mysterious_sphere::catalog(ascension),
         EventName::GoldenIdol => golden_idol::catalog(ascension),
         EventName::ScrapOoze => scrap_ooze::catalog(ascension),
         EventName::SecretPortal => secret_portal::catalog(ascension),
@@ -301,6 +304,7 @@ pub struct EventLoot {
 pub fn fight_loot(event: &Event, ascension: u8) -> Option<EventLoot> {
     match event.name {
         EventName::Mushrooms => Some(mushrooms::FIGHT_LOOT),
+        EventName::MysteriousSphere => Some(mysterious_sphere::FIGHT_LOOT),
         EventName::MaskedBandits => Some(masked_bandits::FIGHT_LOOT),
         EventName::Colosseum => match event.stage {
             0 | 1 => None,
@@ -360,6 +364,7 @@ pub fn event_option_available(state: &GameState, idx: usize) -> bool {
         EventName::FaceTrader => face_trader::option_available(state, idx),
         EventName::Falling => falling::option_available(state, idx),
         EventName::Mushrooms => mushrooms::option_available(state, idx),
+        EventName::MysteriousSphere => mysterious_sphere::option_available(state, idx),
         EventName::GoldenIdol => golden_idol::option_available(state, idx),
         EventName::ScrapOoze => scrap_ooze::option_available(state, idx),
         EventName::SecretPortal => secret_portal::option_available(state, idx),

@@ -420,10 +420,6 @@ pub fn spawn_encounter_monsters(state: &mut GameState, encounter: MonsterEncount
                 });
             }
         }
-        MonsterEncounter::TwoOrbWalkers => {
-            push_monster_spawn(effects, MonsterName::OrbWalker, 0);
-            push_monster_spawn(effects, MonsterName::OrbWalker, 1);
-        }
         MonsterEncounter::SphericGuardian => {
             push_monster_spawn(effects, MonsterName::SphericGuardian, 0)
         }

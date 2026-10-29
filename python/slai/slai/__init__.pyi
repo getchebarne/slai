@@ -1509,6 +1509,7 @@ class EventName:
     MatchAndKeep: Final[EventName]
     MindBloom: Final[EventName]
     Mushrooms: Final[EventName]
+    MysteriousSphere: Final[EventName]
     Neow: Final[EventName]
     Nest: Final[EventName]
     Nloth: Final[EventName]
@@ -1896,7 +1897,6 @@ class MonsterEncounter:
     Transient: Final[MonsterEncounter]
     TwoFungiBeasts: Final[MonsterEncounter]
     TwoLouse: Final[MonsterEncounter]
-    TwoOrbWalkers: Final[MonsterEncounter]
     TwoThieves: Final[MonsterEncounter]
     WrithingMass: Final[MonsterEncounter]
     def __eq__(self, other: object) -> bool: ...
