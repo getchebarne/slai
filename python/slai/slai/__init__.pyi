@@ -98,6 +98,7 @@ class ActionType:
     RewardTakeGoldStolen: Final[ActionType]
     RewardTakePotion: Final[ActionType]
     RewardTakeRelic: Final[ActionType]
+    RewardTakeSapphireKey: Final[ActionType]
     RoomExit: Final[ActionType]
     RoomSelect: Final[ActionType]
     SelectionSkip: Final[ActionType]
@@ -2483,6 +2484,8 @@ class Reward:
     def gold_stolen(self, /) -> int |None: ...
     @property
     def potions(self, /) -> list[Potion]: ...
+    @property
+    def relic_linked(self, /) -> Relic |None: ...
     @property
     def relics(self, /) -> list[Relic]: ...
     @property

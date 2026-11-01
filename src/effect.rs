@@ -195,10 +195,10 @@ pub enum EffectKind {
     JoustBet {
         on_owner: bool,
     },
-    #[expect(dead_code, reason = "Recall and the two key rewards build it")]
     KeyObtain {
         key: Key,
     },
+    KeySapphireLink,
     KnowingSkullCostBump,
     LagavulinWake,
     MatchFlipSeen,

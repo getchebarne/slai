@@ -330,6 +330,7 @@ pub fn create_game_state(
             active: false,
             id_cards: Vec::new(),
             id_relics: Vec::new(),
+            id_relic_linked: None,
             id_potions: Vec::new(),
             gold: None,
             gold_stolen: None,
