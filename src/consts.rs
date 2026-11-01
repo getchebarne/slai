@@ -6,8 +6,8 @@ pub const MAX_MONSTER_MOVES: usize = 9;
 // Per-Card effect array cap; bump if any Card legitimately exceeds 6
 pub const MAX_EFFECTS_PER_CARD: usize = 6;
 
-// Per-move effect array cap; Twin Slam's 5 effects are the longest list
-pub const MAX_EFFECTS_PER_MOVE: usize = 5;
+// Per-move effect array cap; Debilitate's 8 effects are the longest list
+pub const MAX_EFFECTS_PER_MOVE: usize = 8;
 
 // Per-event-option effect array cap; Mushrooms' Stomp is the 5-effect maximum
 pub const MAX_EFFECTS_PER_EVENT_OPTION: usize = 5;

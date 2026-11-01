@@ -7,6 +7,7 @@ use crate::modifier::active_modifier_kinds;
 use crate::modifier::has_modifier;
 use crate::modifier::modifier_stacks;
 use crate::monsters::byrd;
+use crate::monsters::corrupt_heart;
 use crate::utils::flush_effects_from_buf_to_queue_front;
 
 pub fn process_effect_turn_start_monster(id_target: Option<usize>, state: &mut GameState) {
@@ -54,6 +55,12 @@ pub fn process_effect_turn_start_monster(id_target: Option<usize>, state: &mut G
     // Flight: stacks refresh to the spawn value at the owner's turn start
     if has_modifier(modifiers, ModifierKind::Flight) {
         modifiers.stacks[ModifierKind::Flight as usize] = byrd::flight_stacks(state.ascension);
+    }
+
+    // Invincible: the cap refills to the spawn value at the owner's turn start, ahead of its Poison tick
+    if has_modifier(modifiers, ModifierKind::Invincible) {
+        modifiers.stacks[ModifierKind::Invincible as usize] =
+            corrupt_heart::stacks_invincible(state.ascension);
     }
 
     // Choke wears off at its Monster's turn start, before any Monster acts

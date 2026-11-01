@@ -2,6 +2,7 @@ pub mod process_card_play;
 pub mod process_effect_accuracy_resync;
 pub mod process_effect_act_transition;
 pub mod process_effect_adventurer_search;
+pub mod process_effect_beat_of_death_proc;
 pub mod process_effect_block_gain;
 pub mod process_effect_block_set;
 pub mod process_effect_bomb_arm;
@@ -80,6 +81,7 @@ pub mod process_effect_mayhem_proc;
 pub mod process_effect_modifier_delta;
 pub mod process_effect_modifier_multiply;
 pub mod process_effect_modifier_remove;
+pub mod process_effect_modifier_strength_negative_remove;
 pub mod process_effect_modifier_tick;
 pub mod process_effect_monster_escape;
 pub mod process_effect_monster_remove;
@@ -141,6 +143,7 @@ use self::process_card_play::process_card_play;
 use self::process_effect_accuracy_resync::process_effect_accuracy_resync;
 use self::process_effect_act_transition::process_effect_act_transition;
 use self::process_effect_adventurer_search::process_effect_adventurer_search;
+use self::process_effect_beat_of_death_proc::process_effect_beat_of_death_proc;
 use self::process_effect_block_gain::process_effect_block_gain;
 use self::process_effect_block_set::process_effect_block_set;
 use self::process_effect_bomb_arm::process_effect_bomb_arm;
@@ -219,6 +222,7 @@ use self::process_effect_mayhem_proc::process_effect_mayhem_proc;
 use self::process_effect_modifier_delta::process_effect_modifier_delta;
 use self::process_effect_modifier_multiply::process_effect_modifier_multiply;
 use self::process_effect_modifier_remove::process_effect_modifier_remove;
+use self::process_effect_modifier_strength_negative_remove::process_effect_modifier_strength_negative_remove;
 use self::process_effect_modifier_tick::process_effect_modifier_tick;
 use self::process_effect_monster_escape::process_effect_monster_escape;
 use self::process_effect_monster_remove::process_effect_monster_remove;
@@ -801,6 +805,10 @@ fn dispatch_by_kind(
             enqueue_rest_of_targets(state, kind, id_source, id_targets);
             process_effect_modifier_remove(id_targets.first().copied(), state, mod_kind)
         }
+        EffectKind::ModifierStrengthNegativeRemove => {
+            enqueue_rest_of_targets(state, kind, id_source, id_targets);
+            process_effect_modifier_strength_negative_remove(id_targets.first().copied(), state)
+        }
         EffectKind::ModifierTick => {
             enqueue_rest_of_targets(state, kind, id_source, id_targets);
             process_effect_modifier_tick(id_targets.first().copied(), state)
@@ -902,6 +910,10 @@ fn dispatch_by_kind(
         EffectKind::SlowProc => {
             enqueue_rest_of_targets(state, kind, id_source, id_targets);
             process_effect_slow_proc(id_targets.first().copied(), state)
+        }
+        EffectKind::BeatOfDeathProc => {
+            enqueue_rest_of_targets(state, kind, id_source, id_targets);
+            process_effect_beat_of_death_proc(id_targets.first().copied(), state)
         }
         EffectKind::HexaghostBurnIncrease { count } => {
             process_effect_hexaghost_burn_increase(state, count)

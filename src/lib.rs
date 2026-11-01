@@ -369,6 +369,8 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEffectModifierRemove;
     #[pymodule_export]
+    use super::ffi::PyEffectModifierStrengthNegativeRemove;
+    #[pymodule_export]
     use super::ffi::PyEffectMonsterEscape;
     #[pymodule_export]
     use super::ffi::PyEffectMonsterRemove;

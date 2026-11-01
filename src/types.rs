@@ -443,6 +443,7 @@ pub enum CardRarity {
 #[repr(u8)]
 pub enum MonsterName {
     AwakenedOne,
+    CorruptHeart,
     Cultist,
     Darkling,
     Deca,
@@ -603,6 +604,9 @@ pub enum MonsterEncounter {
 
     // Act 4 elite
     ShieldAndSpear,
+
+    // Act 4 boss
+    CorruptHeart,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

@@ -78,6 +78,17 @@ fn apply_loss(id_source: Option<usize>, id_target: usize, state: &mut GameState,
         amount
     };
 
+    // Invincible: its holder loses no more than the cap has left before its next turn start, and the cap drops by the loss
+    let mods = &mut state.entities[id_target].modifiers;
+    let amount = if has_modifier(mods, ModifierKind::Invincible) {
+        let stacks = &mut mods.stacks[ModifierKind::Invincible as usize];
+        let amount = amount.min(*stacks as u16);
+        *stacks -= amount as i16;
+        amount
+    } else {
+        amount
+    };
+
     // Buffer: absorb one HP-loss instance outright, before anything reacts to it; nothing is lost
     if amount > 0 {
         let modifiers = &mut state.entities[id_target].modifiers;

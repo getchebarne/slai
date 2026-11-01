@@ -113,6 +113,7 @@ flat_variants!(PyEffect {
     DebuffsClear => PyEffectDebuffsClear as "EffectDebuffsClear" { target: PyTarget },
     HexaghostBurnIncrease => PyEffectHexaghostBurnIncrease as "EffectHexaghostBurnIncrease" { count: u8 },
     ModifierRemove => PyEffectModifierRemove as "EffectModifierRemove" { kind: PyModifierKind, target: PyTarget },
+    ModifierStrengthNegativeRemove => PyEffectModifierStrengthNegativeRemove as "EffectModifierStrengthNegativeRemove" { target: PyTarget },
     MonsterEscape => PyEffectMonsterEscape as "EffectMonsterEscape" { target: PyTarget },
     MonsterRemove => PyEffectMonsterRemove as "EffectMonsterRemove" { target: PyTarget },
     MonsterSplit => PyEffectMonsterSplit as "EffectMonsterSplit" { name: PyMonsterName, target: PyTarget },
@@ -610,6 +611,11 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
             kind: kind.into(),
             target: require_target(target),
         }),
+        EffectKind::ModifierStrengthNegativeRemove => {
+            PyEffect::ModifierStrengthNegativeRemove(PyEffectModifierStrengthNegativeRemove {
+                target: require_target(target),
+            })
+        }
         EffectKind::MonsterEscape => PyEffect::MonsterEscape(PyEffectMonsterEscape {
             target: require_target(target),
         }),

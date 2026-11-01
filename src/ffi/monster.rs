@@ -32,9 +32,9 @@ mirror_enum!(PyMonsterKind from MonsterKind, "MonsterKind", {
 });
 
 mirror_enum!(PyMonsterName from MonsterName, "MonsterName", {
-    AwakenedOne, Cultist, Darkling, Deca, Donu, Exploder, FungiBeast, GiantHead, GremlinFat,
-    GremlinNob, GremlinThief, GremlinTsundere, GremlinWarrior, GremlinWizard, Hexaghost, JawWorm,
-    JawWormHard, Lagavulin, Looter, LouseDefensive, LouseNormal, Maw, Nemesis, OrbWalker,
+    AwakenedOne, CorruptHeart, Cultist, Darkling, Deca, Donu, Exploder, FungiBeast, GiantHead,
+    GremlinFat, GremlinNob, GremlinThief, GremlinTsundere, GremlinWarrior, GremlinWizard, Hexaghost,
+    JawWorm, JawWormHard, Lagavulin, Looter, LouseDefensive, LouseNormal, Maw, Nemesis, OrbWalker,
     Reptomancer, Repulsor, Sentry, SlaverBlue, SlaverRed, SlimeAcidLarge, SlimeAcidMedium,
     SlimeAcidSmall, SlimeBoss, SlimeSpikeLarge, SlimeSpikeMedium, SlimeSpikeSmall, SnakeDagger,
     Spiker, SpireGrowth, SpireShield, SpireSpear, TheGuardian, TimeEater, Transient, WrithingMass,
@@ -52,7 +52,7 @@ mirror_enum!(PyMonsterEncounter from MonsterEncounter, "MonsterEncounter", {
     ChosenAndByrds, SentryAndSphere, GremlinLeader, Slavers, BookOfStabbing, BronzeAutomaton,
     TheCollector, Champ, OrbWalker, ThreeDarklings, ThreeShapes, FourShapes, JawWormHorde, Maw,
     SphereAndTwoShapes, SpireGrowth, Transient, WrithingMass, GiantHead, Nemesis, Reptomancer,
-    AwakenedOne, DonuAndDeca, TimeEater, ShieldAndSpear,
+    AwakenedOne, DonuAndDeca, TimeEater, ShieldAndSpear, CorruptHeart,
 });
 
 #[pyclass(

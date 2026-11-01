@@ -20,6 +20,7 @@ pub enum EffectKind {
     AccuracyResync,
     ActTransition,
     AdventurerSearch,
+    BeatOfDeathProc,
     BlockGain {
         amount: u16,
     },
@@ -219,6 +220,7 @@ pub enum EffectKind {
     ModifierRemove {
         kind: ModifierKind,
     },
+    ModifierStrengthNegativeRemove,
     ModifierTick,
     MonsterEscape,
     MonsterRemove,

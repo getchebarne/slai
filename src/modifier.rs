@@ -10,6 +10,7 @@ pub enum ModifierKind {
     Angry,
     Artifact,
     Asleep,
+    BeatOfDeath,
     Blur,
     Burst,
     Choke,
@@ -29,6 +30,7 @@ pub enum ModifierKind {
     Frail,
     InfiniteBlades,
     Intangible,
+    Invincible,
     Metallicize,
     ModeShift,
     NextTurnBlock,
@@ -149,6 +151,14 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
         stacks_duration: false,
         stacks_min: 1,
         stacks_max: 1,
+    },
+    ModifierDef {
+        kind: ModifierKind::BeatOfDeath,
+        priority: PRIORITY_DEFAULT,
+        is_buff: true,
+        stacks_duration: false,
+        stacks_min: 1,
+        stacks_max: i16::MAX,
     },
     ModifierDef {
         kind: ModifierKind::Blur,
@@ -300,6 +310,14 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
         is_buff: true,
         stacks_duration: true,
         stacks_min: 1,
+        stacks_max: i16::MAX,
+    },
+    ModifierDef {
+        kind: ModifierKind::Invincible,
+        priority: PRIORITY_DEFAULT,
+        is_buff: true,
+        stacks_duration: false,
+        stacks_min: 0, // The HP its holder can still lose before its next turn start; listed at 0 once spent
         stacks_max: i16::MAX,
     },
     ModifierDef {
