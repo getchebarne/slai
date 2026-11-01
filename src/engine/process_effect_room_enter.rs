@@ -36,7 +36,7 @@ use crate::utils::push_entity;
 
 pub fn process_effect_room_enter(state: &mut GameState, location: Location, landing: bool) {
     state.location = location;
-    let room_kind = get_active_room_kind(&state.id_rooms, state.location, &state.entities).unwrap();
+    let room_kind = get_active_room_kind(&state.id_rooms, state.location, &state.entities);
 
     // The entry Relics pay out first, so everything the Room generates sees their gold
     if !landing {
@@ -58,7 +58,9 @@ pub fn process_effect_room_enter(state: &mut GameState, location: Location, land
         }
 
         // Ssserpent Head: gain 50 gold on entering a "?" Room, whatever it resolves to
-        if room_kind == RoomKind::Unknown && has_relic(&state.id_relics, RelicName::SsserpentHead) {
+        if room_kind == Some(RoomKind::Unknown)
+            && has_relic(&state.id_relics, RelicName::SsserpentHead)
+        {
             state.effect_buf.push(Effect {
                 kind: EffectKind::GoldDelta {
                     sign: DeltaSign::Gain,
@@ -79,6 +81,16 @@ pub fn process_effect_room_enter(state: &mut GameState, location: Location, land
         flush_effects_from_buf_to_queue_front(state);
         return;
     }
+
+    // The victory room holds nothing: its landing starts the act transition
+    let Some(room_kind) = room_kind else {
+        state.effect_queue.push_front(Effect {
+            kind: EffectKind::ActTransition,
+            id_source: None,
+            target: Target::Direct(None),
+        });
+        return;
+    };
 
     // A "?" (Unknown) node resolves into a concrete kind on entry via drifting odds
     let room_kind_resolved = if room_kind == RoomKind::Unknown {

@@ -57,6 +57,7 @@ pub enum Location {
     Overworld { y: usize, x: usize },
     BossRoom,
     BossTreasure, // The boss chest's Room, entered on leaving an Act 1 or Act 2 Boss Room
+    Victory, // Passed through on the way to Act 4: its entry hooks run, then the act transition
 }
 
 // GameState: the single source of truth
@@ -66,7 +67,7 @@ pub struct GameState {
     pub ascension: u8,
     pub rng: SmallRng,
 
-    // Current act, 1-based; the run ends after the last boss fight of act ACT_FINAL
+    // Current act, 1-based; Act 3's last boss fight ends the run, or with the final act on and all three keys opens the door to Act 4
     pub act: u8,
 
     // The run's floor: +1 for every Room entered, never at the act transition
