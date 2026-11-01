@@ -198,6 +198,7 @@ pub enum EffectKind {
     KeyObtain {
         key: Key,
     },
+    KeySapphireLink,
     KnowingSkullCostBump,
     LagavulinWake,
     MatchFlipSeen,

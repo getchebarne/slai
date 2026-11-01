@@ -121,6 +121,7 @@ pub struct PyCombat {
 pub struct PyReward {
     pub cards: Vec<Vec<PyCard>>,
     pub relics: Vec<PyRelic>,
+    pub relic_linked: Option<PyRelic>, // The Relic the Sapphire Key is linked to, also in `relics`; None means no key on offer
     pub potions: Vec<PyPotion>,
     pub gold: Option<u16>,
     pub gold_stolen: Option<u16>, // The thieves' purse, claimed apart from the room's gold
@@ -298,6 +299,9 @@ pub(crate) fn snapshot_reward(state: &GameState) -> PyReward {
             .iter()
             .map(|&id| snapshot_relic(id, &state.entities[id]))
             .collect(),
+        relic_linked: reward
+            .id_relic_linked
+            .map(|id| snapshot_relic(id, &state.entities[id])),
         potions: reward
             .id_potions
             .iter()

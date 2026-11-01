@@ -70,6 +70,7 @@ pub mod process_effect_heel_hook_proc;
 pub mod process_effect_hexaghost_burn_increase;
 pub mod process_effect_joust_bet;
 pub mod process_effect_key_obtain;
+pub mod process_effect_key_sapphire_link;
 pub mod process_effect_knowing_skull_cost_bump;
 pub mod process_effect_lagavulin_wake;
 pub mod process_effect_lifesteal_heal;
@@ -211,6 +212,7 @@ use self::process_effect_heel_hook_proc::process_effect_heel_hook_proc;
 use self::process_effect_hexaghost_burn_increase::process_effect_hexaghost_burn_increase;
 use self::process_effect_joust_bet::process_effect_joust_bet;
 use self::process_effect_key_obtain::process_effect_key_obtain;
+use self::process_effect_key_sapphire_link::process_effect_key_sapphire_link;
 use self::process_effect_knowing_skull_cost_bump::process_effect_knowing_skull_cost_bump;
 use self::process_effect_lagavulin_wake::process_effect_lagavulin_wake;
 use self::process_effect_lifesteal_heal::process_effect_lifesteal_heal;
@@ -893,6 +895,7 @@ fn dispatch_by_kind(
         EffectKind::CardStasisSteal => process_effect_card_stasis_steal(id_source, state),
         EffectKind::JoustBet { on_owner } => process_effect_joust_bet(state, on_owner),
         EffectKind::KeyObtain { key } => process_effect_key_obtain(state, key),
+        EffectKind::KeySapphireLink => process_effect_key_sapphire_link(state),
         EffectKind::KnowingSkullCostBump => {
             process_effect_knowing_skull_cost_bump(id_source, state)
         }
@@ -1201,6 +1204,15 @@ fn ensure_context_validity(state: &GameState) {
             ok,
             "Reward context inconsistent with room kind {:?} at {:?}",
             room_kind, state.location
+        );
+
+        // A set link names a staged Relic; checked only while open, as RoomExit leaves it on the closed Reward until the next reset
+        assert!(
+            state
+                .reward
+                .id_relic_linked
+                .is_none_or(|id_relic| state.reward.id_relics.contains(&id_relic)),
+            "the Sapphire Key's link names no staged Relic"
         );
     }
 }

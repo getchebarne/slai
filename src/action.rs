@@ -84,6 +84,7 @@ pub enum Action {
     RewardTakeRelic {
         id_relic: usize,
     },
+    RewardTakeSapphireKey,
     RoomExit,
     RoomSelect {
         id_room: usize,
@@ -192,6 +193,7 @@ pub fn handle_action(state: &mut GameState, action: Action) -> Result<(), String
         Action::RewardTakeRelic { id_relic } => {
             handle_reward_take(state, RewardKind::Relic, Some(id_relic))
         }
+        Action::RewardTakeSapphireKey => handle_reward_take(state, RewardKind::SapphireKey, None),
         Action::RoomExit => handle_room_exit(state),
         Action::RoomSelect { id_room } => handle_room_select(state, id_room),
         Action::ShopBuyCard { id_card } => handle_shop_buy(state, ShopSlot::Card, id_card),
@@ -684,6 +686,7 @@ fn fill_legal_actions_reward(state: &mut GameState) {
     let Reward {
         id_cards,
         id_relics,
+        id_relic_linked,
         id_potions,
         gold,
         gold_stolen,
@@ -706,6 +709,11 @@ fn fill_legal_actions_reward(state: &mut GameState) {
         state
             .legal_actions
             .push(Action::RewardTakeRelic { id_relic });
+    }
+
+    // The Sapphire Key can always be claimed while it's on offer
+    if id_relic_linked.is_some() {
+        state.legal_actions.push(Action::RewardTakeSapphireKey);
     }
 
     // Sozu: taking a Potion reward removes it and obtains nothing, so a full belt doesn't block it
