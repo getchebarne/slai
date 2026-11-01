@@ -450,6 +450,7 @@ class CardPile:
     Deck: Final[CardPile]
     Discard: Final[CardPile]
     Draw: Final[CardPile]
+    DrawTop: Final[CardPile]
     Hand: Final[CardPile]
     def __eq__(self, other: object) -> bool: ...
     def __hash__(self, /) -> int: ...
@@ -945,6 +946,8 @@ class EffectDamagePhysical:
     def __ne__(self, other: object) -> bool: ...
     @property
     def amount(self, /) -> int: ...
+    @property
+    def block_from_hit(self, /) -> bool: ...
     @property
     def if_poisoned(self, /) -> bool: ...
     @property
@@ -1902,6 +1905,7 @@ class MonsterEncounter:
     SentryAndSphere: Final[MonsterEncounter]
     ShelledParasite: Final[MonsterEncounter]
     ShelledParasiteAndFungi: Final[MonsterEncounter]
+    ShieldAndSpear: Final[MonsterEncounter]
     Slavers: Final[MonsterEncounter]
     SlimeBoss: Final[MonsterEncounter]
     SmallSlimes: Final[MonsterEncounter]
@@ -2020,6 +2024,8 @@ class MonsterName:
     SphericGuardian: Final[MonsterName]
     Spiker: Final[MonsterName]
     SpireGrowth: Final[MonsterName]
+    SpireShield: Final[MonsterName]
+    SpireSpear: Final[MonsterName]
     Taskmaster: Final[MonsterName]
     TheCollector: Final[MonsterName]
     TheGuardian: Final[MonsterName]

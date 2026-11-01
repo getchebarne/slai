@@ -17,7 +17,7 @@ use crate::utils::strike_dummy_bonus;
 use crate::utils::vuln_factor;
 use crate::utils::weak_factor;
 
-// Physical damage on a list of targets: every target's hit, then each Thorns reflect, the last target's first, then the remaining hits; Str+Vigor+Weak/Slow/Vuln scale it unless it was scaled as its play started, x2 DoubleDmg, Intangible clamp, if_poisoned needs Poison
+// Physical damage on a list of targets: every target's hit, then each Thorns reflect, the last target's first, then block_from_hit's block, then the remaining hits; Str+Vigor+Weak/Slow/Vuln scale it unless it was scaled as its play started, x2 DoubleDmg, Intangible clamp, if_poisoned needs Poison
 #[allow(clippy::too_many_arguments)]
 pub fn process_effect_damage_physical(
     id_source: Option<usize>,
@@ -25,9 +25,10 @@ pub fn process_effect_damage_physical(
     state: &mut GameState,
     amount: u16,
     instances: u16,
-    lifesteal: bool,     // Life Suck
-    if_poisoned: bool,   // Bane
-    scaled_at: ScaledAt, // Skewer: PlayStart
+    lifesteal: bool,      // Life Suck (see `shelled_parasite.rs`)
+    if_poisoned: bool,    // Bane  (see `bane.rs`)
+    block_from_hit: bool, // Smash (see `spire_shield.rs`)
+    scaled_at: ScaledAt,  // Skewer: PlayStart
 ) {
     let id_source = id_source.expect("DamagePhysical requires id_source");
     assert!(!id_targets.is_empty(), "DamagePhysical requires id_target");
@@ -72,9 +73,14 @@ pub fn process_effect_damage_physical(
     let weak_paper_krane =
         actor.kind == EntityKind::Monster && has_relic(&state.id_relics, RelicName::PaperKrane);
 
-    // Every hit is computed as the effect resolves, before any of them lands
+    // Every hit is computed as the Effect resolves, before any of them lands
     state.effect_buf.clear();
-    let mut reflects = Vec::new();
+
+    // Initialize buffers for correct ordering of reaction Effects
+    let mut effects_reflect = Vec::new();
+    let mut effects_block = Vec::new();
+
+    // Iteraete
     let mut hits_remaining = None;
     for &id_target in id_targets {
         // A target an earlier hit killed or left half-dead takes nothing more
@@ -134,12 +140,23 @@ pub fn process_effect_damage_physical(
 
         // Thorns: triggers per attack instance regardless of damage actually dealt
         if id_actor != id_target && has_modifier(mods_target, ModifierKind::Thorns) {
-            reflects.push(Effect {
+            effects_reflect.push(Effect {
                 kind: EffectKind::DamageDeal {
                     amount: modifier_stacks(mods_target, ModifierKind::Thorns) as u16,
                     lifesteal: false,
                 },
                 id_source: None,
+                target: Target::Direct(Some(id_actor)),
+            });
+        }
+
+        // Smash: the attacker gains the computed hit as block, behind the hit's reflect, so a reflect kill gains nothing
+        if block_from_hit {
+            effects_block.push(Effect {
+                kind: EffectKind::BlockGain {
+                    amount: final_damage,
+                },
+                id_source: Some(id_actor),
                 target: Target::Direct(Some(id_actor)),
             });
         }
@@ -152,6 +169,7 @@ pub fn process_effect_damage_physical(
                     instances: instances - 1,
                     lifesteal,
                     if_poisoned,
+                    block_from_hit,
                     scaled_at,
                 },
                 id_source: Some(id_source),
@@ -159,7 +177,10 @@ pub fn process_effect_damage_physical(
             });
         }
     }
-    state.effect_buf.extend(reflects.into_iter().rev());
+
+    // Flush reaction Effects
+    state.effect_buf.extend(effects_reflect.into_iter().rev());
+    state.effect_buf.extend(effects_block);
     state.effect_buf.extend(hits_remaining);
     flush_effects_from_buf_to_queue_front(state);
 }
