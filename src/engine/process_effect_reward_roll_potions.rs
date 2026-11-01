@@ -5,6 +5,7 @@ use crate::consts::POTION_DROP_CHANCE_MOD_HIT;
 use crate::consts::POTION_DROP_CHANCE_MOD_MISS;
 use crate::effect::RewardRollTrigger;
 use crate::game::GameState;
+use crate::map::get_active_room_burning;
 use crate::potions::get_potion;
 use crate::potions::get_random_potion_name;
 use crate::potions::get_random_potion_name_uniform;
@@ -28,13 +29,19 @@ pub fn process_effect_reward_roll_potions(
 
     for _ in 0..count {
         if policy.drop_chance {
-            // White Beast Statue pins the chance at 100; the roll and its drift still happen
+            // White Beast Statue lifts an escaped fight's chance 0; the roll and its drift still happen
             let statue = has_relic(&state.id_relics, RelicName::WhiteBeastStatue);
             if !eligible && !statue {
                 state.potion_drop_mod += POTION_DROP_CHANCE_MOD_MISS;
                 continue;
             }
-            let chance = if statue {
+
+            // A burning elite with Black Star drops no Potion, White Beast Statue's 100 included; the roll and its drift still happen
+            let capped = has_relic(&state.id_relics, RelicName::BlackStar)
+                && get_active_room_burning(&state.id_rooms, state.location, &state.entities);
+            let chance = if capped {
+                0
+            } else if statue {
                 100
             } else {
                 potion_drop_chance(state.potion_drop_mod)

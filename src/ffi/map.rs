@@ -28,6 +28,7 @@ pub struct PyRoom {
     pub id: usize,
     pub room_kind: PyRoomKind,
     pub edges: Vec<usize>,
+    pub burning: bool, // The act's burning elite, shown from the map's creation to the act's end
 
     // Its row and column in the Map's `rooms`
     pub y: usize,
@@ -77,7 +78,7 @@ impl<'a, 'py> IntoPyObject<'py> for &'a PyRooms {
     }
 }
 
-// Position-independent hash of the Room topology (kinds + edges) — a stable map identity for the
+// Position-independent hash of the Room topology (kinds, edges and the burning elite's mark) — a stable map identity for the
 // RL encoder's static-grid cache. Excludes the live position so it's constant across a map's life.
 fn map_identity_hash(state: &GameState) -> u64 {
     use std::hash::Hash;
@@ -87,7 +88,7 @@ fn map_identity_hash(state: &GameState) -> u64 {
         for (x, cell) in row.iter().enumerate() {
             if let Some(id_room) = *cell {
                 let room = &state.entities[id_room];
-                (y, x, room.room_kind, room.room_edges).hash(&mut hasher);
+                (y, x, room.room_kind, room.room_edges, room.room_burning).hash(&mut hasher);
             }
         }
     }
@@ -109,6 +110,7 @@ pub(crate) fn snapshot_map(state: &GameState) -> PyMap {
                             id: id_room,
                             room_kind: room.room_kind.into(),
                             edges: edge_indices(room.room_edges).collect(),
+                            burning: room.room_burning,
                             y,
                             x,
                         }

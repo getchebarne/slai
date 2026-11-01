@@ -53,7 +53,7 @@ pub struct PyGameState {
     pub relics: Vec<PyRelic>, // In pickup order
     pub potions: Vec<PyPotion>,
     pub potion_slots_max: u8,
-    pub potion_drop_mod: i32, // A combat's potion drop chance is 40 plus this, within 0..=100; a drop lowers it by 10, a miss raises it by 10
+    pub potion_drop_mod: i32, // A combat's potion drop chance is 40 plus this within 0..=100, 0 in an escaped normal fight, 100 with White Beast Statue, 0 at a burning elite with Black Star; a drop lowers it by 10, a miss raises it by 10
     pub shop_purge_cost_run: u16, // A Shop's Card removal price before Relic discounts: 75 plus 25 per shop purge
     pub unknown_chance_monster: f32, // A "?" Room's odds; the event chance is what the three leave
     pub unknown_chance_shop: f32,

@@ -251,7 +251,7 @@ fn apply_loss(id_source: Option<usize>, id_target: usize, state: &mut GameState,
             target: Target::Direct(Some(id_target)),
         });
 
-        // It comes out of its shell behind everything queued; its Metallicize stays until the removal the wake queues
+        // It comes out of its shell behind everything queued; its Metallicize stays until the wake's -8 lands
         state.effect_queue.push_back(Effect {
             kind: EffectKind::LagavulinWake,
             id_source: None,

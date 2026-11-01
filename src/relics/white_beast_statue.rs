@@ -2,9 +2,9 @@ use crate::relics::RelicTemplate;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
-// Potions always drop after combat
+// Potions always drop after combat, except at a burning elite with Black Star
 // See:
-//    - `process_effect_reward_roll_combat.rs`
+//    - `process_effect_reward_roll_potions.rs`
 pub static WHITE_BEAST_STATUE: RelicTemplate = RelicTemplate {
     name: RelicName::WhiteBeastStatue,
     tier: RelicTier::Uncommon,

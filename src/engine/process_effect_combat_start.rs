@@ -1,3 +1,5 @@
+use rand::Rng;
+
 use crate::consts::ENERGY_MAX_BASE;
 use crate::effect::Amount;
 use crate::effect::Effect;
@@ -7,6 +9,7 @@ use crate::effect::Rounding;
 use crate::effect::TARGET_MONSTERS_ALL;
 use crate::effect::Target;
 use crate::game::GameState;
+use crate::map::get_active_room_burning;
 use crate::modifier::ModifierKind;
 use crate::relics::RELIC_COUNTERS_PER_COMBAT;
 use crate::types::Combat;
@@ -99,6 +102,40 @@ pub fn process_effect_combat_start(state: &mut GameState, elite: bool) {
         id_source: None,
         target: TARGET_MONSTERS_ALL,
     });
+
+    // The burning Room: one roll buffs the opening roster, behind its spawn kits and ahead of the battle-start Relics
+    if get_active_room_burning(&state.id_rooms, state.location, &state.entities) {
+        let act = state.act as i16;
+        let kind = match state.rng.random_range(0..4) {
+            0 => EffectKind::ModifierDelta {
+                kind: ModifierKind::Strength,
+                stacks: act + 1,
+            },
+            1 => EffectKind::MaxHealthDelta {
+                sign: DeltaSign::Gain,
+                amount: Amount::Relative {
+                    numerator: 1,
+                    denominator: 4,
+                    rounding: Rounding::HalfUp,
+                    read_at: ReadAt::Now,
+                },
+            },
+            2 => EffectKind::ModifierDelta {
+                kind: ModifierKind::Metallicize,
+                stacks: 2 * act + 2,
+            },
+            3 => EffectKind::ModifierDelta {
+                kind: ModifierKind::Regeneration,
+                stacks: 2 * act + 1,
+            },
+            roll => unreachable!("Burning buff roll out of range: {roll}"),
+        };
+        state.effect_queue.push_back(Effect {
+            kind,
+            id_source: None,
+            target: TARGET_MONSTERS_ALL,
+        });
+    }
 
     // Pantograph: a fight a boss Monster opened starts with a 25 HP heal
     if has_relic(&state.id_relics, RelicName::Pantograph) && *boss_fight {

@@ -142,6 +142,7 @@ pub struct Entity {
     pub room_x: usize,
     pub room_kind: RoomKind,
     pub room_edges: u8,
+    pub room_burning: bool, // The act's burning elite: marked with the map, and marked until the act ends
 
     // Relic-only
     pub relic_name: RelicName,
@@ -217,6 +218,7 @@ pub const ENTITY_ZERO: Entity = Entity {
     room_x: 0,
     room_kind: RoomKind::CombatBoss,
     room_edges: 0,
+    room_burning: false,
     relic_name: RelicName::RingOfTheSnake,
     relic_tier: RelicTier::Starter,
     relic_counter: 0,

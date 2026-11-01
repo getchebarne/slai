@@ -17,10 +17,12 @@ use crate::effect::Target;
 use crate::events::fight_loot;
 use crate::game::GameState;
 use crate::game::Location;
+use crate::map::get_active_room_burning;
 use crate::map::get_active_room_kind;
 use crate::modifier::modifier_clear;
 use crate::relics::RELIC_COUNTERS_COMBAT_ONLY;
 use crate::types::DeltaSign;
+use crate::types::Key;
 use crate::types::RelicName;
 use crate::types::RoomKind;
 use crate::types::reward_reset;
@@ -173,6 +175,11 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
             // The thieves' purse is its own reward item, without Golden Idol's bonus
             if state.combat.gold_stolen > 0 {
                 state.reward.gold_stolen = Some(state.combat.gold_stolen);
+            }
+
+            // A won fight in the burning Room grants the Emerald Key; the mark is only drawn while the key isn't held
+            if get_active_room_burning(&state.id_rooms, state.location, &state.entities) {
+                queue_effect_untargeted(state, EffectKind::KeyObtain { key: Key::Emerald });
             }
 
             // Boss rewards draw from the rare pool only; Elites widen both bands
