@@ -10,6 +10,7 @@ pub enum ModifierKind {
     Angry,
     Artifact,
     Asleep,
+    BackAttack, // On the Monster behind the Surrounded Character: its attacks deal x1.5
     BeatOfDeath,
     Blur,
     Burst,
@@ -52,6 +53,7 @@ pub enum ModifierKind {
     SporeCloud,
     Strength,
     StrengthUp,
+    Surrounded, // On the Character while the pair stands; a targeted play or Potion turns it
     Thievery,
     Thorns,
     ThousandCuts,
@@ -146,6 +148,14 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::Asleep,
+        priority: PRIORITY_DEFAULT,
+        is_buff: true,
+        stacks_duration: false,
+        stacks_min: 1,
+        stacks_max: 1,
+    },
+    ModifierDef {
+        kind: ModifierKind::BackAttack,
         priority: PRIORITY_DEFAULT,
         is_buff: true,
         stacks_duration: false,
@@ -487,6 +497,14 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
         stacks_duration: false,
         stacks_min: 1,
         stacks_max: i16::MAX,
+    },
+    ModifierDef {
+        kind: ModifierKind::Surrounded,
+        priority: PRIORITY_DEFAULT,
+        is_buff: true,
+        stacks_duration: false,
+        stacks_min: 1,
+        stacks_max: 1,
     },
     ModifierDef {
         kind: ModifierKind::Thievery,

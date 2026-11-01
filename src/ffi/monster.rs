@@ -5,6 +5,7 @@ use super::macros::mirror_enum;
 
 use super::effect::PyEffect;
 use super::effect::snapshot_effect;
+use crate::consts::FACTOR_BACK_ATTACK;
 use crate::effect::EffectKind;
 use crate::effect::PlaySource;
 use crate::entity::Intent;
@@ -233,7 +234,7 @@ pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
                     } else {
                         0
                     };
-                    let mut scaled = scale_attack_damage(
+                    let mut unrounded = scale_attack_damage(
                         damage,
                         str_stacks,
                         has_modifier(&monster.modifiers, ModifierKind::DoubleDamage),
@@ -249,6 +250,12 @@ pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
                         ),
                         has_modifier(mods_char, ModifierKind::Flight),
                     );
+
+                    // Back Attack multiplies the unrounded value here and the truncated one in the hit, so this intent can read 1 above the hit
+                    if has_modifier(&monster.modifiers, ModifierKind::BackAttack) {
+                        unrounded *= FACTOR_BACK_ATTACK;
+                    }
+                    let mut scaled = unrounded as u16;
                     if has_modifier(mods_char, ModifierKind::Intangible) && scaled > 1 {
                         scaled = 1;
                     }

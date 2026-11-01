@@ -1,3 +1,4 @@
+use crate::consts::FACTOR_BACK_ATTACK;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::ScaledAt;
@@ -17,7 +18,7 @@ use crate::utils::strike_dummy_bonus;
 use crate::utils::vuln_factor;
 use crate::utils::weak_factor;
 
-// Physical damage on a list of targets: every target's hit, then each Thorns reflect, the last target's first, then block_from_hit's block, then the remaining hits; Str+Vigor+Weak/Slow/Vuln scale it unless it was scaled as its play started, x2 DoubleDmg, Intangible clamp, if_poisoned needs Poison
+// Physical damage on a list of targets: every target's hit, then each Thorns reflect, the last target's first, then block_from_hit's block, then the remaining hits; Str+Vigor+Weak/Slow/Vuln scale it unless it was scaled as its play started, x2 DoubleDmg, x1.5 Back Attack after the truncation, Intangible clamp, if_poisoned needs Poison
 #[allow(clippy::too_many_arguments)]
 pub fn process_effect_damage_physical(
     id_source: Option<usize>,
@@ -118,8 +119,13 @@ pub fn process_effect_damage_physical(
                     vuln_odd_mushroom,
                 ),
                 has_modifier(mods_target, ModifierKind::Flight),
-            )
+            ) as u16
         };
+
+        // Back Attack: a Monster behind the Surrounded Character multiplies its truncated hit
+        if has_modifier(mods_source_actor, ModifierKind::BackAttack) {
+            final_damage = (final_damage as f32 * FACTOR_BACK_ATTACK) as u16;
+        }
 
         // Intangible (target): clamps down, so a computed 0 stays 0
         if has_modifier(mods_target, ModifierKind::Intangible) && final_damage > 1 {

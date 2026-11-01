@@ -55,6 +55,7 @@ pub mod process_effect_escape_plan_check;
 pub mod process_effect_event_advance_state;
 pub mod process_effect_event_close;
 pub mod process_effect_event_consume;
+pub mod process_effect_face_monster;
 pub mod process_effect_gamble;
 pub mod process_effect_gamble_draw;
 pub mod process_effect_game_over;
@@ -197,6 +198,7 @@ use self::process_effect_escape_plan_check::process_effect_escape_plan_check;
 use self::process_effect_event_advance_state::process_effect_event_advance_state;
 use self::process_effect_event_close::process_effect_event_close;
 use self::process_effect_event_consume::process_effect_event_consume;
+use self::process_effect_face_monster::process_effect_face_monster;
 use self::process_effect_gamble::process_effect_gamble;
 use self::process_effect_gamble_draw::process_effect_gamble_draw;
 use self::process_effect_game_over::process_effect_game_over;
@@ -1000,6 +1002,10 @@ fn dispatch_by_kind(
         } => process_effect_scrap_ooze_reach(state, chance, advance_on_miss),
         EffectKind::EventClose => process_effect_event_close(state),
         EffectKind::EventConsume => process_effect_event_consume(state),
+        EffectKind::FaceMonster => {
+            enqueue_rest_of_targets(state, kind, id_source, id_targets);
+            process_effect_face_monster(id_targets.first().copied(), state)
+        }
         EffectKind::CardDiscoverSelect {
             cost_zero,
             card_pile,

@@ -463,7 +463,7 @@ pub fn unceasing_top_fires(state: &GameState) -> bool {
         )
 }
 
-// Shared by the live damage pipeline and the FFI intent view
+// Shared by the live damage pipeline and the FFI intent view; Back Attack's factor comes later in both, after the truncation in the pipeline and before it in the view
 pub fn weak_factor(is_weak: bool, paper_krane: bool) -> f32 {
     match (is_weak, paper_krane) {
         (false, _) => 1.0,
@@ -486,7 +486,7 @@ pub fn slow_factor(slow_stacks: i16) -> f32 {
     1.0 + slow_stacks as f32 * FACTOR_SLOW_PER_STACK
 }
 
-// Shared by the live damage pipeline and the FFI intent view; Weak, Slow and Vulnerable multiply in that order, each rounded in f32
+// Shared by the live damage pipeline and the FFI intent view; Weak, Slow and Vulnerable multiply in that order, each rounded in f32; each caller truncates, a negative value to 0, and a back attack's intent can read 1 above its hit because its factor comes before that truncation there and after it in the hit
 #[allow(clippy::too_many_arguments)]
 pub fn scale_attack_damage(
     base: u16,
@@ -497,7 +497,7 @@ pub fn scale_attack_damage(
     slow_factor: f32,
     vuln_factor: f32,
     flight: bool,
-) -> u16 {
+) -> f32 {
     let mut value = base as f32 + source_str_stacks as f32;
     if double_damage {
         value *= 2.0;
@@ -511,7 +511,7 @@ pub fn scale_attack_damage(
     if flight {
         value *= 0.5;
     }
-    value.max(0.0) as u16
+    value
 }
 
 // Shared by the live block pipeline and the FFI Card snapshot

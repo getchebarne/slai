@@ -157,6 +157,7 @@ pub enum EffectKind {
     },
     EventClose,
     EventConsume,
+    FaceMonster, // The Surrounded Character turns to its target, so Back Attack moves to the other Monster
     Gamble {
         choose_discards: bool,
     },
