@@ -9,6 +9,7 @@ pub mod byrd;
 pub mod centurion;
 pub mod champ;
 pub mod chosen;
+pub mod corrupt_heart;
 pub mod cultist;
 pub mod darkling;
 pub mod deca;
@@ -143,6 +144,7 @@ pub const ALL_MONSTERS: &[&'static MonsterTemplate] = &[
     &centurion::CENTURION,
     &champ::CHAMP,
     &chosen::CHOSEN,
+    &corrupt_heart::CORRUPT_HEART,
     &cultist::CULTIST,
     &darkling::DARKLING,
     &deca::DECA,
@@ -379,6 +381,7 @@ pub fn monster_template(monster_name: MonsterName) -> &'static MonsterTemplate {
         MonsterName::Reptomancer => &reptomancer::REPTOMANCER,
         MonsterName::SnakeDagger => &snake_dagger::SNAKE_DAGGER,
         MonsterName::GiantHead => &giant_head::GIANT_HEAD,
+        MonsterName::CorruptHeart => &corrupt_heart::CORRUPT_HEART,
     }
 }
 
@@ -655,6 +658,12 @@ pub fn get_next_move(
             history,
             &entity.monster_move_uses,
             ascension_level,
+            rng,
+        ),
+        MonsterName::CorruptHeart => corrupt_heart::get_next_move_corrupt_heart(
+            entity.monster_move_current,
+            history,
+            &entity.monster_move_uses,
             rng,
         ),
     }

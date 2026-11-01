@@ -2,6 +2,7 @@ pub mod process_card_play;
 pub mod process_effect_accuracy_resync;
 pub mod process_effect_act_transition;
 pub mod process_effect_adventurer_search;
+pub mod process_effect_beat_of_death_proc;
 pub mod process_effect_block_gain;
 pub mod process_effect_block_set;
 pub mod process_effect_bomb_arm;
@@ -125,6 +126,7 @@ pub mod process_effect_skewer_proc;
 pub mod process_effect_slow_proc;
 pub mod process_effect_sneaky_strike_proc;
 pub mod process_effect_storm_of_steel_proc;
+pub mod process_effect_strength_gain_past_negative;
 pub mod process_effect_strength_lose_temp;
 pub mod process_effect_time_warp_proc;
 pub mod process_effect_turn_end_character;
@@ -140,6 +142,7 @@ use self::process_card_play::process_card_play;
 use self::process_effect_accuracy_resync::process_effect_accuracy_resync;
 use self::process_effect_act_transition::process_effect_act_transition;
 use self::process_effect_adventurer_search::process_effect_adventurer_search;
+use self::process_effect_beat_of_death_proc::process_effect_beat_of_death_proc;
 use self::process_effect_block_gain::process_effect_block_gain;
 use self::process_effect_block_set::process_effect_block_set;
 use self::process_effect_bomb_arm::process_effect_bomb_arm;
@@ -263,6 +266,7 @@ use self::process_effect_skewer_proc::process_effect_skewer_proc;
 use self::process_effect_slow_proc::process_effect_slow_proc;
 use self::process_effect_sneaky_strike_proc::process_effect_sneaky_strike_proc;
 use self::process_effect_storm_of_steel_proc::process_effect_storm_of_steel_proc;
+use self::process_effect_strength_gain_past_negative::process_effect_strength_gain_past_negative;
 use self::process_effect_strength_lose_temp::process_effect_strength_lose_temp;
 use self::process_effect_time_warp_proc::process_effect_time_warp_proc;
 use self::process_effect_turn_end_character::process_effect_turn_end_character;
@@ -739,6 +743,15 @@ fn dispatch_by_kind(
         EffectKind::StormOfSteelProc { upgraded } => {
             process_effect_storm_of_steel_proc(state, upgraded)
         }
+        EffectKind::StrengthGainPastNegative { stacks } => {
+            enqueue_rest_of_targets(state, kind, id_source, id_targets);
+            process_effect_strength_gain_past_negative(
+                id_source,
+                id_targets.first().copied(),
+                state,
+                stacks,
+            )
+        }
         EffectKind::StrengthLoseTemp { stacks } => {
             enqueue_rest_of_targets(state, kind, id_source, id_targets);
             process_effect_strength_lose_temp(id_source, id_targets.first().copied(), state, stacks)
@@ -897,6 +910,10 @@ fn dispatch_by_kind(
         EffectKind::SlowProc => {
             enqueue_rest_of_targets(state, kind, id_source, id_targets);
             process_effect_slow_proc(id_targets.first().copied(), state)
+        }
+        EffectKind::BeatOfDeathProc => {
+            enqueue_rest_of_targets(state, kind, id_source, id_targets);
+            process_effect_beat_of_death_proc(id_targets.first().copied(), state)
         }
         EffectKind::HexaghostBurnIncrease { count } => {
             process_effect_hexaghost_burn_increase(state, count)

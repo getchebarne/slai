@@ -78,6 +78,12 @@ pub fn process_effect_damage_deal(
         damage_over_block = 1;
     }
 
+    // Invincible: its holder loses no more than the cap has left, so every reaction below is sized by that
+    if has_modifier(&target.modifiers, ModifierKind::Invincible) {
+        damage_over_block = damage_over_block
+            .min(modifier_stacks(&target.modifiers, ModifierKind::Invincible) as u16);
+    }
+
     // Hand Drill: breaking a Monster's block applies 2 Vulnerable
     if target.kind == EntityKind::Monster
         && block_prev > 0

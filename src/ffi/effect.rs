@@ -105,6 +105,7 @@ flat_variants!(PyEffect {
     Gamble => PyEffectGamble as "EffectGamble" { choose_discards: bool },
     CombatEnd => PyEffectCombatEnd as "EffectCombatEnd" { escaped_character: bool },
     RelicLose => PyEffectRelicLose as "EffectRelicLose" { target: PyTarget },
+    StrengthGainPastNegative => PyEffectStrengthGainPastNegative as "EffectStrengthGainPastNegative" { stacks: i16, target: PyTarget },
     StrengthLoseTemp => PyEffectStrengthLoseTemp as "EffectStrengthLoseTemp" { stacks: i16, target: PyTarget },
     MausoleumOpen => PyEffectMausoleumOpen as "EffectMausoleumOpen",
     KnowingSkullCostBump => PyEffectKnowingSkullCostBump as "EffectKnowingSkullCostBump",
@@ -583,6 +584,12 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
         }
         EffectKind::CombatEnd { escaped_character } => {
             PyEffect::CombatEnd(PyEffectCombatEnd { escaped_character })
+        }
+        EffectKind::StrengthGainPastNegative { stacks } => {
+            PyEffect::StrengthGainPastNegative(PyEffectStrengthGainPastNegative {
+                stacks,
+                target: require_target(target),
+            })
         }
         EffectKind::StrengthLoseTemp { stacks } => {
             PyEffect::StrengthLoseTemp(PyEffectStrengthLoseTemp {

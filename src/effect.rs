@@ -19,6 +19,7 @@ pub enum EffectKind {
     AccuracyResync,
     ActTransition,
     AdventurerSearch,
+    BeatOfDeathProc,
     BlockGain {
         amount: u16,
     },
@@ -321,6 +322,9 @@ pub enum EffectKind {
     },
     StormOfSteelProc {
         upgraded: bool,
+    },
+    StrengthGainPastNegative {
+        stacks: i16,
     },
     StrengthLoseTemp {
         stacks: i16,

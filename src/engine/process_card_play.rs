@@ -652,6 +652,15 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
                 target: Target::Direct(Some(id_monster)),
             });
         }
+
+        // Beat of Death answers the play
+        if has_modifier(mods_monster, ModifierKind::BeatOfDeath) {
+            state.effect_buf.push(Effect {
+                kind: EffectKind::BeatOfDeathProc,
+                id_source: None,
+                target: Target::Direct(Some(id_monster)),
+            });
+        }
     }
 
     // Route the played Card to its pile once every on-use hook has resolved; a replay leaves it where it lies

@@ -177,7 +177,7 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState, wit
             state.card_play_queue.clear();
         }
 
-        // The last kill ends the combat: no turn phase starts, and only the queued heals, block and damage resolve, Hand of Greed and Ritual Dagger with them
+        // The last kill ends the combat: no turn phase starts, and only the queued heals, block and damage resolve, Hand of Greed, Ritual Dagger and Beat of Death with them
         state.phase_queue.clear();
         state.effect_queue.retain(|e| {
             matches!(
@@ -192,6 +192,7 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState, wit
                     | EffectKind::PoisonTick { .. }
                     | EffectKind::HandOfGreedProc { .. }
                     | EffectKind::RitualDaggerProc { .. }
+                    | EffectKind::BeatOfDeathProc
             )
         });
 

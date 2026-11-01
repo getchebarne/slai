@@ -417,6 +417,8 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEffectStormOfSteelProc;
     #[pymodule_export]
+    use super::ffi::PyEffectStrengthGainPastNegative;
+    #[pymodule_export]
     use super::ffi::PyEffectStrengthLoseTemp;
     #[pymodule_export]
     use super::ffi::PyEffectUnloadDiscard;
