@@ -408,6 +408,9 @@ pub fn place_card(state: &mut GameState, id_card: usize, pile: CardPile) -> bool
             id_card_pile_draw.insert(idx, id_card);
         }
 
+        // DrawTop goes on top of the draw pile, so it's the next Card drawn
+        CardPile::DrawTop => id_card_pile_draw.push(id_card),
+
         // Discard just goes to discard
         CardPile::Discard => id_card_pile_discard.push(id_card),
 

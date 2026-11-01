@@ -25,6 +25,7 @@ const fn move_suck(damage: u16) -> Move {
                 instances: 1,
                 lifesteal: true,
                 if_poisoned: false,
+                block_from_hit: false,
                 scaled_at: ScaledAt::Now,
             },
             id_source: None,

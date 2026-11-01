@@ -39,7 +39,7 @@ mirror_enum!(PyRewardRollTrigger from RewardRollTrigger, "RewardRollTrigger", {
 
 // Mirrors only EffectKind variants reachable from static Card/Monster defs or a halted selection; snapshot_effect panics on runtime-only variants
 flat_variants!(PyEffect {
-    DamagePhysical => PyEffectDamagePhysical as "EffectDamagePhysical" { amount: u16, instances: u16, lifesteal: bool, if_poisoned: bool, target: PyTarget },
+    DamagePhysical => PyEffectDamagePhysical as "EffectDamagePhysical" { amount: u16, instances: u16, lifesteal: bool, if_poisoned: bool, block_from_hit: bool, target: PyTarget },
     HeelHookProc => PyEffectHeelHookProc as "EffectHeelHookProc" { damage: u16, target: PyTarget },
     SkewerProc => PyEffectSkewerProc as "EffectSkewerProc" { damage: u16, target: PyTarget },
     EscapePlanCheck => PyEffectEscapePlanCheck as "EffectEscapePlanCheck" { block: u16, target: PyTarget },
@@ -289,12 +289,14 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
             instances,
             lifesteal,
             if_poisoned,
+            block_from_hit,
             scaled_at: ScaledAt::Now,
         } => PyEffect::DamagePhysical(PyEffectDamagePhysical {
             amount,
             instances,
             lifesteal,
             if_poisoned,
+            block_from_hit,
             target: require_target(target),
         }),
         EffectKind::HeelHookProc { damage } => PyEffect::HeelHookProc(PyEffectHeelHookProc {

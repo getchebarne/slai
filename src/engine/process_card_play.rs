@@ -411,6 +411,7 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
                 instances: 1,
                 lifesteal: false,
                 if_poisoned: false,
+                block_from_hit: false,
                 scaled_at: ScaledAt::Now,
             };
         }

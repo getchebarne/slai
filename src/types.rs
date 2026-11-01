@@ -408,6 +408,7 @@ pub enum CostScope {
 pub enum CardPile {
     Hand,
     Draw,
+    DrawTop,
     Discard,
     Deck,
 }
@@ -481,6 +482,8 @@ pub enum MonsterName {
     SnakeDagger,
     Spiker,
     SpireGrowth,
+    SpireShield,
+    SpireSpear,
     TheGuardian,
     TimeEater,
     Transient,
@@ -599,6 +602,9 @@ pub enum MonsterEncounter {
     DonuAndDeca,
     TimeEater,
 
+    // Act 4 elite
+    ShieldAndSpear,
+
     // Act 4 boss
     CorruptHeart,
 }
@@ -686,6 +692,17 @@ pub enum RewardKind {
     Potion,
     Gold,
     GoldStolen,
+}
+
+// A run's three keys; GameState holds one flag per key
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum Key {
+    #[expect(dead_code, reason = "the burning elite's key reward builds it")]
+    Emerald,
+    #[expect(dead_code, reason = "the rest site's Recall builds it")]
+    Ruby,
+    #[expect(dead_code, reason = "the chest's linked key reward builds it")]
+    Sapphire,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

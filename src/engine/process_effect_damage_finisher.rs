@@ -28,6 +28,7 @@ pub fn process_effect_damage_finisher(
                 instances: num_attacks,
                 lifesteal: false,
                 if_poisoned: false,
+                block_from_hit: false,
                 scaled_at: ScaledAt::Now,
             },
             id_source,

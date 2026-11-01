@@ -616,6 +616,10 @@ pub fn spawn_encounter_monsters(state: &mut GameState, encounter: MonsterEncount
             push_monster_spawn(effects, MonsterName::SnakeDagger, 4);
         }
         MonsterEncounter::SpireGrowth => push_monster_spawn(effects, MonsterName::SpireGrowth, 0),
+        MonsterEncounter::ShieldAndSpear => {
+            push_monster_spawn(effects, MonsterName::SpireShield, 0);
+            push_monster_spawn(effects, MonsterName::SpireSpear, 1);
+        }
         MonsterEncounter::CorruptHeart => push_monster_spawn(effects, MonsterName::CorruptHeart, 0),
     }
 
