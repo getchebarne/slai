@@ -7,6 +7,7 @@ use crate::types::CardPile;
 use crate::types::CardRarity;
 use crate::types::CostScope;
 use crate::types::DeltaSign;
+use crate::types::Key;
 use crate::types::MonsterName;
 use crate::types::RelicName;
 use crate::types::RelicTier;
@@ -191,6 +192,10 @@ pub enum EffectKind {
     },
     JoustBet {
         on_owner: bool,
+    },
+    #[expect(dead_code, reason = "Recall and the two key rewards build it")]
+    KeyObtain {
+        key: Key,
     },
     KnowingSkullCostBump,
     LagavulinWake,

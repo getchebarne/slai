@@ -161,10 +161,24 @@ pub struct GameState {
 
     // When set, the run opens on Neow's blessing before the first Room selection
     pub neow: bool,
+
+    // When set, the keys and Act 4 are on for this run; fixed at creation
+    pub final_act: bool,
+
+    // The keys held: false at a new run, set once by KeyObtain and never cleared
+    pub key_emerald: bool,
+    pub key_ruby: bool,
+    pub key_sapphire: bool,
 }
 
 // Create and initialize
-pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) -> GameState {
+pub fn create_game_state(
+    ascension: u8,
+    seed: u64,
+    fast_mode: bool,
+    neow: bool,
+    final_act: bool,
+) -> GameState {
     let mut rng = SmallRng::seed_from_u64(seed);
 
     // Initialize empty entities arena
@@ -361,6 +375,10 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
         legal_actions: Vec::new(),
         fast_mode,
         neow,
+        final_act,
+        key_emerald: false,
+        key_ruby: false,
+        key_sapphire: false,
     };
 
     // Neow's blessing takes focus at Location::Start
