@@ -20,6 +20,8 @@ use crate::consts::CARD_REWARD_UPGRADE_CHANCE_ACT2;
 use crate::consts::CARD_REWARD_UPGRADE_CHANCE_ACT2_A12;
 use crate::consts::CARD_REWARD_UPGRADE_CHANCE_ACT3;
 use crate::consts::CARD_REWARD_UPGRADE_CHANCE_ACT3_A12;
+use crate::consts::CARD_REWARD_UPGRADE_CHANCE_ACT4;
+use crate::consts::CARD_REWARD_UPGRADE_CHANCE_ACT4_A12;
 use crate::consts::COLORLESS_RARE_CHANCE;
 use crate::consts::FACTOR_FRAIL;
 use crate::consts::FACTOR_SLOW_PER_STACK;
@@ -32,6 +34,10 @@ use crate::consts::GOLD_BOSS_MIN;
 use crate::consts::MAX_CARD_REWARD_ROLL;
 use crate::consts::MAX_MONSTERS;
 use crate::consts::MAX_SIZE_CARD_PILE_HAND;
+use crate::consts::RELIC_DIG_TH_COMMON_ACT4;
+use crate::consts::RELIC_DIG_TH_UNCOMMON_ACT4;
+use crate::consts::RELIC_GRANT_TH_COMMON;
+use crate::consts::RELIC_GRANT_TH_UNCOMMON;
 use crate::consts::SHOP_CARD_CUT_RARE;
 use crate::consts::SHOP_CARD_CUT_UNCOMMON;
 use crate::effect::Amount;
@@ -560,6 +566,15 @@ pub fn relic_tier_by_roll(roll: u8, th_common: u8, th_uncommon: u8) -> RelicTier
     }
 }
 
+// The Dig's Relic-tier cuts in this act
+pub fn relic_dig_cuts(act: u8) -> (u8, u8) {
+    match act {
+        1..=3 => (RELIC_GRANT_TH_COMMON, RELIC_GRANT_TH_UNCOMMON),
+        4 => (RELIC_DIG_TH_COMMON_ACT4, RELIC_DIG_TH_UNCOMMON_ACT4),
+        _ => unreachable!("no Dig cuts for act {act}"),
+    }
+}
+
 // Spawn gates for the Relics that have one, read against the owned set `id_relics`
 pub fn relic_can_spawn(
     state: &GameState,
@@ -998,6 +1013,8 @@ pub fn card_reward_upgrade_chance(act: u8, ascension_level: u8) -> f64 {
         (2, true) => CARD_REWARD_UPGRADE_CHANCE_ACT2_A12,
         (3, false) => CARD_REWARD_UPGRADE_CHANCE_ACT3,
         (3, true) => CARD_REWARD_UPGRADE_CHANCE_ACT3_A12,
+        (4, false) => CARD_REWARD_UPGRADE_CHANCE_ACT4,
+        (4, true) => CARD_REWARD_UPGRADE_CHANCE_ACT4_A12,
         _ => unreachable!("no card upgrade chance for act {act}"),
     }
 }

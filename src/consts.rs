@@ -102,11 +102,13 @@ pub const CARD_REWARD_ROLL_OFFSET_MIN: i8 = -40;
 pub const CARD_REWARD_ROLL_CHANCE_RARE: i32 = 3;
 pub const CARD_REWARD_ROLL_CHANCE_UNCOMMON: i32 = 40;
 
-// Reward Cards arrive pre-upgraded per act: Act I 0, Act II 0.25 (0.125 at A12+), Act III 0.5 (0.25 at A12+)
+// Reward Cards arrive pre-upgraded per act: Act I 0, Act II 0.25 (0.125 at A12+), Act III 0.5 (0.25 at A12+), Act IV 0.5 (0.25 at A12+)
 pub const CARD_REWARD_UPGRADE_CHANCE_ACT2: f64 = 0.25;
 pub const CARD_REWARD_UPGRADE_CHANCE_ACT2_A12: f64 = 0.125;
 pub const CARD_REWARD_UPGRADE_CHANCE_ACT3: f64 = 0.5;
 pub const CARD_REWARD_UPGRADE_CHANCE_ACT3_A12: f64 = 0.25;
+pub const CARD_REWARD_UPGRADE_CHANCE_ACT4: f64 = 0.5;
+pub const CARD_REWARD_UPGRADE_CHANCE_ACT4_A12: f64 = 0.25;
 pub const ASCENSION_CARD_UPGRADE_CUT_LEVEL: u8 = 12;
 
 // Elite rooms widen both bands
@@ -140,6 +142,11 @@ pub const FACTOR_NUM_ELITE_A1_MULT: f32 = 1.6;
 pub const FACTOR_NUM_EVENT: f32 = 0.22;
 pub const FACTOR_NUM_SHOP: f32 = 0.05;
 pub const MAP_ROW_TREASURE: usize = 8;
+
+// Act 4's map is one column: its rest site, its shop and, on its last row, its elite
+pub const MAP_COLUMN_ACT4: usize = 3;
+pub const MAP_ROW_LAST_ACT4: usize = 2;
+
 pub const UNKNOWN_CHANCE_BASE_MONSTER: f32 = 0.10;
 pub const UNKNOWN_CHANCE_BASE_SHOP: f32 = 0.03;
 pub const UNKNOWN_CHANCE_BASE_TREASURE: f32 = 0.02;
@@ -165,17 +172,24 @@ pub const CHEST_LARGE_TH_UNCOMMON: u8 = 75;
 pub const CHEST_GOLD_VARIANCE_MIN: f32 = 0.9;
 pub const CHEST_GOLD_VARIANCE_MAX: f32 = 1.1;
 
-// Cumulative thresholds for Relic-tier roll (elite reward, random grant)
+// Cumulative thresholds for the elite reward's own Relic-tier roll, the same in every act
 pub const RELIC_TIER_TH_COMMON: u8 = 50;
 pub const RELIC_TIER_TH_UNCOMMON: u8 = 83;
 
+// Random-grant tier cuts (the Dig, the events' Relics): 50/33/17; Act 4's pair, always Uncommon, is the Dig's alone, since no event runs there
+pub const RELIC_GRANT_TH_COMMON: u8 = 50;
+pub const RELIC_GRANT_TH_UNCOMMON: u8 = 83;
+pub const RELIC_DIG_TH_COMMON_ACT4: u8 = 0;
+pub const RELIC_DIG_TH_UNCOMMON_ACT4: u8 = 100;
+
 // Encounter sequence sizes
-pub const NUM_ENCOUNTERS_EASY: usize = 3;
+pub const NUM_ENCOUNTERS_EASY_ACT1: usize = 3;
 pub const NUM_ENCOUNTERS_EASY_ACT2: usize = 2;
 pub const NUM_ENCOUNTERS_EASY_ACT3: usize = 2;
-pub const NUM_ENCOUNTERS_HARD: usize = MAP_HEIGHT - NUM_ENCOUNTERS_EASY;
+pub const NUM_ENCOUNTERS_HARD: usize = MAP_HEIGHT - NUM_ENCOUNTERS_EASY_ACT1;
 pub const NUM_ENCOUNTERS_ELITE: usize = 10;
-pub const ENCOUNTER_POOL_CAPACITY_NORMAL: usize = NUM_ENCOUNTERS_EASY + 1 + NUM_ENCOUNTERS_HARD;
+pub const ENCOUNTER_POOL_CAPACITY_NORMAL: usize =
+    NUM_ENCOUNTERS_EASY_ACT1 + 1 + NUM_ENCOUNTERS_HARD;
 pub const ENCOUNTER_POOL_CAPACITY_ELITE: usize = NUM_ENCOUNTERS_ELITE;
 
 // Potions

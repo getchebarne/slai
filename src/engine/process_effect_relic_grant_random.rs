@@ -1,7 +1,7 @@
 use rand::Rng;
 
-use crate::consts::RELIC_TIER_TH_COMMON;
-use crate::consts::RELIC_TIER_TH_UNCOMMON;
+use crate::consts::RELIC_GRANT_TH_COMMON;
+use crate::consts::RELIC_GRANT_TH_UNCOMMON;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::RelicExclusion;
@@ -21,8 +21,8 @@ pub fn process_effect_relic_grant_random(
     let tier = tier.unwrap_or_else(|| {
         relic_tier_by_roll(
             state.rng.random_range(0..100) as u8,
-            RELIC_TIER_TH_COMMON,
-            RELIC_TIER_TH_UNCOMMON,
+            RELIC_GRANT_TH_COMMON,
+            RELIC_GRANT_TH_UNCOMMON,
         )
     });
     let name = draw_relic_excluding(state, tier, exclusion);
