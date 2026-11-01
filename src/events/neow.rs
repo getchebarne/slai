@@ -361,7 +361,7 @@ const fn eots_for_asc(ascension: u8) -> [EventOptionTemplate; CATALOG_LEN] {
 
     // Initialize catalog
     let mut eots = [make_event_option_template(&[
-        EFFECT_EVENT_CONSUME,
+        // The staked Ring must leave before EventConsume clears the roll
         Effect {
             kind: EffectKind::RelicLose,
             id_source: None,
@@ -371,6 +371,7 @@ const fn eots_for_asc(ascension: u8) -> [EventOptionTemplate; CATALOG_LEN] {
                 selection_kind: SelectionKind::Single,
             },
         },
+        EFFECT_EVENT_CONSUME,
         effect_relic_grant_random(RelicTier::Boss),
     ]); CATALOG_LEN];
 
