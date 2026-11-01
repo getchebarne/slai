@@ -62,7 +62,7 @@ pub fn get_active_room_kind(
     entities: &[Entity],
 ) -> Option<RoomKind> {
     match location {
-        Location::Start => None,
+        Location::Start | Location::Victory => None,
         Location::BossRoom => Some(RoomKind::CombatBoss),
         Location::BossTreasure => Some(RoomKind::Treasure),
         Location::Overworld { y, x } => {

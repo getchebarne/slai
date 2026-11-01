@@ -940,7 +940,7 @@ fn push_room_select_actions(state: &mut GameState) {
                 }
             }
         }
-        Location::BossRoom | Location::BossTreasure => {}
+        Location::BossRoom | Location::BossTreasure | Location::Victory => {}
     }
 }
 

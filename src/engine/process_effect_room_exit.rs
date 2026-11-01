@@ -61,6 +61,19 @@ pub fn process_effect_room_exit(state: &mut GameState) {
             });
             return;
         }
+
+        // Only the open door's stop leaves an Act 3 Boss Room with no boss to come: it leads into the victory room
+        Location::BossRoom if state.act == 3 => {
+            state.effect_queue.push_front(Effect {
+                kind: EffectKind::RoomEnter {
+                    location: Location::Victory,
+                    landing: false,
+                },
+                id_source: None,
+                target: Target::Direct(None),
+            });
+            return;
+        }
         _ => {}
     }
 
