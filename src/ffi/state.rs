@@ -43,6 +43,7 @@ pub struct PyGameState {
     pub game_over: bool,
     pub ascension: u8,
     pub act: u8,
+    pub floor: u8,
     pub character: Py<PyCharacter>,
     pub card_pile_deck: Vec<PyCard>,
     pub relics: Vec<PyRelic>, // In pickup order
@@ -99,6 +100,7 @@ pub fn snapshot_state(py: Python<'_>, state: &GameState) -> PyResult<PyGameState
         game_over: state.game_over,
         ascension: state.ascension,
         act: state.act,
+        floor: state.floor,
         character: Py::new(py, snapshot_character(state))?,
         card_pile_deck: state
             .id_card_pile_deck

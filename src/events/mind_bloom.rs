@@ -22,7 +22,6 @@ use crate::types::DeltaSign;
 use crate::types::MonsterName;
 use crate::types::RelicName;
 use crate::types::RelicTier;
-use crate::utils::run_floor;
 
 // I am War's boss: an Act 1 boss, rolled when chosen, not at the open, in slot 2 as in its Boss Room
 static SUMMON_WAR: Summon = Summon {
@@ -150,11 +149,7 @@ pub fn catalog(_ascension: u8) -> &'static [EventOptionTemplate] {
 // The run floor the event opens on picks the third option: Rich through floor 40, Healthy past it
 pub fn spawn(state: &mut GameState) -> Vec<usize> {
     let eots = catalog(state.ascension);
-    let third = if run_floor(state.act, state.location) <= 40 {
-        eots[2]
-    } else {
-        eots[3]
-    };
+    let third = if state.floor <= 40 { eots[2] } else { eots[3] };
     let options = [eots[0], eots[1], third];
     bake_options(state, &options)
 }

@@ -50,7 +50,6 @@ use crate::entity::Entity;
 use crate::entity::EntityKind;
 use crate::entity::PlayRestriction;
 use crate::game::GameState;
-use crate::game::Location;
 use crate::modifier::ModifierKind;
 use crate::modifier::Modifiers;
 use crate::modifier::has_modifier;
@@ -558,17 +557,6 @@ pub fn relic_tier_by_roll(roll: u8, th_common: u8, th_uncommon: u8) -> RelicTier
     }
 }
 
-// The run's floor: 17 per act, the row + 1 on the map, 16 in the boss room, 17 at its chest
-pub fn run_floor(act: u8, location: Location) -> u8 {
-    let act_start = 17 * (act - 1);
-    match location {
-        Location::Start => act_start,
-        Location::Overworld { y, .. } => act_start + y as u8 + 1,
-        Location::BossRoom => act_start + 16,
-        Location::BossTreasure => act_start + 17,
-    }
-}
-
 // Spawn gates for the Relics that have one, read against the owned set `id_relics`
 pub fn relic_can_spawn(
     state: &GameState,
@@ -581,7 +569,7 @@ pub fn relic_can_spawn(
             .iter()
             .any(|&id| pred(&state.entities[id]))
     };
-    let floor = run_floor(state.act, state.location);
+    let floor = state.floor;
     match name {
         RelicName::BottledFlame => {
             deck_has(|c| c.card_kind == CardKind::Attack && c.card_rarity != CardRarity::Basic)

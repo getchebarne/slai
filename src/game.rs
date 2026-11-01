@@ -69,6 +69,9 @@ pub struct GameState {
     // Current act, 1-based; the run ends after the last boss fight of act ACT_FINAL
     pub act: u8,
 
+    // The run's floor: +1 for every Room entered, never at the act transition
+    pub floor: u8,
+
     // Engine state
     pub effect_queue: VecDeque<Effect>,
 
@@ -237,6 +240,7 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
         ascension,
         rng,
         act: 1,
+        floor: 0,
         entities,
         id_character: 0,
         id_card_pile_deck,

@@ -33,7 +33,6 @@ use crate::utils::filter_candidates;
 use crate::utils::flush_effects_from_buf_to_queue_front;
 use crate::utils::has_relic;
 use crate::utils::push_entity;
-use crate::utils::run_floor;
 
 pub fn process_effect_room_enter(state: &mut GameState, location: Location, landing: bool) {
     state.location = location;
@@ -41,6 +40,9 @@ pub fn process_effect_room_enter(state: &mut GameState, location: Location, land
 
     // The entry Relics pay out first, so everything the Room generates sees their gold
     if !landing {
+        // Every Room entered counts one floor, before anything in it reads the floor
+        state.floor += 1;
+
         // Maw Bank: 12 gold on every Room entry until deactivated
         if let Some(id) = state.id_relics[RelicName::MawBank as usize]
             && !state.entities[id].relic_used_up
@@ -282,7 +284,7 @@ fn draw_event(state: &mut GameState) -> Option<EventName> {
         Location::Overworld { y, .. } => y,
         _ => 0,
     };
-    let floor = run_floor(state.act, state.location);
+    let floor = state.floor;
     let eligible: Vec<usize> = state
         .pool_events
         .iter()
