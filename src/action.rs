@@ -26,6 +26,7 @@ use crate::types::Combat;
 use crate::types::DeltaSign;
 use crate::types::EventName;
 use crate::types::Focus;
+use crate::types::Key;
 use crate::types::PotionName;
 use crate::types::RelicName;
 use crate::types::Reward;
@@ -66,6 +67,7 @@ pub enum Action {
     Rest,
     RestDig,
     RestLift,
+    RestRecall,
     RestSmith,
     RestToke,
     RewardSingingBowl {
@@ -175,6 +177,7 @@ pub fn handle_action(state: &mut GameState, action: Action) -> Result<(), String
         Action::Rest => handle_rest(state),
         Action::RestDig => handle_rest_dig(state),
         Action::RestLift => handle_rest_lift(state),
+        Action::RestRecall => handle_rest_recall(state),
         Action::RestSmith => handle_rest_smith(state),
         Action::RestToke => handle_rest_toke(state),
         Action::RewardSingingBowl { id_card } => handle_reward_singing_bowl(state, id_card),
@@ -468,6 +471,16 @@ fn handle_rest(state: &mut GameState) {
 fn handle_rest_lift(state: &mut GameState) {
     state.effect_buf.push(Effect {
         kind: EffectKind::GiryaLift,
+        id_source: None,
+        target: Target::Direct(None),
+    });
+    push_rest_site_consume(state);
+}
+
+// Recall: spend the rest on the Ruby Key
+fn handle_rest_recall(state: &mut GameState) {
+    state.effect_buf.push(Effect {
+        kind: EffectKind::KeyObtain { key: Key::Ruby },
         id_source: None,
         target: Target::Direct(None),
     });
@@ -847,7 +860,13 @@ fn fill_legal_actions_rest_site(state: &mut GameState) {
             any_option = true;
         }
 
-        // Every option gated: allow leaving so the site can't soft-lock
+        // With the final act on: Recall for the Ruby Key until it's held; no Relic gates it
+        if state.final_act && !state.key_ruby {
+            state.legal_actions.push(Action::RestRecall);
+            any_option = true;
+        }
+
+        // No option usable, Recall included: the site lets the player leave
         if !any_option {
             state.legal_actions.push(Action::RoomExit);
         }
