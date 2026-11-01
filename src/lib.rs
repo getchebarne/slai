@@ -369,6 +369,8 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEffectModifierRemove;
     #[pymodule_export]
+    use super::ffi::PyEffectModifierStrengthNegativeRemove;
+    #[pymodule_export]
     use super::ffi::PyEffectMonsterEscape;
     #[pymodule_export]
     use super::ffi::PyEffectMonsterRemove;
@@ -422,8 +424,6 @@ mod slai {
     use super::ffi::PyEffectSneakyStrikeProc;
     #[pymodule_export]
     use super::ffi::PyEffectStormOfSteelProc;
-    #[pymodule_export]
-    use super::ffi::PyEffectStrengthGainPastNegative;
     #[pymodule_export]
     use super::ffi::PyEffectStrengthLoseTemp;
     #[pymodule_export]

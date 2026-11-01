@@ -60,7 +60,7 @@ pub fn process_effect_turn_start_monster(id_target: Option<usize>, state: &mut G
     // Invincible: the cap refills to the spawn value at the owner's turn start, ahead of its Poison tick
     if has_modifier(modifiers, ModifierKind::Invincible) {
         modifiers.stacks[ModifierKind::Invincible as usize] =
-            corrupt_heart::invincible_stacks(state.ascension);
+            corrupt_heart::stacks_invincible(state.ascension);
     }
 
     // Choke wears off at its Monster's turn start, before any Monster acts

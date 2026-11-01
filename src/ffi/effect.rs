@@ -105,7 +105,6 @@ flat_variants!(PyEffect {
     Gamble => PyEffectGamble as "EffectGamble" { choose_discards: bool },
     CombatEnd => PyEffectCombatEnd as "EffectCombatEnd" { escaped_character: bool },
     RelicLose => PyEffectRelicLose as "EffectRelicLose" { target: PyTarget },
-    StrengthGainPastNegative => PyEffectStrengthGainPastNegative as "EffectStrengthGainPastNegative" { stacks: i16, target: PyTarget },
     StrengthLoseTemp => PyEffectStrengthLoseTemp as "EffectStrengthLoseTemp" { stacks: i16, target: PyTarget },
     MausoleumOpen => PyEffectMausoleumOpen as "EffectMausoleumOpen",
     KnowingSkullCostBump => PyEffectKnowingSkullCostBump as "EffectKnowingSkullCostBump",
@@ -114,6 +113,7 @@ flat_variants!(PyEffect {
     DebuffsClear => PyEffectDebuffsClear as "EffectDebuffsClear" { target: PyTarget },
     HexaghostBurnIncrease => PyEffectHexaghostBurnIncrease as "EffectHexaghostBurnIncrease" { count: u8 },
     ModifierRemove => PyEffectModifierRemove as "EffectModifierRemove" { kind: PyModifierKind, target: PyTarget },
+    ModifierStrengthNegativeRemove => PyEffectModifierStrengthNegativeRemove as "EffectModifierStrengthNegativeRemove" { target: PyTarget },
     MonsterEscape => PyEffectMonsterEscape as "EffectMonsterEscape" { target: PyTarget },
     MonsterRemove => PyEffectMonsterRemove as "EffectMonsterRemove" { target: PyTarget },
     MonsterSplit => PyEffectMonsterSplit as "EffectMonsterSplit" { name: PyMonsterName, target: PyTarget },
@@ -587,12 +587,6 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
         EffectKind::CombatEnd { escaped_character } => {
             PyEffect::CombatEnd(PyEffectCombatEnd { escaped_character })
         }
-        EffectKind::StrengthGainPastNegative { stacks } => {
-            PyEffect::StrengthGainPastNegative(PyEffectStrengthGainPastNegative {
-                stacks,
-                target: require_target(target),
-            })
-        }
         EffectKind::StrengthLoseTemp { stacks } => {
             PyEffect::StrengthLoseTemp(PyEffectStrengthLoseTemp {
                 stacks,
@@ -617,6 +611,11 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
             kind: kind.into(),
             target: require_target(target),
         }),
+        EffectKind::ModifierStrengthNegativeRemove => {
+            PyEffect::ModifierStrengthNegativeRemove(PyEffectModifierStrengthNegativeRemove {
+                target: require_target(target),
+            })
+        }
         EffectKind::MonsterEscape => PyEffect::MonsterEscape(PyEffectMonsterEscape {
             target: require_target(target),
         }),

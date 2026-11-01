@@ -220,6 +220,7 @@ pub enum EffectKind {
     ModifierRemove {
         kind: ModifierKind,
     },
+    ModifierStrengthNegativeRemove,
     ModifierTick,
     MonsterEscape,
     MonsterRemove,
@@ -328,9 +329,6 @@ pub enum EffectKind {
     },
     StormOfSteelProc {
         upgraded: bool,
-    },
-    StrengthGainPastNegative {
-        stacks: i16,
     },
     StrengthLoseTemp {
         stacks: i16,

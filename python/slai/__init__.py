@@ -253,7 +253,6 @@ EffectCardPlayFromCardPileDrawTop = _rs.EffectCardPlayFromCardPileDrawTop
 EffectGamble = _rs.EffectGamble
 EffectCombatEnd = _rs.EffectCombatEnd
 EffectRelicLose = _rs.EffectRelicLose
-EffectStrengthGainPastNegative = _rs.EffectStrengthGainPastNegative
 EffectStrengthLoseTemp = _rs.EffectStrengthLoseTemp
 EffectMausoleumOpen = _rs.EffectMausoleumOpen
 EffectKnowingSkullCostBump = _rs.EffectKnowingSkullCostBump
@@ -262,6 +261,7 @@ EffectRelicGrantPool = _rs.EffectRelicGrantPool
 EffectDebuffsClear = _rs.EffectDebuffsClear
 EffectHexaghostBurnIncrease = _rs.EffectHexaghostBurnIncrease
 EffectModifierRemove = _rs.EffectModifierRemove
+EffectModifierStrengthNegativeRemove = _rs.EffectModifierStrengthNegativeRemove
 EffectMonsterEscape = _rs.EffectMonsterEscape
 EffectMonsterRemove = _rs.EffectMonsterRemove
 EffectMonsterSplit = _rs.EffectMonsterSplit
@@ -345,7 +345,6 @@ Effect = (
     | EffectGamble
     | EffectCombatEnd
     | EffectRelicLose
-    | EffectStrengthGainPastNegative
     | EffectStrengthLoseTemp
     | EffectMausoleumOpen
     | EffectKnowingSkullCostBump
@@ -354,6 +353,7 @@ Effect = (
     | EffectDebuffsClear
     | EffectHexaghostBurnIncrease
     | EffectModifierRemove
+    | EffectModifierStrengthNegativeRemove
     | EffectMonsterEscape
     | EffectMonsterRemove
     | EffectMonsterSplit
@@ -618,7 +618,6 @@ __all__ = [
     "EffectGamble",
     "EffectCombatEnd",
     "EffectRelicLose",
-    "EffectStrengthGainPastNegative",
     "EffectStrengthLoseTemp",
     "EffectMausoleumOpen",
     "EffectKnowingSkullCostBump",
@@ -627,6 +626,7 @@ __all__ = [
     "EffectDebuffsClear",
     "EffectHexaghostBurnIncrease",
     "EffectModifierRemove",
+    "EffectModifierStrengthNegativeRemove",
     "EffectMonsterEscape",
     "EffectMonsterRemove",
     "EffectMonsterSplit",

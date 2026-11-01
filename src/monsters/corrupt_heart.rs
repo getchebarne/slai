@@ -64,13 +64,21 @@ static MOVE_DEBILITATE: Move = make_move(
     Intent::DebuffPowerful,
 );
 
-// Buff: 2 Strength that first cancels a negative Strength, then the tier's extra
+// Buff: a negative Strength comes off, then 2 Strength, then the tier's extra
 const fn move_buff_tier(mod_kind: ModifierKind, stacks: i16) -> Move {
     make_move(
         "Buff",
         &[
             Effect {
-                kind: EffectKind::StrengthGainPastNegative { stacks: 2 },
+                kind: EffectKind::ModifierStrengthNegativeRemove,
+                id_source: None,
+                target: TARGET_SOURCE,
+            },
+            Effect {
+                kind: EffectKind::ModifierDelta {
+                    kind: ModifierKind::Strength,
+                    stacks: 2,
+                },
                 id_source: None,
                 target: TARGET_SOURCE,
             },
@@ -121,15 +129,15 @@ const IDX_MOVE_DEBILITATE: usize = 2;
 const IDX_MOVE_BUFF_FIRST: usize = 3;
 const IDX_MOVE_BUFF_LAST: usize = 7;
 
-const INVINCIBLE_STACKS_BASE: i16 = 300;
-const INVINCIBLE_STACKS_A19: i16 = 200;
+const STACKS_INVINCIBLE_BASE: i16 = 300;
+const STACKS_INVINCIBLE_A19: i16 = 200;
 
 // Turn start re-reads this to reset Invincible
-pub fn invincible_stacks(ascension_level: u8) -> i16 {
+pub fn stacks_invincible(ascension_level: u8) -> i16 {
     if ascension_level < 19 {
-        INVINCIBLE_STACKS_BASE
+        STACKS_INVINCIBLE_BASE
     } else {
-        INVINCIBLE_STACKS_A19
+        STACKS_INVINCIBLE_A19
     }
 }
 
@@ -143,14 +151,14 @@ pub static CORRUPT_HEART: MonsterTemplate = MonsterTemplate {
         (
             0,
             &[
-                modifier_fixed(ModifierKind::Invincible, INVINCIBLE_STACKS_BASE),
+                modifier_fixed(ModifierKind::Invincible, STACKS_INVINCIBLE_BASE),
                 modifier_fixed(ModifierKind::BeatOfDeath, 1),
             ],
         ),
         (
             19,
             &[
-                modifier_fixed(ModifierKind::Invincible, INVINCIBLE_STACKS_A19),
+                modifier_fixed(ModifierKind::Invincible, STACKS_INVINCIBLE_A19),
                 modifier_fixed(ModifierKind::BeatOfDeath, 2),
             ],
         ),

@@ -81,6 +81,7 @@ pub mod process_effect_mayhem_proc;
 pub mod process_effect_modifier_delta;
 pub mod process_effect_modifier_multiply;
 pub mod process_effect_modifier_remove;
+pub mod process_effect_modifier_strength_negative_remove;
 pub mod process_effect_modifier_tick;
 pub mod process_effect_monster_escape;
 pub mod process_effect_monster_remove;
@@ -127,7 +128,6 @@ pub mod process_effect_skewer_proc;
 pub mod process_effect_slow_proc;
 pub mod process_effect_sneaky_strike_proc;
 pub mod process_effect_storm_of_steel_proc;
-pub mod process_effect_strength_gain_past_negative;
 pub mod process_effect_strength_lose_temp;
 pub mod process_effect_time_warp_proc;
 pub mod process_effect_turn_end_character;
@@ -222,6 +222,7 @@ use self::process_effect_mayhem_proc::process_effect_mayhem_proc;
 use self::process_effect_modifier_delta::process_effect_modifier_delta;
 use self::process_effect_modifier_multiply::process_effect_modifier_multiply;
 use self::process_effect_modifier_remove::process_effect_modifier_remove;
+use self::process_effect_modifier_strength_negative_remove::process_effect_modifier_strength_negative_remove;
 use self::process_effect_modifier_tick::process_effect_modifier_tick;
 use self::process_effect_monster_escape::process_effect_monster_escape;
 use self::process_effect_monster_remove::process_effect_monster_remove;
@@ -268,7 +269,6 @@ use self::process_effect_skewer_proc::process_effect_skewer_proc;
 use self::process_effect_slow_proc::process_effect_slow_proc;
 use self::process_effect_sneaky_strike_proc::process_effect_sneaky_strike_proc;
 use self::process_effect_storm_of_steel_proc::process_effect_storm_of_steel_proc;
-use self::process_effect_strength_gain_past_negative::process_effect_strength_gain_past_negative;
 use self::process_effect_strength_lose_temp::process_effect_strength_lose_temp;
 use self::process_effect_time_warp_proc::process_effect_time_warp_proc;
 use self::process_effect_turn_end_character::process_effect_turn_end_character;
@@ -747,15 +747,6 @@ fn dispatch_by_kind(
         EffectKind::StormOfSteelProc { upgraded } => {
             process_effect_storm_of_steel_proc(state, upgraded)
         }
-        EffectKind::StrengthGainPastNegative { stacks } => {
-            enqueue_rest_of_targets(state, kind, id_source, id_targets);
-            process_effect_strength_gain_past_negative(
-                id_source,
-                id_targets.first().copied(),
-                state,
-                stacks,
-            )
-        }
         EffectKind::StrengthLoseTemp { stacks } => {
             enqueue_rest_of_targets(state, kind, id_source, id_targets);
             process_effect_strength_lose_temp(id_source, id_targets.first().copied(), state, stacks)
@@ -813,6 +804,10 @@ fn dispatch_by_kind(
         EffectKind::ModifierRemove { kind: mod_kind } => {
             enqueue_rest_of_targets(state, kind, id_source, id_targets);
             process_effect_modifier_remove(id_targets.first().copied(), state, mod_kind)
+        }
+        EffectKind::ModifierStrengthNegativeRemove => {
+            enqueue_rest_of_targets(state, kind, id_source, id_targets);
+            process_effect_modifier_strength_negative_remove(id_targets.first().copied(), state)
         }
         EffectKind::ModifierTick => {
             enqueue_rest_of_targets(state, kind, id_source, id_targets);
