@@ -362,6 +362,9 @@ fn handle_card_play(state: &mut GameState, id_card: usize, id_monster: Option<us
     assert!(state.combat.active, "handle_card_play outside combat");
     let energy = state.combat.energy.energy_current;
 
+    // Only relevant during the Spire & Shield fight
+    push_face_monster_if_surrounded(state, id_monster);
+
     // The play carries its own target: the selected Monster, if the Card needs one
     state.card_play_queue.push_back(CardPlay {
         id_card,
@@ -371,6 +374,22 @@ fn handle_card_play(state: &mut GameState, id_card: usize, id_monster: Option<us
         cost_effective: get_card_effective_cost(&state.entities[id_card], energy),
         draw_pile_size: state.combat.id_card_pile_draw.len() as u16,
     });
+}
+
+// A hand play or a Potion aimed at a Monster turns the Surrounded Character ahead of its effects
+fn push_face_monster_if_surrounded(state: &mut GameState, id_monster: Option<usize>) {
+    if id_monster.is_some()
+        && has_modifier(
+            &state.entities[state.id_character].modifiers,
+            ModifierKind::Surrounded,
+        )
+    {
+        state.effect_buf.push(Effect {
+            kind: EffectKind::FaceMonster,
+            id_source: None,
+            target: Target::Direct(id_monster),
+        });
+    }
 }
 
 fn handle_chest_open(state: &mut GameState) {
@@ -410,6 +429,9 @@ fn handle_potion_discard(state: &mut GameState, id_potion: usize) {
 }
 
 fn handle_potion_use(state: &mut GameState, id_potion: usize, id_monster: Option<usize>) {
+    // Only relevant during the Spire & Shield fight
+    push_face_monster_if_surrounded(state, id_monster);
+
     // The use carries its own target: the selected Monster, if the Potion needs one
     state.effect_buf.push(Effect {
         kind: EffectKind::PotionUse {
@@ -932,8 +954,15 @@ fn push_potion_actions(state: &mut GameState) {
             continue;
         }
 
-        // Smoke Bomb: no escape from a fight a boss Monster opened
-        if potion.potion_name == PotionName::SmokeBomb && in_combat && state.combat.boss_fight {
+        // Smoke Bomb: no escape from a fight a boss Monster opened, nor while a Monster holds Back Attack
+        if potion.potion_name == PotionName::SmokeBomb
+            && in_combat
+            && (state.combat.boss_fight
+                || monsters_alive(&state.entities, &state.combat.id_monsters).any(|id_monster| {
+                    let mods = &state.entities[id_monster].modifiers;
+                    has_modifier(mods, ModifierKind::BackAttack)
+                }))
+        {
             state
                 .legal_actions
                 .push(Action::PotionDiscard { id_potion });

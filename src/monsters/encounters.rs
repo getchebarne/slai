@@ -8,6 +8,7 @@ use crate::consts::NUM_ENCOUNTERS_ELITE;
 use crate::consts::NUM_ENCOUNTERS_HARD;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::TARGET_CHARACTER;
 use crate::effect::TARGET_MONSTERS_ALL;
 use crate::effect::Target;
 use crate::game::GameState;
@@ -619,6 +620,16 @@ pub fn spawn_encounter_monsters(state: &mut GameState, encounter: MonsterEncount
         MonsterEncounter::ShieldAndSpear => {
             push_monster_spawn(effects, MonsterName::SpireShield, 0);
             push_monster_spawn(effects, MonsterName::SpireSpear, 1);
+
+            // The Character opens between the pair; the Shield behind it spawns holding Back Attack
+            effects.push(Effect {
+                kind: EffectKind::ModifierDelta {
+                    kind: ModifierKind::Surrounded,
+                    stacks: 1,
+                },
+                id_source: None,
+                target: TARGET_CHARACTER,
+            });
         }
         MonsterEncounter::CorruptHeart => push_monster_spawn(effects, MonsterName::CorruptHeart, 0),
     }

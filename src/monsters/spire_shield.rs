@@ -101,9 +101,22 @@ pub static SPIRE_SHIELD: MonsterTemplate = MonsterTemplate {
         (3, &[&MOVES_ASC3]),
         (18, &[&MOVES_ASC18]),
     ],
+    // The fight opens with the Character facing the Spear, so the Shield stands behind it
     modifier_tiers: &[
-        (0, &[modifier_fixed(ModifierKind::Artifact, 1)]),
-        (18, &[modifier_fixed(ModifierKind::Artifact, 2)]),
+        (
+            0,
+            &[
+                modifier_fixed(ModifierKind::Artifact, 1),
+                modifier_fixed(ModifierKind::BackAttack, 1),
+            ],
+        ),
+        (
+            18,
+            &[
+                modifier_fixed(ModifierKind::Artifact, 2),
+                modifier_fixed(ModifierKind::BackAttack, 1),
+            ],
+        ),
     ],
 };
 

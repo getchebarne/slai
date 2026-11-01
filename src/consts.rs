@@ -57,6 +57,7 @@ pub const ORRERY_BUNDLE_COUNT: usize = 5;
 pub const CAULDRON_POTION_COUNT: usize = 5;
 pub const MAX_REWARD_CARD_BUNDLES: usize = ORRERY_BUNDLE_COUNT;
 const _: () = assert!(CARD_REWARD_BASE_COUNT + 1 <= MAX_COMBAT_CARD_REWARD);
+pub const FACTOR_BACK_ATTACK: f32 = 1.5;
 pub const FACTOR_WEAK: f32 = 0.75;
 pub const FACTOR_WEAK_PAPER_KRANE: f32 = 0.60;
 pub const FACTOR_VULN: f32 = 1.50;
