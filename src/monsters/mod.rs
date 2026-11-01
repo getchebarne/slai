@@ -54,6 +54,8 @@ pub mod snecko;
 pub mod spheric_guardian;
 pub mod spiker;
 pub mod spire_growth;
+pub mod spire_shield;
+pub mod spire_spear;
 pub mod taskmaster;
 pub mod the_collector;
 pub mod the_guardian;
@@ -188,6 +190,8 @@ pub const ALL_MONSTERS: &[&'static MonsterTemplate] = &[
     &spheric_guardian::SPHERIC_GUARDIAN,
     &spiker::SPIKER,
     &spire_growth::SPIRE_GROWTH,
+    &spire_shield::SPIRE_SHIELD,
+    &spire_spear::SPIRE_SPEAR,
     &taskmaster::TASKMASTER,
     &the_collector::THE_COLLECTOR,
     &the_guardian::THE_GUARDIAN,
@@ -379,6 +383,8 @@ pub fn monster_template(monster_name: MonsterName) -> &'static MonsterTemplate {
         MonsterName::Reptomancer => &reptomancer::REPTOMANCER,
         MonsterName::SnakeDagger => &snake_dagger::SNAKE_DAGGER,
         MonsterName::GiantHead => &giant_head::GIANT_HEAD,
+        MonsterName::SpireShield => &spire_shield::SPIRE_SHIELD,
+        MonsterName::SpireSpear => &spire_spear::SPIRE_SPEAR,
     }
 }
 
@@ -657,6 +663,12 @@ pub fn get_next_move(
             ascension_level,
             rng,
         ),
+        MonsterName::SpireShield => {
+            spire_shield::get_next_move_spire_shield(history, &entity.monster_move_uses, rng)
+        }
+        MonsterName::SpireSpear => {
+            spire_spear::get_next_move_spire_spear(history, &entity.monster_move_uses, rng)
+        }
     }
 }
 
@@ -688,6 +700,7 @@ pub const fn move_attack(name: &'static str, damage: u16, instances: u8) -> Move
                 instances: instances as u16,
                 lifesteal: false,
                 if_poisoned: false,
+                block_from_hit: false,
                 scaled_at: ScaledAt::Now,
             },
             id_source: None,
@@ -741,6 +754,7 @@ pub const fn move_attack_debuff(
                     instances: 1,
                     lifesteal: false,
                     if_poisoned: false,
+                    block_from_hit: false,
                     scaled_at: ScaledAt::Now,
                 },
                 id_source: None,
@@ -775,6 +789,7 @@ pub const fn move_attack_card_add(
                     instances: 1,
                     lifesteal: false,
                     if_poisoned: false,
+                    block_from_hit: false,
                     scaled_at: ScaledAt::Now,
                 },
                 id_source: None,

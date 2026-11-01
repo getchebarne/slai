@@ -37,10 +37,10 @@ mirror_enum!(PyMonsterName from MonsterName, "MonsterName", {
     JawWormHard, Lagavulin, Looter, LouseDefensive, LouseNormal, Maw, Nemesis, OrbWalker,
     Reptomancer, Repulsor, Sentry, SlaverBlue, SlaverRed, SlimeAcidLarge, SlimeAcidMedium,
     SlimeAcidSmall, SlimeBoss, SlimeSpikeLarge, SlimeSpikeMedium, SlimeSpikeSmall, SnakeDagger,
-    Spiker, SpireGrowth, TheGuardian, TimeEater, Transient, WrithingMass, Byrd, Centurion, Chosen,
-    Healer, Mugger, ShelledParasite, SnakePlant, Snecko, SphericGuardian, BookOfStabbing,
-    GremlinLeader, Taskmaster, BronzeAutomaton, BronzeOrb, Champ, TheCollector, TorchHead,
-    BanditBear, BanditLeader, BanditPointy,
+    Spiker, SpireGrowth, SpireShield, SpireSpear, TheGuardian, TimeEater, Transient, WrithingMass,
+    Byrd, Centurion, Chosen, Healer, Mugger, ShelledParasite, SnakePlant, Snecko, SphericGuardian,
+    BookOfStabbing, GremlinLeader, Taskmaster, BronzeAutomaton, BronzeOrb, Champ, TheCollector,
+    TorchHead, BanditBear, BanditLeader, BanditPointy,
 });
 
 mirror_enum!(PyMonsterEncounter from MonsterEncounter, "MonsterEncounter", {
@@ -52,7 +52,7 @@ mirror_enum!(PyMonsterEncounter from MonsterEncounter, "MonsterEncounter", {
     ChosenAndByrds, SentryAndSphere, GremlinLeader, Slavers, BookOfStabbing, BronzeAutomaton,
     TheCollector, Champ, OrbWalker, ThreeDarklings, ThreeShapes, FourShapes, JawWormHorde, Maw,
     SphereAndTwoShapes, SpireGrowth, Transient, WrithingMass, GiantHead, Nemesis, Reptomancer,
-    AwakenedOne, DonuAndDeca, TimeEater,
+    AwakenedOne, DonuAndDeca, TimeEater, ShieldAndSpear,
 });
 
 #[pyclass(

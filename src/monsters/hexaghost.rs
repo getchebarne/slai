@@ -29,6 +29,7 @@ const fn move_inferno(damage: u16) -> Move {
                     instances: INFERNO_HITS as u16,
                     lifesteal: false,
                     if_poisoned: false,
+                    block_from_hit: false,
                     scaled_at: ScaledAt::Now,
                 },
                 id_source: None,

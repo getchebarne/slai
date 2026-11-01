@@ -683,6 +683,7 @@ fn dispatch_by_kind(
             instances,
             lifesteal,
             if_poisoned,
+            block_from_hit,
             scaled_at,
         } => process_effect_damage_physical(
             id_source,
@@ -692,6 +693,7 @@ fn dispatch_by_kind(
             instances,
             lifesteal,
             if_poisoned,
+            block_from_hit,
             scaled_at,
         ),
         EffectKind::GlassKnifeDecay { delta } => {

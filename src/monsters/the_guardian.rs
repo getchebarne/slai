@@ -40,6 +40,7 @@ const fn move_twin_slam(mode_shift_stacks: i16) -> Move {
                     instances: 2,
                     lifesteal: false,
                     if_poisoned: false,
+                    block_from_hit: false,
                     scaled_at: ScaledAt::Now,
                 },
                 id_source: None,

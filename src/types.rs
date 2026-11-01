@@ -408,6 +408,7 @@ pub enum CostScope {
 pub enum CardPile {
     Hand,
     Draw,
+    DrawTop,
     Discard,
     Deck,
 }
@@ -480,6 +481,8 @@ pub enum MonsterName {
     SnakeDagger,
     Spiker,
     SpireGrowth,
+    SpireShield,
+    SpireSpear,
     TheGuardian,
     TimeEater,
     Transient,
@@ -597,6 +600,9 @@ pub enum MonsterEncounter {
     AwakenedOne,
     DonuAndDeca,
     TimeEater,
+
+    // Act 4 elite
+    ShieldAndSpear,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
