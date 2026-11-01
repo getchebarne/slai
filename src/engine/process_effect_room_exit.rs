@@ -1,4 +1,4 @@
-use crate::consts::ACT_FINAL;
+use crate::consts::ACT_LAST_BOSS_CHEST;
 use crate::consts::MAP_HEIGHT;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
@@ -28,9 +28,9 @@ pub fn process_effect_room_exit(state: &mut GameState) {
         return;
     }
 
-    // A Boss Room before the final act opens onto its treasure Room, whose exit starts the next act
+    // An Act 1 or Act 2 Boss Room opens onto its treasure Room, whose exit starts the next act
     match state.location {
-        Location::BossRoom if state.act < ACT_FINAL => {
+        Location::BossRoom if state.act <= ACT_LAST_BOSS_CHEST => {
             state.effect_queue.push_front(Effect {
                 kind: EffectKind::RoomEnter {
                     location: Location::BossTreasure,

@@ -56,7 +56,7 @@ pub enum Location {
     Start,
     Overworld { y: usize, x: usize },
     BossRoom,
-    BossTreasure, // The boss chest's Room, entered on leaving a Boss Room before the final act
+    BossTreasure, // The boss chest's Room, entered on leaving an Act 1 or Act 2 Boss Room
 }
 
 // GameState: the single source of truth
