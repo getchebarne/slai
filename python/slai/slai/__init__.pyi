@@ -90,6 +90,7 @@ class ActionType:
     Rest: Final[ActionType]
     RestDig: Final[ActionType]
     RestLift: Final[ActionType]
+    RestRecall: Final[ActionType]
     RestSmith: Final[ActionType]
     RestToke: Final[ActionType]
     RewardSingingBowl: Final[ActionType]
@@ -98,6 +99,7 @@ class ActionType:
     RewardTakeGoldStolen: Final[ActionType]
     RewardTakePotion: Final[ActionType]
     RewardTakeRelic: Final[ActionType]
+    RewardTakeSapphireKey: Final[ActionType]
     RoomExit: Final[ActionType]
     RoomSelect: Final[ActionType]
     SelectionSkip: Final[ActionType]
@@ -1753,6 +1755,7 @@ class ModifierKind:
     Angry: Final[ModifierKind]
     Artifact: Final[ModifierKind]
     Asleep: Final[ModifierKind]
+    BackAttack: Final[ModifierKind]
     Barricade: Final[ModifierKind]
     BeatOfDeath: Final[ModifierKind]
     Blur: Final[ModifierKind]
@@ -1813,6 +1816,7 @@ class ModifierKind:
     SporeCloud: Final[ModifierKind]
     Strength: Final[ModifierKind]
     StrengthUp: Final[ModifierKind]
+    Surrounded: Final[ModifierKind]
     Thievery: Final[ModifierKind]
     Thorns: Final[ModifierKind]
     ThousandCuts: Final[ModifierKind]
@@ -2483,6 +2487,8 @@ class Reward:
     def gold_stolen(self, /) -> int |None: ...
     @property
     def potions(self, /) -> list[Potion]: ...
+    @property
+    def relic_linked(self, /) -> Relic |None: ...
     @property
     def relics(self, /) -> list[Relic]: ...
     @property

@@ -126,6 +126,7 @@ ACTION_SPEC_REGISTRY = ActionSpecRegistry(
         create_action_spec(ActionType.Rest),
         create_action_spec(ActionType.RestDig),
         create_action_spec(ActionType.RestLift),
+        create_action_spec(ActionType.RestRecall),
         create_action_spec(ActionType.RestSmith),
         create_action_spec(ActionType.RestToke),
         # Reward pickup family
@@ -135,6 +136,7 @@ ACTION_SPEC_REGISTRY = ActionSpecRegistry(
         create_action_spec(ActionType.RewardTakeGoldStolen),
         create_action_spec(ActionType.RewardTakePotion, ArgSpec("id_potion")),
         create_action_spec(ActionType.RewardTakeRelic, ArgSpec("id_relic")),
+        create_action_spec(ActionType.RewardTakeSapphireKey),
         create_action_spec(ActionType.RoomSelect, ArgSpec("id_room")),
         create_action_spec(ActionType.RoomExit),
         # Shop

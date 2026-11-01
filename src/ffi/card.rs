@@ -343,7 +343,7 @@ pub(crate) fn snapshot_adjusted_effects(
             slow_factor(0),
             vuln_factor(false, false),
             false,
-        )
+        ) as u16
     };
 
     // No Block zeroes every block the Card would grant

@@ -213,7 +213,7 @@ pub fn create_game_state(
     }
 
     // Initialize map; a new run holds no key, so the switch alone marks its burning elite
-    let (id_rooms, location) = generate_map(&mut rng, &mut entities, ascension, final_act);
+    let (id_rooms, location) = generate_map(1, &mut rng, &mut entities, ascension, final_act);
 
     // Pre-generate Monster encounters
     let mut encounter_pool_normal: Vec<MonsterEncounter> =
@@ -330,6 +330,7 @@ pub fn create_game_state(
             active: false,
             id_cards: Vec::new(),
             id_relics: Vec::new(),
+            id_relic_linked: None,
             id_potions: Vec::new(),
             gold: None,
             gold_stolen: None,

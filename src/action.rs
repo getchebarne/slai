@@ -26,6 +26,7 @@ use crate::types::Combat;
 use crate::types::DeltaSign;
 use crate::types::EventName;
 use crate::types::Focus;
+use crate::types::Key;
 use crate::types::PotionName;
 use crate::types::RelicName;
 use crate::types::Reward;
@@ -66,6 +67,7 @@ pub enum Action {
     Rest,
     RestDig,
     RestLift,
+    RestRecall,
     RestSmith,
     RestToke,
     RewardSingingBowl {
@@ -82,6 +84,7 @@ pub enum Action {
     RewardTakeRelic {
         id_relic: usize,
     },
+    RewardTakeSapphireKey,
     RoomExit,
     RoomSelect {
         id_room: usize,
@@ -175,6 +178,7 @@ pub fn handle_action(state: &mut GameState, action: Action) -> Result<(), String
         Action::Rest => handle_rest(state),
         Action::RestDig => handle_rest_dig(state),
         Action::RestLift => handle_rest_lift(state),
+        Action::RestRecall => handle_rest_recall(state),
         Action::RestSmith => handle_rest_smith(state),
         Action::RestToke => handle_rest_toke(state),
         Action::RewardSingingBowl { id_card } => handle_reward_singing_bowl(state, id_card),
@@ -189,6 +193,7 @@ pub fn handle_action(state: &mut GameState, action: Action) -> Result<(), String
         Action::RewardTakeRelic { id_relic } => {
             handle_reward_take(state, RewardKind::Relic, Some(id_relic))
         }
+        Action::RewardTakeSapphireKey => handle_reward_take(state, RewardKind::SapphireKey, None),
         Action::RoomExit => handle_room_exit(state),
         Action::RoomSelect { id_room } => handle_room_select(state, id_room),
         Action::ShopBuyCard { id_card } => handle_shop_buy(state, ShopSlot::Card, id_card),
@@ -362,6 +367,9 @@ fn handle_card_play(state: &mut GameState, id_card: usize, id_monster: Option<us
     assert!(state.combat.active, "handle_card_play outside combat");
     let energy = state.combat.energy.energy_current;
 
+    // Only relevant during the Spire & Shield fight
+    push_face_monster_if_surrounded(state, id_monster);
+
     // The play carries its own target: the selected Monster, if the Card needs one
     state.card_play_queue.push_back(CardPlay {
         id_card,
@@ -371,6 +379,22 @@ fn handle_card_play(state: &mut GameState, id_card: usize, id_monster: Option<us
         cost_effective: get_card_effective_cost(&state.entities[id_card], energy),
         draw_pile_size: state.combat.id_card_pile_draw.len() as u16,
     });
+}
+
+// A hand play or a Potion aimed at a Monster turns the Surrounded Character ahead of its effects
+fn push_face_monster_if_surrounded(state: &mut GameState, id_monster: Option<usize>) {
+    if id_monster.is_some()
+        && has_modifier(
+            &state.entities[state.id_character].modifiers,
+            ModifierKind::Surrounded,
+        )
+    {
+        state.effect_buf.push(Effect {
+            kind: EffectKind::FaceMonster,
+            id_source: None,
+            target: Target::Direct(id_monster),
+        });
+    }
 }
 
 fn handle_chest_open(state: &mut GameState) {
@@ -410,6 +434,9 @@ fn handle_potion_discard(state: &mut GameState, id_potion: usize) {
 }
 
 fn handle_potion_use(state: &mut GameState, id_potion: usize, id_monster: Option<usize>) {
+    // Only relevant during the Spire & Shield fight
+    push_face_monster_if_surrounded(state, id_monster);
+
     // The use carries its own target: the selected Monster, if the Potion needs one
     state.effect_buf.push(Effect {
         kind: EffectKind::PotionUse {
@@ -468,6 +495,16 @@ fn handle_rest(state: &mut GameState) {
 fn handle_rest_lift(state: &mut GameState) {
     state.effect_buf.push(Effect {
         kind: EffectKind::GiryaLift,
+        id_source: None,
+        target: Target::Direct(None),
+    });
+    push_rest_site_consume(state);
+}
+
+// Recall: spend the rest on the Ruby Key
+fn handle_rest_recall(state: &mut GameState) {
+    state.effect_buf.push(Effect {
+        kind: EffectKind::KeyObtain { key: Key::Ruby },
         id_source: None,
         target: Target::Direct(None),
     });
@@ -671,6 +708,7 @@ fn fill_legal_actions_reward(state: &mut GameState) {
     let Reward {
         id_cards,
         id_relics,
+        id_relic_linked,
         id_potions,
         gold,
         gold_stolen,
@@ -693,6 +731,11 @@ fn fill_legal_actions_reward(state: &mut GameState) {
         state
             .legal_actions
             .push(Action::RewardTakeRelic { id_relic });
+    }
+
+    // The Sapphire Key can always be claimed while it's on offer
+    if id_relic_linked.is_some() {
+        state.legal_actions.push(Action::RewardTakeSapphireKey);
     }
 
     // Sozu: taking a Potion reward removes it and obtains nothing, so a full belt doesn't block it
@@ -847,7 +890,13 @@ fn fill_legal_actions_rest_site(state: &mut GameState) {
             any_option = true;
         }
 
-        // Every option gated: allow leaving so the site can't soft-lock
+        // With the final act on: Recall for the Ruby Key until it's held; no Relic gates it
+        if state.final_act && !state.key_ruby {
+            state.legal_actions.push(Action::RestRecall);
+            any_option = true;
+        }
+
+        // No option usable, Recall included: the site lets the player leave
         if !any_option {
             state.legal_actions.push(Action::RoomExit);
         }
@@ -932,8 +981,15 @@ fn push_potion_actions(state: &mut GameState) {
             continue;
         }
 
-        // Smoke Bomb: no escape from a fight a boss Monster opened
-        if potion.potion_name == PotionName::SmokeBomb && in_combat && state.combat.boss_fight {
+        // Smoke Bomb: no escape from a fight a boss Monster opened, nor while a Monster holds Back Attack
+        if potion.potion_name == PotionName::SmokeBomb
+            && in_combat
+            && (state.combat.boss_fight
+                || monsters_alive(&state.entities, &state.combat.id_monsters).any(|id_monster| {
+                    let mods = &state.entities[id_monster].modifiers;
+                    has_modifier(mods, ModifierKind::BackAttack)
+                }))
+        {
             state
                 .legal_actions
                 .push(Action::PotionDiscard { id_potion });

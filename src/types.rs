@@ -113,6 +113,7 @@ pub struct Reward {
     pub active: bool,
     pub id_cards: Vec<Vec<usize>>,
     pub id_relics: Vec<usize>,
+    pub id_relic_linked: Option<usize>, // The Relic the Sapphire Key is linked to; set on an open Reward means the key is on offer
     pub id_potions: Vec<usize>,
     pub gold: Option<u16>,
     pub gold_stolen: Option<u16>, // The thieves' purse, claimed apart from the room's gold
@@ -124,6 +125,7 @@ pub struct Reward {
 pub fn reward_reset(reward: &mut Reward) {
     reward.id_cards.clear();
     reward.id_relics.clear();
+    reward.id_relic_linked = None;
     reward.id_potions.clear();
     reward.gold = None;
     reward.gold_stolen = None;
@@ -689,6 +691,7 @@ pub enum ChestKind {
 pub enum RewardKind {
     Card,
     Relic,
+    SapphireKey,
     Potion,
     Gold,
     GoldStolen,
@@ -698,9 +701,7 @@ pub enum RewardKind {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Key {
     Emerald,
-    #[expect(dead_code, reason = "the rest site's Recall builds it")]
     Ruby,
-    #[expect(dead_code, reason = "the chest's linked key reward builds it")]
     Sapphire,
 }
 

@@ -4,11 +4,11 @@ use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::types::DeltaSign;
+use crate::types::Key;
 use crate::types::Reward;
 use crate::types::RewardKind;
 
-// Claims hand the staged reward entity to the matching Adopt effect, which owns
-// registration and any on-pickup behavior
+// Claims hand the staged reward entity to the matching Adopt effect, which owns registration and any on-pickup behavior; the Sapphire Key obtains the key and drops its linked Relic
 pub fn process_effect_reward_take(
     id_target: Option<usize>,
     state: &mut GameState,
@@ -18,13 +18,14 @@ pub fn process_effect_reward_take(
     let Reward {
         id_cards: bundles,
         id_relics,
+        id_relic_linked,
         id_potions,
         gold,
         gold_stolen,
         ..
     } = &mut state.reward;
 
-    // Each `expect` stays inside its arm: Gold legitimately carries no id_target
+    // Each `expect` stays inside its arm: the gold takes and the Sapphire Key carry no id_target
     let (id_taken, kind_adopt) = match kind {
         // Card: taking one consumes its whole bundle; sibling bundles stay claimable
         RewardKind::Card => {
@@ -45,7 +46,31 @@ pub fn process_effect_reward_take(
                 .position(|&id| id == id_relic)
                 .expect("Taken Relic is a staged reward");
             id_relics.remove(idx);
+
+            // Taking the linked Relic withdraws its Sapphire Key, ahead of any pick its pickup raises
+            if *id_relic_linked == Some(id_relic) {
+                *id_relic_linked = None;
+            }
             (id_relic, EffectKind::RelicAdopt)
+        }
+
+        // Sapphire Key: its linked Relic leaves unobtained; the rest of the Reward stays on offer
+        RewardKind::SapphireKey => {
+            // Take the linked Relic from its dedicated slot
+            let id_relic = id_relic_linked
+                .take()
+                .expect("RewardTake { SapphireKey } requires the key on offer");
+
+            // Drop the linked Relic from the staged rewards
+            id_relics.retain(|&id| id != id_relic);
+
+            // Push Effect to obtain the Sapphire Key
+            state.effect_queue.push_front(Effect {
+                kind: EffectKind::KeyObtain { key: Key::Sapphire },
+                id_source: None,
+                target: Target::Direct(None),
+            });
+            return;
         }
 
         // Potion: unstage the selection; PotionAdopt owns the belt slot (and the Sozu guard)

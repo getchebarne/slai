@@ -41,7 +41,7 @@ pub fn process_effect_skewer_proc(
         slow_factor(modifier_stacks(mods_target, ModifierKind::Slow)),
         vuln_factor(has_modifier(mods_target, ModifierKind::Vulnerable), false),
         has_modifier(mods_target, ModifierKind::Flight),
-    );
+    ) as u16;
     state.effect_queue.push_back(Effect {
         kind: EffectKind::DamagePhysical {
             amount,

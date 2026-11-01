@@ -58,7 +58,7 @@ pub struct PyGameState {
     pub unknown_chance_monster: f32, // A "?" Room's odds; the event chance is what the three leave
     pub unknown_chance_shop: f32,
     pub unknown_chance_treasure: f32,
-    pub pool_events: Vec<PyEventName>, // Events a "?" can still become, regular then special; each is drawn without replacement
+    pub pool_events: Vec<PyEventName>, // Events a "?" can still become, regular then special; each is drawn without replacement, and both lists are empty in Act 4
     pub pool_event_special: Vec<PyEventName>,
     pub map: Py<PyMap>,
     pub effect_pending: Option<PyEffectPendingObject>,

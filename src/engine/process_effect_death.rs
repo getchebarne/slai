@@ -295,6 +295,27 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState, wit
         });
     }
 
+    // The survivor's Back Attack ends at once, and Surrounded ends behind the staged effects
+    if has_modifier(
+        &state.entities[id_character].modifiers,
+        ModifierKind::Surrounded,
+    ) {
+        state.effect_queue.push_front(Effect {
+            kind: EffectKind::ModifierRemove {
+                kind: ModifierKind::BackAttack,
+            },
+            id_source: None,
+            target: TARGET_MONSTERS_ALL,
+        });
+        state.effect_buf.push(Effect {
+            kind: EffectKind::ModifierRemove {
+                kind: ModifierKind::Surrounded,
+            },
+            id_source: None,
+            target: Target::Direct(Some(id_character)),
+        });
+    }
+
     // The staged effects land behind everything queued; while minions fall with their leader, its death and theirs land them at once
     if minions_fall || with_leader {
         flush_effects_from_buf_to_queue_front(state);

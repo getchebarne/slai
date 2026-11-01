@@ -51,8 +51,8 @@ mod wing_statue;
 mod world_of_goop;
 
 use crate::consts::MAX_EFFECTS_PER_EVENT_OPTION;
-use crate::consts::RELIC_TIER_TH_COMMON;
-use crate::consts::RELIC_TIER_TH_UNCOMMON;
+use crate::consts::RELIC_GRANT_TH_COMMON;
+use crate::consts::RELIC_GRANT_TH_UNCOMMON;
 use crate::effect::Amount;
 use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
@@ -319,8 +319,8 @@ pub fn fight_loot(event: &Event, ascension: u8) -> Option<EventLoot> {
                 }),
                 relics: [
                     (!event.found_relic).then_some(RelicRoll::Thresholds {
-                        th_common: RELIC_TIER_TH_COMMON,
-                        th_uncommon: RELIC_TIER_TH_UNCOMMON,
+                        th_common: RELIC_GRANT_TH_COMMON,
+                        th_uncommon: RELIC_GRANT_TH_UNCOMMON,
                     }),
                     None,
                 ],
@@ -482,7 +482,7 @@ pub const POOL_EVENT_ACT2: &[EventName] = &[
     EventName::Vampires,
 ];
 
-// Per-act shrines: dropped from the special pool and re-added fresh each Act
+// Per-act shrines: dropped from the special pool and re-added fresh each Act but Act 4, which has no "?"
 pub const POOL_EVENT_SHRINES: &[EventName] = &[
     EventName::GoldenShrine,
     EventName::Purifier,

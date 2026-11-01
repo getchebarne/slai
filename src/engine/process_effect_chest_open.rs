@@ -152,7 +152,12 @@ pub fn process_effect_chest_open(state: &mut GameState) {
         },
     );
 
-    // N'loth's Hungry Face: its one charge empties the chest of a Relic; used up at 0 charges
+    // The Sapphire Key: with the final act on, offered until the run holds it; queued right behind the chest's own roll, which it links, and ahead of N'loth's removal
+    if state.final_act && !state.key_sapphire {
+        queue_effect_untargeted(state, EffectKind::KeySapphireLink);
+    }
+
+    // N'loth's Hungry Face: its one charge removes the first Relic, and the Sapphire Key linked to it; used up at 0 charges
     if let Some(id) = state.id_relics[RelicName::NlothsHungryFace as usize]
         && state.entities[id].relic_counter > 0
     {

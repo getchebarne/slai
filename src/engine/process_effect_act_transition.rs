@@ -37,6 +37,7 @@ pub fn process_effect_act_transition(state: &mut GameState) {
 
     // Fresh map, with a burning elite while the Emerald Key isn't held; stale Room entities stay in the arena, unreachable via `id_rooms`
     let (id_rooms, location) = generate_map(
+        state.act,
         &mut state.rng,
         &mut state.entities,
         state.ascension,
@@ -65,18 +66,23 @@ pub fn process_effect_act_transition(state: &mut GameState) {
         &mut state.rng,
     );
 
-    // Events: the Act list replaces, shrines re-add fresh, run-scoped specials carry over unless the Act drops them
-    let (pool_events, pool_special_additions, pool_special_drops) = pools_for_act(state.act);
-    state.pool_events = pool_events.to_vec();
-    state
-        .pool_event_special
-        .retain(|name| !POOL_EVENT_SHRINES.contains(name) && !pool_special_drops.contains(name));
-    state
-        .pool_event_special
-        .extend_from_slice(POOL_EVENT_SHRINES);
-    state
-        .pool_event_special
-        .extend_from_slice(pool_special_additions);
+    // Events: Act 4 has no "?", so both pools empty; in Acts 1-3 the Act list replaces, shrines re-add fresh, run-scoped specials carry over unless the Act drops them
+    if state.act == 4 {
+        state.pool_events.clear();
+        state.pool_event_special.clear();
+    } else {
+        let (pool_events, pool_special_additions, pool_special_drops) = pools_for_act(state.act);
+        state.pool_events = pool_events.to_vec();
+        state.pool_event_special.retain(|name| {
+            !POOL_EVENT_SHRINES.contains(name) && !pool_special_drops.contains(name)
+        });
+        state
+            .pool_event_special
+            .extend_from_slice(POOL_EVENT_SHRINES);
+        state
+            .pool_event_special
+            .extend_from_slice(pool_special_additions);
+    }
 
     // ?-Room drift and the Potion swing reset between acts
     state.unknown_chance_monster = UNKNOWN_CHANCE_BASE_MONSTER;

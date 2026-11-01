@@ -20,6 +20,8 @@ use crate::consts::CARD_REWARD_UPGRADE_CHANCE_ACT2;
 use crate::consts::CARD_REWARD_UPGRADE_CHANCE_ACT2_A12;
 use crate::consts::CARD_REWARD_UPGRADE_CHANCE_ACT3;
 use crate::consts::CARD_REWARD_UPGRADE_CHANCE_ACT3_A12;
+use crate::consts::CARD_REWARD_UPGRADE_CHANCE_ACT4;
+use crate::consts::CARD_REWARD_UPGRADE_CHANCE_ACT4_A12;
 use crate::consts::COLORLESS_RARE_CHANCE;
 use crate::consts::FACTOR_FRAIL;
 use crate::consts::FACTOR_SLOW_PER_STACK;
@@ -32,6 +34,10 @@ use crate::consts::GOLD_BOSS_MIN;
 use crate::consts::MAX_CARD_REWARD_ROLL;
 use crate::consts::MAX_MONSTERS;
 use crate::consts::MAX_SIZE_CARD_PILE_HAND;
+use crate::consts::RELIC_DIG_TH_COMMON_ACT4;
+use crate::consts::RELIC_DIG_TH_UNCOMMON_ACT4;
+use crate::consts::RELIC_GRANT_TH_COMMON;
+use crate::consts::RELIC_GRANT_TH_UNCOMMON;
 use crate::consts::SHOP_CARD_CUT_RARE;
 use crate::consts::SHOP_CARD_CUT_UNCOMMON;
 use crate::effect::Amount;
@@ -463,7 +469,7 @@ pub fn unceasing_top_fires(state: &GameState) -> bool {
         )
 }
 
-// Shared by the live damage pipeline and the FFI intent view
+// Shared by the live damage pipeline and the FFI intent view; Back Attack's factor comes later in both, after the truncation in the pipeline and before it in the view
 pub fn weak_factor(is_weak: bool, paper_krane: bool) -> f32 {
     match (is_weak, paper_krane) {
         (false, _) => 1.0,
@@ -486,7 +492,7 @@ pub fn slow_factor(slow_stacks: i16) -> f32 {
     1.0 + slow_stacks as f32 * FACTOR_SLOW_PER_STACK
 }
 
-// Shared by the live damage pipeline and the FFI intent view; Weak, Slow and Vulnerable multiply in that order, each rounded in f32
+// Shared by the live damage pipeline and the FFI intent view; Weak, Slow and Vulnerable multiply in that order, each rounded in f32; each caller truncates, a negative value to 0, and a back attack's intent can read 1 above its hit because its factor comes before that truncation there and after it in the hit
 #[allow(clippy::too_many_arguments)]
 pub fn scale_attack_damage(
     base: u16,
@@ -497,7 +503,7 @@ pub fn scale_attack_damage(
     slow_factor: f32,
     vuln_factor: f32,
     flight: bool,
-) -> u16 {
+) -> f32 {
     let mut value = base as f32 + source_str_stacks as f32;
     if double_damage {
         value *= 2.0;
@@ -511,7 +517,7 @@ pub fn scale_attack_damage(
     if flight {
         value *= 0.5;
     }
-    value.max(0.0) as u16
+    value
 }
 
 // Shared by the live block pipeline and the FFI Card snapshot
@@ -557,6 +563,15 @@ pub fn relic_tier_by_roll(roll: u8, th_common: u8, th_uncommon: u8) -> RelicTier
         RelicTier::Uncommon
     } else {
         RelicTier::Rare
+    }
+}
+
+// The Dig's Relic-tier cuts in this act
+pub fn relic_dig_cuts(act: u8) -> (u8, u8) {
+    match act {
+        1..=3 => (RELIC_GRANT_TH_COMMON, RELIC_GRANT_TH_UNCOMMON),
+        4 => (RELIC_DIG_TH_COMMON_ACT4, RELIC_DIG_TH_UNCOMMON_ACT4),
+        _ => unreachable!("no Dig cuts for act {act}"),
     }
 }
 
@@ -998,6 +1013,8 @@ pub fn card_reward_upgrade_chance(act: u8, ascension_level: u8) -> f64 {
         (2, true) => CARD_REWARD_UPGRADE_CHANCE_ACT2_A12,
         (3, false) => CARD_REWARD_UPGRADE_CHANCE_ACT3,
         (3, true) => CARD_REWARD_UPGRADE_CHANCE_ACT3_A12,
+        (4, false) => CARD_REWARD_UPGRADE_CHANCE_ACT4,
+        (4, true) => CARD_REWARD_UPGRADE_CHANCE_ACT4_A12,
         _ => unreachable!("no card upgrade chance for act {act}"),
     }
 }

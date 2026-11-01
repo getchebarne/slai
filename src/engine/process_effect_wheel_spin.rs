@@ -1,7 +1,7 @@
 use rand::Rng;
 
-use crate::consts::RELIC_TIER_TH_COMMON;
-use crate::consts::RELIC_TIER_TH_UNCOMMON;
+use crate::consts::RELIC_GRANT_TH_COMMON;
+use crate::consts::RELIC_GRANT_TH_UNCOMMON;
 use crate::consts::WHEEL_GOLD_PER_ACT;
 use crate::effect::Amount;
 use crate::effect::CandidateFilter;
@@ -36,8 +36,8 @@ pub fn process_effect_wheel_spin(state: &mut GameState) {
         1 => Effect {
             kind: EffectKind::RewardRollRelic {
                 roll: RelicRoll::Thresholds {
-                    th_common: RELIC_TIER_TH_COMMON,
-                    th_uncommon: RELIC_TIER_TH_UNCOMMON,
+                    th_common: RELIC_GRANT_TH_COMMON,
+                    th_uncommon: RELIC_GRANT_TH_UNCOMMON,
                 },
                 exclusion: RelicExclusion::Screenless,
             },
