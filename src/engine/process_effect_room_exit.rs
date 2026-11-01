@@ -1,13 +1,11 @@
 use crate::consts::ACT_LAST_BOSS_CHEST;
-use crate::consts::MAP_HEIGHT;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::game::Location;
-use crate::map::get_active_room_kind;
+use crate::map::map_row_last;
 use crate::types::Focus;
-use crate::types::RoomKind;
 use crate::utils::context_focus;
 
 pub fn process_effect_room_exit(state: &mut GameState) {
@@ -66,11 +64,8 @@ pub fn process_effect_room_exit(state: &mut GameState) {
         _ => {}
     }
 
-    // The final-row rest site's exit enters the boss; Secret Portal enters it from its event
-    if matches!(state.location, Location::Overworld { y, .. } if y == MAP_HEIGHT - 1)
-        && get_active_room_kind(&state.id_rooms, state.location, &state.entities)
-            == Some(RoomKind::RestSite)
-    {
+    // Leaving a Room on the act's last map row (a row-14 rest site, Act 4's elite) enters the boss; Secret Portal enters it from its event
+    if matches!(state.location, Location::Overworld { y, .. } if y == map_row_last(state.act)) {
         state.effect_queue.push_front(Effect {
             kind: EffectKind::RoomEnter {
                 location: Location::BossRoom,

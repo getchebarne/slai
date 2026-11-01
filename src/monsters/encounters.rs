@@ -1,7 +1,7 @@
 use rand::Rng;
 
 use crate::consts::ASCENSION_DOUBLE_BOSS_LEVEL;
-use crate::consts::NUM_ENCOUNTERS_EASY;
+use crate::consts::NUM_ENCOUNTERS_EASY_ACT1;
 use crate::consts::NUM_ENCOUNTERS_EASY_ACT2;
 use crate::consts::NUM_ENCOUNTERS_EASY_ACT3;
 use crate::consts::NUM_ENCOUNTERS_ELITE;
@@ -86,6 +86,9 @@ const ENC_POOL_ELITE_ACT_3: &[(MonsterEncounter, f32)] = &[
     (MonsterEncounter::Nemesis, 2.0),
     (MonsterEncounter::Reptomancer, 2.0),
 ];
+
+// Act 4's one fight; the no-repeat roll can't take a second pick from one entry, so its counts keep each stage to one
+const ENC_POOL_ACT_4: &[(MonsterEncounter, f32)] = &[(MonsterEncounter::ShieldAndSpear, 1.0)];
 
 // Sort ascending by weight (stable for ties), normalize to sum 1.0
 fn normalize_weights(pool: &[(MonsterEncounter, f32)]) -> Vec<(MonsterEncounter, f32)> {
@@ -186,7 +189,7 @@ fn get_act_exclusions(
         ],
         (3, MonsterEncounter::ThreeDarklings) => &[MonsterEncounter::ThreeDarklings],
         (3, MonsterEncounter::ThreeShapes) => &[MonsterEncounter::FourShapes],
-        (1..=3, _) => &[],
+        (1..=4, _) => &[],
         _ => unreachable!("no exclusions for act {act}"),
     }
 }
@@ -197,23 +200,27 @@ pub fn generate_act_monsters(
     elite_list: &mut Vec<MonsterEncounter>,
     rng: &mut impl Rng,
 ) {
-    // Per-act pools and easy-fight count
-    let (pool_easy, pool_hard, num_easy_enc) = match act {
+    // Per-act pools and fight counts; the first hard fight is always one more
+    let (pool_easy, pool_hard, num_easy_enc, num_hard_enc) = match act {
         1 => (
             ENC_POOL_EASY_ACT_1,
             ENC_POOL_HARD_ACT_1,
-            NUM_ENCOUNTERS_EASY,
+            NUM_ENCOUNTERS_EASY_ACT1,
+            NUM_ENCOUNTERS_HARD,
         ),
         2 => (
             ENC_POOL_EASY_ACT_2,
             ENC_POOL_HARD_ACT_2,
             NUM_ENCOUNTERS_EASY_ACT2,
+            NUM_ENCOUNTERS_HARD,
         ),
         3 => (
             ENC_POOL_EASY_ACT_3,
             ENC_POOL_HARD_ACT_3,
             NUM_ENCOUNTERS_EASY_ACT3,
+            NUM_ENCOUNTERS_HARD,
         ),
+        4 => (ENC_POOL_ACT_4, ENC_POOL_ACT_4, 1, 0),
         _ => unreachable!("no encounter pools for act {act}"),
     };
 
@@ -245,7 +252,7 @@ pub fn generate_act_monsters(
     populate_encounter_list(
         encounter_list,
         &encounter_table_hard,
-        NUM_ENCOUNTERS_HARD,
+        num_hard_enc,
         false,
         rng,
     );
@@ -255,16 +262,17 @@ pub fn generate_act_monsters(
 
 // One act's elite list; room entry rolls a fresh one when the act runs out
 pub fn generate_act_elites(act: u8, elite_list: &mut Vec<MonsterEncounter>, rng: &mut impl Rng) {
-    let pool_elite = match act {
-        1 => ENC_POOL_ELITE_ACT_1,
-        2 => ENC_POOL_ELITE_ACT_2,
-        3 => ENC_POOL_ELITE_ACT_3,
+    let (pool_elite, num_elite_enc) = match act {
+        1 => (ENC_POOL_ELITE_ACT_1, NUM_ENCOUNTERS_ELITE),
+        2 => (ENC_POOL_ELITE_ACT_2, NUM_ENCOUNTERS_ELITE),
+        3 => (ENC_POOL_ELITE_ACT_3, NUM_ENCOUNTERS_ELITE),
+        4 => (ENC_POOL_ACT_4, 1),
         _ => unreachable!("no elite pool for act {act}"),
     };
     populate_encounter_list(
         elite_list,
         &normalize_weights(pool_elite),
-        NUM_ENCOUNTERS_ELITE,
+        num_elite_enc,
         true,
         rng,
     );
@@ -287,10 +295,12 @@ pub fn roll_boss(act: u8, rng: &mut impl Rng) -> MonsterEncounter {
         MonsterEncounter::TimeEater,
         MonsterEncounter::DonuAndDeca,
     ];
+    const BOSSES_ACT4: [MonsterEncounter; 1] = [MonsterEncounter::CorruptHeart];
     let pool: &[MonsterEncounter] = match act {
         1 => &BOSSES_ACT1,
         2 => &BOSSES_ACT2,
         3 => &BOSSES_ACT3,
+        4 => &BOSSES_ACT4,
         _ => unreachable!("no bosses for act {act}"),
     };
     pool[rng.random_range(0..pool.len())]

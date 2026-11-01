@@ -213,7 +213,7 @@ pub fn create_game_state(
     }
 
     // Initialize map
-    let (id_rooms, location) = generate_map(&mut rng, &mut entities, ascension);
+    let (id_rooms, location) = generate_map(1, &mut rng, &mut entities, ascension);
 
     // Pre-generate Monster encounters
     let mut encounter_pool_normal: Vec<MonsterEncounter> =

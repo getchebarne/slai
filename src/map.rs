@@ -7,7 +7,9 @@ use crate::consts::FACTOR_NUM_ELITE_A1_MULT;
 use crate::consts::FACTOR_NUM_EVENT;
 use crate::consts::FACTOR_NUM_REST_SITE;
 use crate::consts::FACTOR_NUM_SHOP;
+use crate::consts::MAP_COLUMN_ACT4;
 use crate::consts::MAP_HEIGHT;
+use crate::consts::MAP_ROW_LAST_ACT4;
 use crate::consts::MAP_ROW_TREASURE;
 use crate::consts::MAP_WIDTH;
 use crate::consts::PATH_DENSITY;
@@ -69,15 +71,55 @@ pub fn get_active_room_kind(
     }
 }
 
+// The act's last map row: leaving any Room on it enters the Boss Room
+pub fn map_row_last(act: u8) -> usize {
+    match act {
+        1..=3 => MAP_HEIGHT - 1,
+        4 => MAP_ROW_LAST_ACT4,
+        _ => unreachable!("no map for act {act}"),
+    }
+}
+
 type IdRooms = [[Option<usize>; MAP_WIDTH]; MAP_HEIGHT];
 
+// The act's map: rolled in Acts 1-3, fixed in Act 4
 pub fn generate_map(
+    act: u8,
+    rng: &mut impl Rng,
+    entities: &mut Vec<Entity>,
+    ascension: u8,
+) -> (IdRooms, Location) {
+    match act {
+        1..=3 => generate_map_acts_1_to_3(rng, entities, ascension),
+        4 => generate_map_act4(entities),
+        _ => unreachable!("no map for act {act}"),
+    }
+}
+
+fn generate_map_acts_1_to_3(
     rng: &mut impl Rng,
     entities: &mut Vec<Entity>,
     ascension: u8,
 ) -> (IdRooms, Location) {
     let grid = generate_grid(rng, ascension);
     entitize_grid(grid, entities)
+}
+
+// Act 4's map is fixed and draws nothing
+fn generate_map_act4(entities: &mut Vec<Entity>) -> (IdRooms, Location) {
+    let mut id_rooms: IdRooms = [[None; MAP_WIDTH]; MAP_HEIGHT];
+    for (y, room_kind, room_edges) in [
+        (0, RoomKind::RestSite, 1 << MAP_COLUMN_ACT4),
+        (1, RoomKind::Shop, 1 << MAP_COLUMN_ACT4),
+        (MAP_ROW_LAST_ACT4, RoomKind::CombatElite, 0),
+    ] {
+        let id_room = push_entity(
+            entities,
+            make_entity_room(y, MAP_COLUMN_ACT4, room_kind, room_edges),
+        );
+        id_rooms[y][MAP_COLUMN_ACT4] = Some(id_room);
+    }
+    (id_rooms, Location::Start)
 }
 
 fn generate_grid(rng: &mut impl Rng, ascension: u8) -> Grid {

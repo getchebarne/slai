@@ -18,6 +18,7 @@ use crate::events::fight_loot;
 use crate::game::GameState;
 use crate::game::Location;
 use crate::map::get_active_room_kind;
+use crate::map::map_row_last;
 use crate::modifier::modifier_clear;
 use crate::relics::RELIC_COUNTERS_COMBAT_ONLY;
 use crate::types::DeltaSign;
@@ -53,7 +54,7 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
     // The spent combat is closed here; what it reveals owns the aftermath
     state.combat.active = false;
 
-    // Smoke Bomb: no rewards, unless a thief got away first
+    // Smoke Bomb: no rewards, unless a thief got away first; the map opens, or on the act's last map row an empty Reward
     if escaped_character && !thief_escaped {
         // The Relics the fight drops are still drawn, and lost for the run
         for (roll, exclusion) in relic_drops(state) {
@@ -85,6 +86,12 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
         // A fled event fight spends its event; an unpaid bout resumes it as a won one does
         if state.event.active && fight_loot(&state.event, state.ascension).is_some() {
             state.event.consumed = true;
+        }
+
+        // The act's last map row has no next Room: its empty Reward's RoomExit enters the boss
+        if matches!(state.location, Location::Overworld { y, .. } if y == map_row_last(state.act)) {
+            reward_reset(&mut state.reward);
+            state.reward.active = true;
         }
         return;
     }
