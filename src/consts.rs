@@ -122,6 +122,9 @@ pub const WHEEL_GOLD_PER_ACT: u16 = 100;
 // Acts, 1-based; the run ends after the last boss fight of act ACT_FINAL
 pub const ACT_FINAL: u8 = 3;
 
+// Acts 1 and 2 end in a boss Reward and the boss chest; every later Boss Room fight pays nothing
+pub const ACT_LAST_BOSS_CHEST: u8 = 2;
+
 // A20+: Act 3's first boss fight is followed by a second, against one of the other two bosses
 pub const ASCENSION_DOUBLE_BOSS_LEVEL: u8 = 20;
 
