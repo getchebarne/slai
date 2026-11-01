@@ -90,6 +90,7 @@ class ActionType:
     Rest: Final[ActionType]
     RestDig: Final[ActionType]
     RestLift: Final[ActionType]
+    RestRecall: Final[ActionType]
     RestSmith: Final[ActionType]
     RestToke: Final[ActionType]
     RewardSingingBowl: Final[ActionType]

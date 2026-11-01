@@ -126,6 +126,7 @@ ACTION_SPEC_REGISTRY = ActionSpecRegistry(
         create_action_spec(ActionType.Rest),
         create_action_spec(ActionType.RestDig),
         create_action_spec(ActionType.RestLift),
+        create_action_spec(ActionType.RestRecall),
         create_action_spec(ActionType.RestSmith),
         create_action_spec(ActionType.RestToke),
         # Reward pickup family
