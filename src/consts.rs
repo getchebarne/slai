@@ -122,8 +122,8 @@ pub const COLORLESS_RARE_CHANCE: f32 = 0.3;
 // Wheel of Change pays 100 per act
 pub const WHEEL_GOLD_PER_ACT: u16 = 100;
 
-// Acts, 1-based; the run ends after the last boss fight of act ACT_FINAL
-pub const ACT_FINAL: u8 = 3;
+// The last act a run can reach; without all three keys the run ends at Act 3's last boss
+pub const ACT_FINAL: u8 = 4;
 
 // Acts 1 and 2 end in a boss Reward and the boss chest; every later Boss Room fight pays nothing
 pub const ACT_LAST_BOSS_CHEST: u8 = 2;

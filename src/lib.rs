@@ -103,7 +103,7 @@ impl GameEnv {
     const MATCH_AND_KEEP_ATTEMPTS: u8 = consts::MATCH_AND_KEEP_ATTEMPTS;
 
     #[new]
-    #[pyo3(signature = (ascension=0, fast_mode=false, neow=false, final_act=false))]
+    #[pyo3(signature = (ascension=0, fast_mode=false, neow=false, final_act=true))]
     fn new(ascension: u8, fast_mode: bool, neow: bool, final_act: bool) -> Self {
         // Placeholder seed; consumers must call `reset(seed=...)` before stepping (gymnasium convention)
         let state = create_game_state(ascension, 0, fast_mode, neow, final_act);
@@ -124,7 +124,7 @@ impl GameEnv {
         snapshot_state(py, &self.state)
     }
 
-    // Apply an action. Returns `(obs, terminated)`; a won run terminates only after its last boss fight
+    // Apply an action. Returns `(obs, terminated)`; a won run terminates only after Act 3's last boss fight without all three keys, or after the Heart with them
     fn step(&mut self, py: Python<'_>, action: PyAction) -> PyResult<(PyGameState, bool)> {
         let internal =
             to_internal_action(action).map_err(pyo3::exceptions::PyValueError::new_err)?;
