@@ -700,7 +700,6 @@ pub enum RewardKind {
 // A run's three keys; GameState holds one flag per key
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Key {
-    #[expect(dead_code, reason = "the burning elite's key reward builds it")]
     Emerald,
     Ruby,
     Sapphire,

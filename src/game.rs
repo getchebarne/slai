@@ -141,7 +141,7 @@ pub struct GameState {
     pub pool_relic_shop: Vec<RelicName>,
     pub pool_relic_boss: Vec<RelicName>,
 
-    // Potion drop swing: chance = POTION_DROP_CHANCE_BASE + potion_drop_mod
+    // A combat's potion drop chance: POTION_DROP_CHANCE_BASE plus this within 0..=100, 0 in an escaped normal fight, 100 with White Beast Statue, 0 at a burning elite with Black Star
     pub potion_drop_mod: i32,
 
     // Contexts: one active; all inactive = Focus::Map. See context_focus
@@ -212,8 +212,8 @@ pub fn create_game_state(
         id_card_pile_deck.push(id_card);
     }
 
-    // Initialize map
-    let (id_rooms, location) = generate_map(1, &mut rng, &mut entities, ascension);
+    // Initialize map; a new run holds no key, so the switch alone marks its burning elite
+    let (id_rooms, location) = generate_map(1, &mut rng, &mut entities, ascension, final_act);
 
     // Pre-generate Monster encounters
     let mut encounter_pool_normal: Vec<MonsterEncounter> =

@@ -40,6 +40,9 @@ const fn move_siphon_soul(stacks: i16) -> Move {
     )
 }
 
+// The Metallicize its sleep kit opens with, and sheds on waking
+pub const METALLICIZE_SLEEP: i16 = 8;
+
 static MOVE_SLEEP: Move = make_move("Sleep", &[], Intent::Sleep);
 static MOVE_WAKE_UP: Move = make_move(
     "Wake up",
@@ -52,8 +55,9 @@ static MOVE_WAKE_UP: Move = make_move(
             target: TARGET_SOURCE,
         },
         Effect {
-            kind: EffectKind::ModifierRemove {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::Metallicize,
+                stacks: -METALLICIZE_SLEEP,
             },
             id_source: None,
             target: TARGET_SOURCE,
@@ -109,7 +113,7 @@ pub static LAGAVULIN: MonsterTemplate = MonsterTemplate {
         0,
         &[
             modifier_fixed(ModifierKind::Asleep, 1),
-            modifier_fixed(ModifierKind::Metallicize, 8),
+            modifier_fixed(ModifierKind::Metallicize, METALLICIZE_SLEEP),
         ],
     )],
 };

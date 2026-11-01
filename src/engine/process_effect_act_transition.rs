@@ -35,12 +35,13 @@ pub fn process_effect_act_transition(state: &mut GameState) {
         target: Target::Direct(Some(state.id_character)),
     });
 
-    // Fresh map; stale Room entities stay in the arena, unreachable via `id_rooms`
+    // Fresh map, with a burning elite while the Emerald Key isn't held; stale Room entities stay in the arena, unreachable via `id_rooms`
     let (id_rooms, location) = generate_map(
         state.act,
         &mut state.rng,
         &mut state.entities,
         state.ascension,
+        state.final_act && !state.key_emerald,
     );
     state.id_rooms = id_rooms;
     state.location = location;

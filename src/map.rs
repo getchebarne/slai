@@ -80,17 +80,30 @@ pub fn map_row_last(act: u8) -> usize {
     }
 }
 
+// Only a map Room can be the act's burning elite
+pub fn get_active_room_burning(
+    id_rooms: &[[Option<usize>; MAP_WIDTH]; MAP_HEIGHT],
+    location: Location,
+    entities: &[Entity],
+) -> bool {
+    let Location::Overworld { y, x } = location else {
+        return false;
+    };
+    room_at(id_rooms, entities, y, x).is_some_and(|room| room.room_burning)
+}
+
 type IdRooms = [[Option<usize>; MAP_WIDTH]; MAP_HEIGHT];
 
-// The act's map: rolled in Acts 1-3, fixed in Act 4
+// The act's map: rolled in Acts 1-3, where it can mark its burning elite, and fixed in Act 4
 pub fn generate_map(
     act: u8,
     rng: &mut impl Rng,
     entities: &mut Vec<Entity>,
     ascension: u8,
+    mark_burning: bool,
 ) -> (IdRooms, Location) {
     match act {
-        1..=3 => generate_map_acts_1_to_3(rng, entities, ascension),
+        1..=3 => generate_map_acts_1_to_3(rng, entities, ascension, mark_burning),
         4 => generate_map_act4(entities),
         _ => unreachable!("no map for act {act}"),
     }
@@ -100,9 +113,24 @@ fn generate_map_acts_1_to_3(
     rng: &mut impl Rng,
     entities: &mut Vec<Entity>,
     ascension: u8,
+    mark_burning: bool,
 ) -> (IdRooms, Location) {
     let grid = generate_grid(rng, ascension);
-    entitize_grid(grid, entities)
+    let (id_rooms, location) = entitize_grid(grid, entities);
+
+    // One elite Room burns, drawn uniformly in row-major order: the map's last draw
+    if mark_burning {
+        let id_room_elites: Vec<usize> = id_rooms
+            .iter()
+            .flatten()
+            .flatten()
+            .copied()
+            .filter(|&id_room| entities[id_room].room_kind == RoomKind::CombatElite)
+            .collect();
+        let id_burning = id_room_elites[rng.random_range(0..id_room_elites.len())];
+        entities[id_burning].room_burning = true;
+    }
+    (id_rooms, location)
 }
 
 // Act 4's map is fixed and draws nothing
@@ -124,7 +152,6 @@ fn generate_map_act4(entities: &mut Vec<Entity>) -> (IdRooms, Location) {
 
 fn generate_grid(rng: &mut impl Rng, ascension: u8) -> Grid {
     let mut nodes: Grid = [[None; MAP_WIDTH]; MAP_HEIGHT];
-
     let mut x_source_first: Option<usize> = None;
 
     for idx_path in 0..PATH_DENSITY {
