@@ -22,6 +22,7 @@ static MOVE_SMASH_5_W1_F1: Move = make_move(
                 instances: 1,
                 lifesteal: false,
                 if_poisoned: false,
+                block_from_hit: false,
                 scaled_at: ScaledAt::Now,
             },
             id_source: None,

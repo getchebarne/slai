@@ -82,7 +82,7 @@ mirror_enum!(PyPlayRestriction from PlayRestriction, "PlayRestriction", {
 });
 
 mirror_enum!(PyCardPile from CardPile, "CardPile", {
-    Hand, Draw, Discard, Deck,
+    Hand, Draw, DrawTop, Discard, Deck,
 });
 
 mirror_enum!(PyCostScope from CostScope, "CostScope", {
@@ -364,12 +364,14 @@ pub(crate) fn snapshot_adjusted_effects(
                 instances,
                 lifesteal,
                 if_poisoned,
+                block_from_hit,
                 target,
             }) => PyEffect::DamagePhysical(PyEffectDamagePhysical {
                 amount: adjusted_damage(amount),
                 instances,
                 lifesteal,
                 if_poisoned,
+                block_from_hit,
                 target,
             }),
             PyEffect::DamageFinisher(PyEffectDamageFinisher { damage, target }) => {

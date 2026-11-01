@@ -33,6 +33,7 @@ pub static ALL_OUT_ATTACK: CardTemplate = make_card_template(
                 instances: 1,
                 lifesteal: false,
                 if_poisoned: false,
+                block_from_hit: false,
                 scaled_at: ScaledAt::Now,
             },
             id_source: None,
@@ -64,6 +65,7 @@ pub static ALL_OUT_ATTACK_PLUS: CardTemplate = CardTemplate {
             instances: 1,
             lifesteal: false,
             if_poisoned: false,
+            block_from_hit: false,
             scaled_at: ScaledAt::Now,
         }; // +4 damage
         effects

@@ -41,6 +41,7 @@ pub fn process_effect_heel_hook_proc(
             instances: 1,
             lifesteal: false,
             if_poisoned: false,
+            block_from_hit: false,
             scaled_at: ScaledAt::Now,
         },
         id_source,

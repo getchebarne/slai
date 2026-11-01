@@ -149,8 +149,8 @@ pub fn catalog(_ascension: u8) -> &'static [EventOptionTemplate] {
 // The run floor the event opens on picks the third option: Rich through floor 40, Healthy past it
 pub fn spawn(state: &mut GameState) -> Vec<usize> {
     let eots = catalog(state.ascension);
-    let third = if state.floor <= 40 { eots[2] } else { eots[3] };
-    let options = [eots[0], eots[1], third];
+    let eot_third = if state.floor <= 40 { eots[2] } else { eots[3] };
+    let options = [eots[0], eots[1], eot_third];
     bake_options(state, &options)
 }
 

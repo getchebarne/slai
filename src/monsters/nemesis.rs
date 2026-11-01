@@ -41,6 +41,7 @@ const fn move_attack_intangible(name: &'static str, damage: u16, instances: u8) 
                     instances: instances as u16,
                     lifesteal: false,
                     if_poisoned: false,
+                    block_from_hit: false,
                     scaled_at: ScaledAt::Now,
                 },
                 id_source: None,

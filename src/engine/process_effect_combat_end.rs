@@ -1,6 +1,6 @@
 use rand::Rng;
 
-use crate::consts::ACT_FINAL;
+use crate::consts::ACT_LAST_BOSS_CHEST;
 use crate::consts::GOLD_ELITE_MAX;
 use crate::consts::GOLD_ELITE_MIN;
 use crate::consts::GOLD_MONSTER_MAX;
@@ -129,8 +129,8 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
             state.event.active = false;
         }
     } else {
-        // A final-act boss fight rolls no reward; every other fight rolls its reward
-        if !(matches!(state.location, Location::BossRoom) && state.act >= ACT_FINAL) {
+        // From Act 3 on, a Boss Room fight rolls no reward; every other fight rolls its reward
+        if !(matches!(state.location, Location::BossRoom) && state.act > ACT_LAST_BOSS_CHEST) {
             // A "?" that resolved to a plain fight rewards as a normal Monster Room
             let room_kind =
                 match get_active_room_kind(&state.id_rooms, state.location, &state.entities)
@@ -195,8 +195,8 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
 
     queue_combat_end_relics(state);
 
-    // Final-act boss victory: the act's last boss fight ends the run once the combat-end Relics have resolved, resting on Map
-    if matches!(state.location, Location::BossRoom) && state.act >= ACT_FINAL {
+    // From Act 3 on, the act's last Boss Room fight ends the run once the combat-end Relics have resolved, resting on Map
+    if matches!(state.location, Location::BossRoom) && state.act > ACT_LAST_BOSS_CHEST {
         if state.encounter_pool_boss.is_empty() {
             state.phase_queue.push_back(Effect {
                 kind: EffectKind::GameOver,

@@ -7,6 +7,7 @@ use crate::types::CardPile;
 use crate::types::CardRarity;
 use crate::types::CostScope;
 use crate::types::DeltaSign;
+use crate::types::Key;
 use crate::types::MonsterName;
 use crate::types::RelicName;
 use crate::types::RelicTier;
@@ -130,9 +131,10 @@ pub enum EffectKind {
     DamageMindBlast, // Mind Blast's hit; its play turns it into a DamagePhysical for the draw pile's size
     DamagePhysical {
         amount: u16,
-        instances: u16,    // Hits on one target, resolved one at a time
-        lifesteal: bool,   // Life Suck
-        if_poisoned: bool, // Bane: a hit that lands only on a Poisoned target
+        instances: u16,       // Hits on one target, resolved one at a time
+        lifesteal: bool,      // Life Suck
+        if_poisoned: bool,    // Bane: a hit that lands only on a Poisoned target
+        block_from_hit: bool, // Smash: the attacker gains block equal to the hit's computed damage
         scaled_at: ScaledAt,
     },
     Death {
@@ -191,6 +193,10 @@ pub enum EffectKind {
     },
     JoustBet {
         on_owner: bool,
+    },
+    #[expect(dead_code, reason = "Recall and the two key rewards build it")]
+    KeyObtain {
+        key: Key,
     },
     KnowingSkullCostBump,
     LagavulinWake,

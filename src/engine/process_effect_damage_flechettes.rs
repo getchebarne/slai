@@ -32,6 +32,7 @@ pub fn process_effect_damage_flechettes(
                 instances: num_skills_in_hand as u16,
                 lifesteal: false,
                 if_poisoned: false,
+                block_from_hit: false,
                 scaled_at: ScaledAt::Now,
             },
             id_source,

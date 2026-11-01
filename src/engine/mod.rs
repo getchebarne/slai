@@ -68,6 +68,7 @@ pub mod process_effect_health_set;
 pub mod process_effect_heel_hook_proc;
 pub mod process_effect_hexaghost_burn_increase;
 pub mod process_effect_joust_bet;
+pub mod process_effect_key_obtain;
 pub mod process_effect_knowing_skull_cost_bump;
 pub mod process_effect_lagavulin_wake;
 pub mod process_effect_lifesteal_heal;
@@ -206,6 +207,7 @@ use self::process_effect_health_set::process_effect_health_set;
 use self::process_effect_heel_hook_proc::process_effect_heel_hook_proc;
 use self::process_effect_hexaghost_burn_increase::process_effect_hexaghost_burn_increase;
 use self::process_effect_joust_bet::process_effect_joust_bet;
+use self::process_effect_key_obtain::process_effect_key_obtain;
 use self::process_effect_knowing_skull_cost_bump::process_effect_knowing_skull_cost_bump;
 use self::process_effect_lagavulin_wake::process_effect_lagavulin_wake;
 use self::process_effect_lifesteal_heal::process_effect_lifesteal_heal;
@@ -683,6 +685,7 @@ fn dispatch_by_kind(
             instances,
             lifesteal,
             if_poisoned,
+            block_from_hit,
             scaled_at,
         } => process_effect_damage_physical(
             id_source,
@@ -692,6 +695,7 @@ fn dispatch_by_kind(
             instances,
             lifesteal,
             if_poisoned,
+            block_from_hit,
             scaled_at,
         ),
         EffectKind::GlassKnifeDecay { delta } => {
@@ -880,6 +884,7 @@ fn dispatch_by_kind(
         }
         EffectKind::CardStasisSteal => process_effect_card_stasis_steal(id_source, state),
         EffectKind::JoustBet { on_owner } => process_effect_joust_bet(state, on_owner),
+        EffectKind::KeyObtain { key } => process_effect_key_obtain(state, key),
         EffectKind::KnowingSkullCostBump => {
             process_effect_knowing_skull_cost_bump(id_source, state)
         }

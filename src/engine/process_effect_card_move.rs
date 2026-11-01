@@ -35,7 +35,7 @@ pub fn process_effect_card_move(
     let placed = place_card(state, id_target, pile);
 
     // A Card moved into the draw or discard pile costs its combat cost again this turn
-    if matches!(pile, CardPile::Draw | CardPile::Discard) || !placed {
+    if matches!(pile, CardPile::Draw | CardPile::DrawTop | CardPile::Discard) || !placed {
         state.entities[id_target].card_cost_override = None;
     }
 
