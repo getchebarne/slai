@@ -2,7 +2,9 @@ use pyo3::inspect::PyStaticExpr;
 use pyo3::prelude::*;
 use pyo3::type_hint_union;
 use pyo3::type_object::PyTypeInfo;
+use strum::IntoEnumIterator;
 
+use crate::effect::PlaySource;
 use crate::entity::CardCostKind;
 use crate::entity::Entity;
 use crate::entity::PlayRestriction;
@@ -110,6 +112,50 @@ mirror_enum!(PyCardName from CardName, "CardName", {
     RitualDagger, Necronomicurse,
 });
 
+#[pyclass(
+    skip_from_py_object,
+    eq,
+    eq_int,
+    frozen,
+    name = "PlaySource",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, strum::EnumIter)]
+pub enum PyPlaySource {
+    Hand,
+    DrawTop,
+    Replay,
+    ReplayCopy,
+    TurnEnd,
+}
+
+#[pymethods]
+impl PyPlaySource {
+    // Declaration order, which is also int() order
+    #[staticmethod]
+    fn members() -> Vec<PyPlaySource> {
+        PyPlaySource::iter().collect()
+    }
+
+    // Hash by raw discriminant so eq_int and hash agree; the derived hash
+    // breaks Python's eq/hash contract for int-keyed dicts
+    fn __hash__(&self) -> isize {
+        *self as isize
+    }
+}
+
+impl From<PlaySource> for PyPlaySource {
+    fn from(play_source: PlaySource) -> Self {
+        match play_source {
+            PlaySource::Hand => Self::Hand,
+            PlaySource::DrawTop => Self::DrawTop,
+            PlaySource::Replay => Self::Replay,
+            PlaySource::ReplayCopy { .. } => Self::ReplayCopy,
+            PlaySource::TurnEnd { .. } => Self::TurnEnd,
+        }
+    }
+}
+
 // Exposed structs
 #[pyclass(
     skip_from_py_object,
@@ -156,6 +202,9 @@ pub struct PyCard {
 
     // Price while the Shop offers it
     pub price: Option<u16>,
+
+    // What queued it while it waits in the card play queue
+    pub play_source: Option<PyPlaySource>,
 }
 
 // Display-name lookups
@@ -540,5 +589,6 @@ fn build_py_card(
             .collect(),
         effects_draw: card.card_effects_draw.iter().map(snapshot_effect).collect(),
         price: card.price,
+        play_source: None,
     }
 }

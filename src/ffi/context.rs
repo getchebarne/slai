@@ -1,7 +1,5 @@
 use pyo3::prelude::*;
-use strum::IntoEnumIterator;
 
-use crate::effect::PlaySource;
 use crate::game::GameState;
 use crate::types::ChestKind;
 use crate::types::EventName;
@@ -29,50 +27,6 @@ mirror_enum!(PyChestKind from ChestKind, "ChestKind", {
 #[pyclass(
     skip_from_py_object,
     eq,
-    eq_int,
-    frozen,
-    name = "PlaySource",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, strum::EnumIter)]
-pub enum PyPlaySource {
-    Hand,
-    DrawTop,
-    Replay,
-    ReplayCopy,
-    TurnEnd,
-}
-
-#[pymethods]
-impl PyPlaySource {
-    // Declaration order, which is also int() order
-    #[staticmethod]
-    fn members() -> Vec<PyPlaySource> {
-        PyPlaySource::iter().collect()
-    }
-
-    // Hash by raw discriminant so eq_int and hash agree; the derived hash
-    // breaks Python's eq/hash contract for int-keyed dicts
-    fn __hash__(&self) -> isize {
-        *self as isize
-    }
-}
-
-impl From<PlaySource> for PyPlaySource {
-    fn from(play_source: PlaySource) -> Self {
-        match play_source {
-            PlaySource::Hand => Self::Hand,
-            PlaySource::DrawTop => Self::DrawTop,
-            PlaySource::Replay => Self::Replay,
-            PlaySource::ReplayCopy { .. } => Self::ReplayCopy,
-            PlaySource::TurnEnd { .. } => Self::TurnEnd,
-        }
-    }
-}
-
-#[pyclass(
-    skip_from_py_object,
-    eq,
     hash,
     frozen,
     get_all,
@@ -93,7 +47,6 @@ pub struct PyCombat {
     pub card_pile_discard: Vec<PyCard>,
     pub card_pile_exhaust: Vec<PyCard>,
     pub card_play_queue: Vec<PyCard>,
-    pub play_sources: Vec<PyPlaySource>, // Parallel to `card_play_queue`: what queued each waiting play
     pub energy: PyEnergy,
     pub monsters: Vec<PyMonster>,
     pub card_pile_stasis: Vec<Option<PyCard>>, // Parallel to `monsters`: the Card each one holds in Stasis
@@ -214,8 +167,9 @@ pub(crate) fn snapshot_combat(state: &GameState) -> PyCombat {
         card_play_queue: state
             .card_play_queue
             .iter()
-            .map(|card_play| {
-                snapshot_card_combat_at_cost(
+            .map(|card_play| PyCard {
+                play_source: Some(card_play.play_source.into()),
+                ..snapshot_card_combat_at_cost(
                     state,
                     card_play.id_card,
                     card_play.cost_effective,
@@ -223,11 +177,6 @@ pub(crate) fn snapshot_combat(state: &GameState) -> PyCombat {
                     card_play.draw_pile_size,
                 )
             })
-            .collect(),
-        play_sources: state
-            .card_play_queue
-            .iter()
-            .map(|card_play| card_play.play_source.into())
             .collect(),
         energy: PyEnergy {
             energy_current: combat.energy.energy_current,
