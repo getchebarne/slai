@@ -4,7 +4,7 @@ use strum::IntoEnumIterator;
 use super::macros::mirror_enum;
 
 use super::effect::PyEffect;
-use super::effect::snapshot_effect;
+use super::effect::snapshot_effects;
 use crate::consts::FACTOR_BACK_ATTACK;
 use crate::effect::EffectKind;
 use crate::effect::PlaySource;
@@ -262,7 +262,7 @@ pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
                     scaled
                 });
 
-                let move_effects = move_effects.iter().map(snapshot_effect).collect();
+                let move_effects = snapshot_effects(state, move_effects, None);
                 (
                     Some(PyIntent {
                         kind: mv.intent.into(),

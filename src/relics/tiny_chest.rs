@@ -9,7 +9,7 @@ pub static TINY_CHEST: RelicTemplate = RelicTemplate {
     name: RelicName::TinyChest,
     tier: RelicTier::Common,
     counter_init: 0,
-    counter_reset: 0,
+    counter_reset: 4,
     effects_combat_start: &[],
     effects_turn_start: &[],
     effects_turn_end: &[],
