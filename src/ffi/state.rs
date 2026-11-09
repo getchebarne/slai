@@ -1,5 +1,6 @@
 use pyo3::prelude::*;
 
+use crate::consts::NUM_ENCOUNTERS_HARD;
 use crate::game::GameState;
 
 use super::card::PyCard;
@@ -60,6 +61,7 @@ pub struct PyGameState {
     pub unknown_chance_treasure: f32,
     pub pool_events: Vec<PyEventName>, // Events a "?" can still become, regular then special; each is drawn without replacement, and both lists are empty in Act 4
     pub pool_event_special: Vec<PyEventName>,
+    pub encounters_easy_left: u8, // Hallway fights left on the act's easy list, ahead of the hard one
     pub map: Py<PyMap>,
     pub effect_pending: Option<PyEffectPendingObject>,
     pub card_pile_selected: Vec<PyCard>,
@@ -117,12 +119,12 @@ pub fn snapshot_state(py: Python<'_>, state: &GameState) -> PyResult<PyGameState
             .collect(),
         relics: id_relics
             .iter()
-            .map(|&id| snapshot_relic(id, &state.entities[id]))
+            .map(|&id| snapshot_relic(state, id))
             .collect(),
         potions: state
             .id_potions
             .iter()
-            .map(|&id| snapshot_potion(id, &state.entities[id]))
+            .map(|&id| snapshot_potion(state, id))
             .collect(),
         potion_slots_max: state.potion_slots_max,
         potion_drop_mod: state.potion_drop_mod,
@@ -136,6 +138,10 @@ pub fn snapshot_state(py: Python<'_>, state: &GameState) -> PyResult<PyGameState
             .iter()
             .map(|&name| name.into())
             .collect(),
+        encounters_easy_left: state
+            .encounter_pool_normal
+            .len()
+            .saturating_sub(NUM_ENCOUNTERS_HARD + 1) as u8,
         map: Py::new(py, snapshot_map(state))?,
         effect_pending: state
             .effect_pending

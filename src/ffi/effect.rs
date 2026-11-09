@@ -10,7 +10,10 @@ use crate::effect::EffectKind;
 use crate::effect::RelicRoll;
 use crate::effect::ScaledAt;
 use crate::effect::Target;
+use crate::game::GameState;
 use crate::game::Location;
+use crate::types::RelicName;
+use crate::utils::has_relic;
 
 use super::amount::PyAmount;
 use super::amount::PyAmountScalar;
@@ -207,6 +210,32 @@ pub(crate) fn snapshot_effect_pending(
     Ok(PyEffectPendingObject(
         effect_pending.into_pyobject(py)?.unbind(),
     ))
+}
+
+// Snecko Skull: a positive Poison the Character applies lands 1 higher
+pub(crate) fn fold_snecko_skull(state: &GameState, effect: PyEffect) -> PyEffect {
+    match effect {
+        PyEffect::ModifierDelta(PyEffectModifierDelta {
+            kind: PyModifierKind::Poison,
+            stacks,
+            target,
+        }) if stacks > 0 && has_relic(&state.id_relics, RelicName::SneckoSkull) => {
+            PyEffect::ModifierDelta(PyEffectModifierDelta {
+                kind: PyModifierKind::Poison,
+                stacks: stacks + 1,
+                target,
+            })
+        }
+        other => other,
+    }
+}
+
+// Effects as a snapshot shows them, Snecko Skull's Poison folded in
+pub(crate) fn snapshot_effects(state: &GameState, effects: &[Effect]) -> Vec<PyEffect> {
+    effects
+        .iter()
+        .map(|effect| fold_snecko_skull(state, snapshot_effect(effect)))
+        .collect()
 }
 
 pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {

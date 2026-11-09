@@ -2,13 +2,13 @@ use pyo3::prelude::*;
 
 use super::macros::mirror_enum;
 
-use crate::entity::Entity;
+use crate::game::GameState;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 use crate::utils::entity_requires_target;
 
 use super::effect::PyEffect;
-use super::effect::snapshot_effect;
+use super::effect::snapshot_effects;
 
 mirror_enum!(PyPotionName from PotionName, "PotionName", {
     Energy, Block, Strength, Dexterity, Fire, Explosive,
@@ -44,7 +44,8 @@ pub struct PyPotion {
     pub price: Option<u16>, // While the Shop offers it
 }
 
-pub(crate) fn snapshot_potion(id: usize, entity: &Entity) -> PyPotion {
+pub(crate) fn snapshot_potion(state: &GameState, id: usize) -> PyPotion {
+    let entity = &state.entities[id];
     PyPotion {
         id,
         name: entity.potion_name.into(),
@@ -52,7 +53,7 @@ pub(crate) fn snapshot_potion(id: usize, entity: &Entity) -> PyPotion {
         requires_target: entity_requires_target(entity),
         combat_only: entity.potion_combat_only,
         doubled: entity.potion_doubled,
-        effects: entity.potion_effects.iter().map(snapshot_effect).collect(),
+        effects: snapshot_effects(state, entity.potion_effects),
         price: entity.price,
     }
 }

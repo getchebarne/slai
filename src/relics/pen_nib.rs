@@ -10,7 +10,7 @@ pub static PEN_NIB: RelicTemplate = RelicTemplate {
     name: RelicName::PenNib,
     tier: RelicTier::Common,
     counter_init: 0,
-    counter_reset: 0,
+    counter_reset: 10,
     effects_combat_start: &[],
     effects_turn_start: &[],
     effects_turn_end: &[],
