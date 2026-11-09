@@ -90,6 +90,10 @@ pub const PANACHE_PLAYS: u8 = 5;
 pub const TIME_WARP_PLAYS: i16 = 12;
 pub const TIME_WARP_STRENGTH: i16 = 2;
 
+// Normality in hand caps the turn's plays at 3, Velvet Choker at 6
+pub const NORMALITY_PLAYS_MAX: u16 = 3;
+pub const VELVET_CHOKER_PLAYS_MAX: i16 = 6;
+
 // Event roll-pool stakes: the widest offer any event places in `id_roll_*`
 pub const MAX_SIZE_CARD_PILE_EVENT_ROLL: usize = 2 * MATCH_AND_KEEP_ATTEMPTS as usize; // Match and Keep!
 pub const MAX_SIZE_RELIC_EVENT_ROLL: usize = 2; // N'loth's two owned relics

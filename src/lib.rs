@@ -40,6 +40,18 @@ struct GameEnv {
 impl GameEnv {
     // Game-shape constants — mirror of `crate::consts` for encoders/wrappers
     #[classattr]
+    const ENERGY_MAX_BASE: u16 = consts::ENERGY_MAX_BASE;
+    #[classattr]
+    const MAX_MOVE_HISTORY: usize = consts::MAX_MOVE_HISTORY;
+    #[classattr]
+    const NUM_ENCOUNTERS_EASY_ACT1: usize = consts::NUM_ENCOUNTERS_EASY_ACT1;
+    #[classattr]
+    const TIME_WARP_PLAYS: i16 = consts::TIME_WARP_PLAYS;
+    #[classattr]
+    const NORMALITY_PLAYS_MAX: u16 = consts::NORMALITY_PLAYS_MAX;
+    #[classattr]
+    const VELVET_CHOKER_PLAYS_MAX: i16 = consts::VELVET_CHOKER_PLAYS_MAX;
+    #[classattr]
     const MAX_MONSTERS: usize = consts::MAX_MONSTERS;
     #[classattr]
     const MAX_SIZE_CARD_PILE_HAND: usize = consts::MAX_SIZE_CARD_PILE_HAND;

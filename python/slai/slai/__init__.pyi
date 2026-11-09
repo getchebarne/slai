@@ -1594,6 +1594,7 @@ class GameEnv:
     CARD_REWARD_ROLL_OFFSET_MIN: Final[int]
     CAULDRON_POTION_COUNT: Final[int]
     DISCOVER_ROLL_COUNT: Final[int]
+    ENERGY_MAX_BASE: Final[int]
     FACTOR_VULN: Final[float]
     HEXAGHOST_DIVIDER_DIVISOR: Final[int]
     HEXAGHOST_DIVIDER_HITS: Final[int]
@@ -1604,12 +1605,15 @@ class GameEnv:
     MAX_CARD_REWARD_ROLL: Final[int]
     MAX_COMBAT_CARD_REWARD: Final[int]
     MAX_MONSTERS: Final[int]
+    MAX_MOVE_HISTORY: Final[int]
     MAX_REWARD_CARD_BUNDLES: Final[int]
     MAX_SIZE_CARD_PILE_EVENT_ROLL: Final[int]
     MAX_SIZE_CARD_PILE_HAND: Final[int]
     MAX_SIZE_POTION_EVENT_ROLL: Final[int]
     MAX_SIZE_RELIC_EVENT_ROLL: Final[int]
     NIGHTMARE_COPIES: Final[int]
+    NORMALITY_PLAYS_MAX: Final[int]
+    NUM_ENCOUNTERS_EASY_ACT1: Final[int]
     ORRERY_BUNDLE_COUNT: Final[int]
     POTION_DROP_CHANCE_BASE: Final[int]
     POTION_SLOTS_MAX: Final[int]
@@ -1617,6 +1621,8 @@ class GameEnv:
     SHOP_SLOTS_CARD_TOTAL: Final[int]
     SHOP_SLOTS_POTION: Final[int]
     SHOP_SLOTS_RELIC: Final[int]
+    TIME_WARP_PLAYS: Final[int]
+    VELVET_CHOKER_PLAYS_MAX: Final[int]
     def __new__(cls, /, ascension: int = 0, fast_mode: bool = False, neow: bool = False, final_act: bool = True) -> GameEnv: ...
     def get_legal_actions(self, /) -> list[Action]: ...
     def reset(self, /, seed: int = 42) -> GameState: ...
@@ -1640,6 +1646,8 @@ class GameState:
     def combat(self, /) -> Combat |None: ...
     @property
     def effect_pending(self, /) -> EffectBonfireOffer |EffectCardAdopt |EffectCardBottle |EffectCardDiscard |EffectCardDiscoverSelect |EffectCardDuplicate |EffectCardExhaust |EffectCardMove |EffectCardNightmareSelect |EffectCardPurge |EffectCardRetain |EffectCardSetupSelect |EffectCardTransform |EffectCardUpgrade |EffectMatchFlipSeen |EffectRelicLose |EffectRestSmith |EffectRestToke |None: ...
+    @property
+    def encounters_easy_left(self, /) -> int: ...
     @property
     def event(self, /) -> Event |None: ...
     @property

@@ -246,15 +246,13 @@ pub(crate) fn snapshot_reward(state: &GameState) -> PyReward {
         relics: reward
             .id_relics
             .iter()
-            .map(|&id| snapshot_relic(id, &state.entities[id]))
+            .map(|&id| snapshot_relic(state, id))
             .collect(),
-        relic_linked: reward
-            .id_relic_linked
-            .map(|id| snapshot_relic(id, &state.entities[id])),
+        relic_linked: reward.id_relic_linked.map(|id| snapshot_relic(state, id)),
         potions: reward
             .id_potions
             .iter()
-            .map(|&id| snapshot_potion(id, &state.entities[id]))
+            .map(|&id| snapshot_potion(state, id))
             .collect(),
         gold: reward.gold,
         gold_stolen: reward.gold_stolen,
@@ -274,12 +272,12 @@ pub(crate) fn snapshot_shop(state: &GameState) -> PyShop {
         relics: shop
             .id_relics
             .iter()
-            .map(|&id| snapshot_relic(id, &state.entities[id]))
+            .map(|&id| snapshot_relic(state, id))
             .collect(),
         potions: shop
             .id_potions
             .iter()
-            .map(|&id| snapshot_potion(id, &state.entities[id]))
+            .map(|&id| snapshot_potion(state, id))
             .collect(),
         purge_cost: shop.purge_cost,
         purged: shop.purged,
@@ -311,12 +309,12 @@ pub(crate) fn snapshot_event(state: &GameState) -> PyEvent {
         relic_event_roll: event
             .id_relic_event_roll
             .iter()
-            .map(|&id| snapshot_relic(id, &state.entities[id]))
+            .map(|&id| snapshot_relic(state, id))
             .collect(),
         potion_event_roll: event
             .id_potion_event_roll
             .iter()
-            .map(|&id| snapshot_potion(id, &state.entities[id]))
+            .map(|&id| snapshot_potion(state, id))
             .collect(),
         card_match_flipped: event
             .id_card_match_flipped

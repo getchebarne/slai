@@ -478,7 +478,7 @@ pub struct RelicTemplate {
     pub name: RelicName,
     pub tier: RelicTier,
     pub counter_init: i16,
-    pub counter_reset: i16, // Threshold the counter fires and resets at; 0 = no firing counter
+    pub counter_reset: i16, // Threshold the counter fires at; 0 = no firing counter
     pub effects_combat_start: &'static [Effect],
     pub effects_turn_start: &'static [Effect],
     pub effects_turn_end: &'static [Effect],

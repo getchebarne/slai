@@ -40,7 +40,9 @@ use super::effect::PyEffectEscapePlanCheck;
 use super::effect::PyEffectHeelHookProc;
 use super::effect::PyEffectModifierDelta;
 use super::effect::PyEffectSkewerProc;
+use super::effect::fold_snecko_skull;
 use super::effect::snapshot_effect;
+use super::effect::snapshot_effects;
 use super::macros::flat_variants;
 use super::macros::mirror_enum;
 use super::modifier::PyModifierKind;
@@ -348,7 +350,7 @@ impl CardName {
     }
 }
 
-// A combat Card's effects with the Character's Modifiers and Relic bonuses folded into the damage and block amounts; Wrist Blade reads `cost`, Mind Blast's base is `draw_pile_size`
+// A combat Card's effects with the Character's Modifiers and Relic bonuses folded into the damage, block and Poison amounts; Wrist Blade reads `cost`, Mind Blast's base is `draw_pile_size`
 pub(crate) fn snapshot_adjusted_effects(
     state: &GameState,
     card: &Entity,
@@ -477,16 +479,17 @@ pub(crate) fn snapshot_adjusted_effects(
             }
             other => other,
         })
+        .map(|effect| fold_snecko_skull(state, effect))
         .collect()
 }
 
-// A Card outside the fight (the master deck, a reward, the shop, an event) shows its own cost and effects, and counts as playable
+// A Card outside the fight (the master deck, a reward, the shop, an event) shows its own cost and effects, Snecko Skull's Poison aside, and counts as playable
 pub(crate) fn snapshot_card(state: &GameState, id_card: usize) -> PyCard {
     let card = &state.entities[id_card];
-    let effects_play = card.card_effects_play[..card.card_effects_play_len as usize]
-        .iter()
-        .map(snapshot_effect)
-        .collect();
+    let effects_play = snapshot_effects(
+        state,
+        &card.card_effects_play[..card.card_effects_play_len as usize],
+    );
     build_py_card(
         id_card,
         card,

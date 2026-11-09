@@ -541,11 +541,10 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
 
             // Pen Nib: every 10th Attack is doubled; the 9th primes the charge, the 10th starts the count over
             (RelicName::PenNib, CardKind::Attack) => {
-                let counter = &mut state.entities[id_relic].relic_counter;
-                *counter += 1;
-                if *counter == 10 {
-                    *counter = 0;
-                } else if *counter == 9 {
+                let relic = &mut state.entities[id_relic];
+                if !trigger_relic_counter(relic)
+                    && relic.relic_counter == relic.relic_counter_reset - 1
+                {
                     state.effect_buf.push(Effect {
                         kind: EffectKind::ModifierDelta {
                             kind: ModifierKind::PenNib,
