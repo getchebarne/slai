@@ -13,9 +13,22 @@ use crate::effect::PlaySource;
 use crate::effect::RelicRoll;
 use crate::effect::ScaledAt;
 use crate::effect::Target;
+use crate::entity::Entity;
 use crate::game::GameState;
+use crate::modifier::ModifierKind;
+use crate::modifier::has_modifier;
+use crate::modifier::modifier_stacks;
 use crate::types::Location;
+use crate::types::RelicName;
 use crate::utils::entity_requires_target;
+use crate::utils::has_relic;
+use crate::utils::scale_attack_damage;
+use crate::utils::scale_block_gain;
+use crate::utils::slow_factor;
+use crate::utils::strike_dummy_bonus;
+use crate::utils::vuln_factor;
+use crate::utils::weak_factor;
+use crate::utils::wrist_blade_bonus;
 
 use super::amount::PyAmount;
 use super::amount::PyAmountScalar;
@@ -297,6 +310,103 @@ pub(crate) fn snapshot_effect_pending(
     Ok(PyEffectPendingObject(
         effect_pending.into_pyobject(py)?.unbind(),
     ))
+}
+
+// A running game's Effects, Snecko Skull folded in; `card_combat` scales a Combat Card's play
+pub(crate) fn snapshot_effects(
+    state: &GameState,
+    effects: &[Effect],
+    card_combat: Option<(&Entity, u16, u16)>, // (Card, card_cost, draw_pile_size)
+) -> Vec<PyEffect> {
+    effects
+        .iter()
+        .map(|effect| {
+            let mut py_effect = snapshot_effect(effect);
+            match (&mut py_effect, card_combat) {
+                // Snecko Skull: a positive Poison lands 1 higher
+                (
+                    PyEffect::ModifierDelta(PyEffectModifierDelta {
+                        kind: PyModifierKind::Poison,
+                        stacks,
+                        ..
+                    }),
+                    _,
+                ) if *stacks > 0 && has_relic(&state.id_relics, RelicName::SneckoSkull) => {
+                    *stacks += 1
+                }
+                (
+                    PyEffect::DamagePhysical(PyEffectDamagePhysical { amount: damage, .. })
+                    | PyEffect::DamageFinisher(PyEffectDamageFinisher { damage, .. })
+                    | PyEffect::DamageFlechettes(PyEffectDamageFlechettes { damage, .. })
+                    | PyEffect::HeelHookProc(PyEffectHeelHookProc { damage, .. })
+                    | PyEffect::SkewerProc(PyEffectSkewerProc { damage, .. }),
+                    Some((card, cost, _)),
+                ) => *damage = adjusted_damage(state, card, cost, *damage),
+                (
+                    PyEffect::DamageMindBlast(PyEffectDamageMindBlast { damage, .. }),
+                    Some((card, cost, draw_pile_size)),
+                ) => *damage = adjusted_damage(state, card, cost, draw_pile_size),
+                (
+                    PyEffect::BlockGain(PyEffectBlockGain { amount: block, .. })
+                    | PyEffect::EscapePlanCheck(PyEffectEscapePlanCheck { block, .. }),
+                    Some(_),
+                ) => *block = adjusted_block(state, *block),
+                // Dodge and Roll's next-turn block scales like its block
+                (
+                    PyEffect::ModifierDelta(PyEffectModifierDelta {
+                        kind: PyModifierKind::NextTurnBlock,
+                        stacks,
+                        ..
+                    }),
+                    Some(_),
+                ) => *stacks = adjusted_block(state, (*stacks).max(0) as u16) as i16,
+                _ => {}
+            }
+            py_effect
+        })
+        .collect()
+}
+
+// A Combat Card's scaled hit, the same for all its hits; Paper Krane never applies to it
+fn adjusted_damage(state: &GameState, card: &Entity, cost: u16, base: u16) -> u16 {
+    let mods_char = &state.entities[state.id_character].modifiers;
+
+    // Strike Dummy and Wrist Blade join the base damage before scaling
+    let bonus = strike_dummy_bonus(card.card_name, &state.id_relics)
+        + wrist_blade_bonus(card, cost, &state.id_relics);
+    let vigor = if has_modifier(mods_char, ModifierKind::Vigor) {
+        modifier_stacks(mods_char, ModifierKind::Vigor).max(0) as u16
+    } else {
+        0
+    };
+    let str_stacks = if has_modifier(mods_char, ModifierKind::Strength) {
+        modifier_stacks(mods_char, ModifierKind::Strength)
+    } else {
+        0
+    };
+    scale_attack_damage(
+        base.saturating_add(bonus).saturating_add(vigor),
+        str_stacks,
+        has_modifier(mods_char, ModifierKind::DoubleDamage),
+        has_modifier(mods_char, ModifierKind::PenNib),
+        weak_factor(has_modifier(mods_char, ModifierKind::Weak), false),
+        slow_factor(0),
+        vuln_factor(false, false),
+        false,
+    ) as u16
+}
+
+fn adjusted_block(state: &GameState, base: u16) -> u16 {
+    let mods_char = &state.entities[state.id_character].modifiers;
+    if has_modifier(mods_char, ModifierKind::NoBlock) {
+        return 0;
+    }
+    let dex = if has_modifier(mods_char, ModifierKind::Dexterity) {
+        modifier_stacks(mods_char, ModifierKind::Dexterity)
+    } else {
+        0
+    };
+    scale_block_gain(base, dex, has_modifier(mods_char, ModifierKind::Frail))
 }
 
 pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
@@ -760,7 +870,6 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
             amount: amount.into(),
             target: require_target(target),
         }),
-        // Secret Portal's jump is the only RoomEnter in a row: the first pass into the Boss Room
         EffectKind::RoomEnter {
             location: Location::BossRoom,
             landing: false,

@@ -7,6 +7,7 @@ use pyo3::type_hint_union;
 use pyo3::type_object::PyTypeInfo;
 use pyo3::types::PyDict;
 
+use crate::consts::NUM_ENCOUNTERS_HARD;
 use crate::game::GameState;
 
 use super::card::PyCard;
@@ -73,6 +74,7 @@ pub struct PyGameState {
     pub map: Py<PyMap>,
     pub encounter_boss: PyMonsterEncounter,
     pub encounter_pool_boss_count: u8,
+    pub encounters_easy_left: u8, // Hallway fights left on the act's easy list
 
     // Ascension
     pub ascension: u8,
@@ -199,6 +201,10 @@ pub fn snapshot_state(py: Python<'_>, state: &GameState) -> PyResult<PyGameState
         map: Py::new(py, snapshot_map(state))?,
         encounter_boss: state.encounter_boss.into(),
         encounter_pool_boss_count: state.encounter_pool_boss.len() as u8,
+        encounters_easy_left: state
+            .encounter_pool_normal
+            .len()
+            .saturating_sub(NUM_ENCOUNTERS_HARD + 1) as u8,
 
         ascension: state.ascension,
 
@@ -312,7 +318,7 @@ fn snapshot_entities(py: Python<'_>, state: &GameState) -> PyResult<PyEntities> 
 
     // Relics
     insert_if_absent(&entities, state.id_relics.iter().flatten(), |id| {
-        snapshot_relic(id, &state.entities[id])
+        snapshot_relic(state, id)
     })?;
 
     // Potions
@@ -330,9 +336,7 @@ fn snapshot_entities(py: Python<'_>, state: &GameState) -> PyResult<PyEntities> 
 
         // Relics
         let id_relics = reward.id_relics.iter().chain(&reward.id_relic_linked);
-        insert_if_absent(&entities, id_relics, |id| {
-            snapshot_relic(id, &state.entities[id])
-        })?;
+        insert_if_absent(&entities, id_relics, |id| snapshot_relic(state, id))?;
 
         // Potions
         insert_if_absent(&entities, &reward.id_potions, |id| {
@@ -347,9 +351,7 @@ fn snapshot_entities(py: Python<'_>, state: &GameState) -> PyResult<PyEntities> 
         insert_if_absent(&entities, &shop.id_cards, |id| snapshot_card(state, id))?;
 
         // Relics
-        insert_if_absent(&entities, &shop.id_relics, |id| {
-            snapshot_relic(id, &state.entities[id])
-        })?;
+        insert_if_absent(&entities, &shop.id_relics, |id| snapshot_relic(state, id))?;
 
         // Potions
         insert_if_absent(&entities, &shop.id_potions, |id| snapshot_potion(state, id))?;
@@ -373,7 +375,7 @@ fn snapshot_entities(py: Python<'_>, state: &GameState) -> PyResult<PyEntities> 
 
         // Relics
         insert_if_absent(&entities, &event.id_relic_event_roll, |id| {
-            snapshot_relic(id, &state.entities[id])
+            snapshot_relic(state, id)
         })?;
 
         // Potions
