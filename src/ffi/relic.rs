@@ -69,11 +69,11 @@ pub struct PyRelic {
     pub effects_rest: Vec<PyEffect>,
     pub effects_counter: Vec<PyEffect>,
     pub price: Option<u16>, // While the Shop offers it
-    pub identity_hash: u64, // Hash of every field but the id
+    identity_hash: u64,     // Hash of every field but the id; private: no struct update elsewhere
 }
 
 pub(crate) fn snapshot_relic(id: usize, entity: &Entity) -> PyRelic {
-    let relic = PyRelic {
+    let py_relic = PyRelic {
         id: 0,
         name: entity.relic_name.into(),
         tier: entity.relic_tier.into(),
@@ -122,7 +122,7 @@ pub(crate) fn snapshot_relic(id: usize, entity: &Entity) -> PyRelic {
     // The hash is taken before the id is set, so it leaves the id out
     PyRelic {
         id,
-        identity_hash: identity_hash(&relic),
-        ..relic
+        identity_hash: identity_hash(&py_relic),
+        ..py_relic
     }
 }

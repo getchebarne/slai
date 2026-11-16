@@ -206,8 +206,8 @@ pub struct PyCard {
     // What queued it while it waits in the card play queue
     pub play_source: Option<PyPlaySource>,
 
-    // Hash of every field but the id
-    pub identity_hash: u64,
+    // Hash of every field but the id; private: no struct update elsewhere
+    identity_hash: u64,
 }
 
 // Display-name lookups
@@ -510,7 +510,7 @@ pub(crate) fn snapshot_card_combat(
     snapshot_card_combat_at_cost(state, id_card, cost, draw_pile_size, None)
 }
 
-// A Card of the fight priced at `cost`; a waiting play carries the cost it was queued at
+// A Card of the fight priced at `cost`; a waiting play carries its queued cost and play source
 pub(crate) fn snapshot_card_combat_at_cost(
     state: &GameState,
     id_card: usize,
@@ -528,7 +528,7 @@ pub(crate) fn snapshot_card_combat_at_cost(
     )
 }
 
-// The Card's own fields, with the cost and play effects its place decides
+// The Card's own fields, with the cost, play effects and play source its place decides
 fn build_py_card(
     state: &GameState,
     id_card: usize,
