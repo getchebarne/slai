@@ -1,4 +1,5 @@
 // FFI package: one file per snapshot family, mirroring the engine layout
+mod identity;
 mod macros;
 
 pub mod action;
