@@ -2,7 +2,8 @@ use pyo3::prelude::*;
 
 use super::macros::mirror_enum;
 
-use crate::entity::Entity;
+use crate::action::Action;
+use crate::game::GameState;
 use crate::types::EventName;
 
 use super::effect::PyEffect;
@@ -31,14 +32,19 @@ mirror_enum!(PyEventName from EventName, "EventName", {
 pub struct PyEventOption {
     pub id: usize,
     pub effects: Vec<PyEffect>,
+    pub available: bool, // Selectable now: an EventOptionSelect for it is legal
 }
 
-pub(crate) fn snapshot_event_option(id: usize, entity: &Entity) -> PyEventOption {
+pub(crate) fn snapshot_event_option(state: &GameState, id: usize) -> PyEventOption {
+    let entity = &state.entities[id];
     PyEventOption {
         id,
         effects: entity.event_option_effects[..entity.event_option_effects_len as usize]
             .iter()
             .map(snapshot_effect)
             .collect(),
+        available: state
+            .legal_actions
+            .contains(&Action::EventOptionSelect { id_option: id }),
     }
 }

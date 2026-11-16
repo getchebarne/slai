@@ -137,32 +137,24 @@ pub(crate) fn snapshot_combat(state: &GameState) -> PyCombat {
         card_pile_hand: combat
             .id_card_pile_hand
             .iter()
-            .map(|&id| snapshot_card_combat(state, id, &combat.id_card_pile_draw, draw_pile_size))
+            .map(|&id| snapshot_card_combat(state, id, draw_pile_size))
             .collect(),
 
         // A draw-pile Card is judged as if it had left the draw pile
         card_pile_draw: combat
             .id_card_pile_draw
             .iter()
-            .map(|&id| {
-                let id_card_pile_draw_rest: Vec<usize> = combat
-                    .id_card_pile_draw
-                    .iter()
-                    .copied()
-                    .filter(|&id_other| id_other != id)
-                    .collect();
-                snapshot_card_combat(state, id, &id_card_pile_draw_rest, draw_pile_size - 1)
-            })
+            .map(|&id| snapshot_card_combat(state, id, draw_pile_size - 1))
             .collect(),
         card_pile_discard: combat
             .id_card_pile_discard
             .iter()
-            .map(|&id| snapshot_card_combat(state, id, &combat.id_card_pile_draw, draw_pile_size))
+            .map(|&id| snapshot_card_combat(state, id, draw_pile_size))
             .collect(),
         card_pile_exhaust: combat
             .id_card_pile_exhaust
             .iter()
-            .map(|&id| snapshot_card_combat(state, id, &combat.id_card_pile_draw, draw_pile_size))
+            .map(|&id| snapshot_card_combat(state, id, draw_pile_size))
             .collect(),
         card_play_queue: state
             .card_play_queue
@@ -173,7 +165,6 @@ pub(crate) fn snapshot_combat(state: &GameState) -> PyCombat {
                     state,
                     card_play.id_card,
                     card_play.cost_effective,
-                    &combat.id_card_pile_draw,
                     card_play.draw_pile_size,
                 )
             })
@@ -190,21 +181,14 @@ pub(crate) fn snapshot_combat(state: &GameState) -> PyCombat {
             .zip(&combat.id_card_pile_stasis)
             .filter_map(|(&id_monster, &id_card)| {
                 id_monster.map(|_| {
-                    id_card.map(|id_card| {
-                        snapshot_card_combat(
-                            state,
-                            id_card,
-                            &combat.id_card_pile_draw,
-                            draw_pile_size,
-                        )
-                    })
+                    id_card.map(|id_card| snapshot_card_combat(state, id_card, draw_pile_size))
                 })
             })
             .collect(),
         card_pile_discover: combat
             .id_card_pile_discover
             .iter()
-            .map(|&id| snapshot_card_combat(state, id, &combat.id_card_pile_draw, draw_pile_size))
+            .map(|&id| snapshot_card_combat(state, id, draw_pile_size))
             .collect(),
         bombs: combat
             .bombs
@@ -214,9 +198,7 @@ pub(crate) fn snapshot_combat(state: &GameState) -> PyCombat {
         card_pile_nightmare: combat
             .id_card_pile_nightmare
             .iter()
-            .map(|&(id, _)| {
-                snapshot_card_combat(state, id, &combat.id_card_pile_draw, draw_pile_size)
-            })
+            .map(|&(id, _)| snapshot_card_combat(state, id, draw_pile_size))
             .collect(),
         panache_countdown: combat.panache_countdown,
         this_turn_discards: combat.this_turn_discards,
@@ -254,7 +236,7 @@ pub(crate) fn snapshot_reward(state: &GameState) -> PyReward {
         potions: reward
             .id_potions
             .iter()
-            .map(|&id| snapshot_potion(id, &state.entities[id]))
+            .map(|&id| snapshot_potion(state, id))
             .collect(),
         gold: reward.gold,
         gold_stolen: reward.gold_stolen,
@@ -279,7 +261,7 @@ pub(crate) fn snapshot_shop(state: &GameState) -> PyShop {
         potions: shop
             .id_potions
             .iter()
-            .map(|&id| snapshot_potion(id, &state.entities[id]))
+            .map(|&id| snapshot_potion(state, id))
             .collect(),
         purge_cost: shop.purge_cost,
         purged: shop.purged,
@@ -297,7 +279,7 @@ pub(crate) fn snapshot_event(state: &GameState) -> PyEvent {
         options: event
             .id_event_options
             .iter()
-            .map(|&id| snapshot_event_option(id, &state.entities[id]))
+            .map(|&id| snapshot_event_option(state, id))
             .collect(),
         health_max_at_open: event.health_max_at_open,
         consumed: event.consumed,
@@ -316,7 +298,7 @@ pub(crate) fn snapshot_event(state: &GameState) -> PyEvent {
         potion_event_roll: event
             .id_potion_event_roll
             .iter()
-            .map(|&id| snapshot_potion(id, &state.entities[id]))
+            .map(|&id| snapshot_potion(state, id))
             .collect(),
         card_match_flipped: event
             .id_card_match_flipped

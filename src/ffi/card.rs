@@ -4,6 +4,7 @@ use pyo3::type_hint_union;
 use pyo3::type_object::PyTypeInfo;
 use strum::IntoEnumIterator;
 
+use crate::action::Action;
 use crate::effect::PlaySource;
 use crate::entity::CardCostKind;
 use crate::entity::Entity;
@@ -20,8 +21,6 @@ use crate::types::CardRarity;
 use crate::types::CostScope;
 use crate::utils::entity_requires_target;
 use crate::utils::get_card_effective_cost;
-use crate::utils::is_play_restriction_satisfied;
-use crate::utils::play_cap_reached;
 use crate::utils::scale_attack_damage;
 use crate::utils::scale_block_gain;
 use crate::utils::slow_factor;
@@ -193,7 +192,7 @@ pub struct PyCard {
     pub bottled: bool,
     pub requires_target: bool,
     pub retain: bool,
-    pub playable: bool,
+    pub playable: bool, // Playable now: a CardPlay for it is legal
 
     // Effects when played, with Dex / Str / Vigor / etc. applied
     pub effects_play: Vec<PyEffect>,
@@ -480,7 +479,7 @@ pub(crate) fn snapshot_adjusted_effects(
         .collect()
 }
 
-// A Card outside the fight (the master deck, a reward, the shop, an event) shows its own cost and effects, and counts as playable
+// A Card outside the fight (the master deck, a reward, the shop, an event) shows its own cost and effects
 pub(crate) fn snapshot_card(state: &GameState, id_card: usize) -> PyCard {
     let card = &state.entities[id_card];
     let effects_play = card.card_effects_play[..card.card_effects_play_len as usize]
@@ -488,24 +487,22 @@ pub(crate) fn snapshot_card(state: &GameState, id_card: usize) -> PyCard {
         .map(snapshot_effect)
         .collect();
     build_py_card(
+        state,
         id_card,
-        card,
         get_card_effective_cost(card, 0),
-        true,
         effects_play,
     )
 }
 
-// A Card of the fight: what playing it would cost and do, Mind Blast hitting for `draw_pile_size`, and whether it can be played now against the draw pile `id_card_pile_draw`
+// A Card of the fight: what playing it would cost and do, Mind Blast hitting for `draw_pile_size`
 pub(crate) fn snapshot_card_combat(
     state: &GameState,
     id_card: usize,
-    id_card_pile_draw: &[usize],
     draw_pile_size: u16,
 ) -> PyCard {
     let cost =
         get_card_effective_cost(&state.entities[id_card], state.combat.energy.energy_current);
-    snapshot_card_combat_at_cost(state, id_card, cost, id_card_pile_draw, draw_pile_size)
+    snapshot_card_combat_at_cost(state, id_card, cost, draw_pile_size)
 }
 
 // A Card of the fight priced at `cost`; a waiting play carries the cost it was queued at
@@ -513,49 +510,25 @@ pub(crate) fn snapshot_card_combat_at_cost(
     state: &GameState,
     id_card: usize,
     cost: u16,
-    id_card_pile_draw: &[usize],
     draw_pile_size: u16,
 ) -> PyCard {
     let card = &state.entities[id_card];
-    let energy_current = state.combat.energy.energy_current;
-    let entangled = has_modifier(
-        &state.entities[state.id_character].modifiers,
-        ModifierKind::Entangled,
-    );
-    let playable = is_play_restriction_satisfied(
-        card.card_play_restriction,
-        card.card_kind,
-        id_card_pile_draw,
-        &state.entities,
-        &state.id_relics,
-    ) && !(entangled && card.card_kind == CardKind::Attack)
-        && !play_cap_reached(
-            &state.combat.id_card_pile_hand,
-            &state.entities,
-            &state.id_relics,
-            state.combat.this_turn_cards_played,
-        )
-        && cost <= energy_current
-        // Nothing is playable once the turn has ended or every Monster is gone
-        && !state.combat.turn_ended
-        && state.combat.id_monsters.iter().any(Option::is_some);
     build_py_card(
+        state,
         id_card,
-        card,
         cost,
-        playable,
         snapshot_adjusted_effects(state, card, cost, draw_pile_size),
     )
 }
 
-// The Card's own fields, with the cost, playability and play effects its place decides
+// The Card's own fields, with the cost and play effects its place decides
 fn build_py_card(
+    state: &GameState,
     id_card: usize,
-    card: &Entity,
     cost: u16,
-    playable: bool,
     effects_play: Vec<PyEffect>,
 ) -> PyCard {
+    let card = &state.entities[id_card];
     PyCard {
         id: id_card,
         name: card.card_name.into(),
@@ -580,7 +553,10 @@ fn build_py_card(
         bottled: card.card_bottled,
         requires_target: entity_requires_target(card),
         retain: card.card_retain,
-        playable,
+        playable: state
+            .legal_actions
+            .iter()
+            .any(|action| matches!(action, Action::CardPlay { id_card: id, .. } if *id == id_card)),
         effects_play,
         effects_discard: card
             .card_effects_discard
