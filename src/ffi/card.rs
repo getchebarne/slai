@@ -19,8 +19,10 @@ use crate::types::CardName;
 use crate::types::CardPile;
 use crate::types::CardRarity;
 use crate::types::CostScope;
+use crate::types::RelicName;
 use crate::utils::entity_requires_target;
 use crate::utils::get_card_effective_cost;
+use crate::utils::has_relic;
 use crate::utils::scale_attack_damage;
 use crate::utils::scale_block_gain;
 use crate::utils::slow_factor;
@@ -205,6 +207,9 @@ pub struct PyCard {
 
     // What queued it while it waits in the card play queue
     pub play_source: Option<PyPlaySource>,
+
+    // The Cards above it in the draw pile, when its draw depth is known (Frozen Eye: always)
+    pub draw_depth: Option<u16>,
 
     // Hash of every field but the id; private: no struct update elsewhere
     identity_hash: u64,
@@ -537,6 +542,18 @@ fn build_py_card(
     play_source: Option<PyPlaySource>,
 ) -> PyCard {
     let card = &state.entities[id_card];
+
+    // Counted from the draw pile's top when the player knows it; Frozen Eye shows every Card's
+    let draw_depth_known =
+        card.card_draw_visible || has_relic(&state.id_relics, RelicName::FrozenEye);
+    let draw_depth = state
+        .combat
+        .id_card_pile_draw
+        .iter()
+        .rev()
+        .position(|&id| id == id_card)
+        .filter(|_| draw_depth_known)
+        .map(|draw_depth| draw_depth as u16);
     let py_card = PyCard {
         id: 0,
         name: card.card_name.into(),
@@ -574,6 +591,7 @@ fn build_py_card(
         effects_draw: card.card_effects_draw.iter().map(snapshot_effect).collect(),
         price: card.price,
         play_source,
+        draw_depth,
         identity_hash: 0,
     };
 

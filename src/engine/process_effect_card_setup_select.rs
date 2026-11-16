@@ -36,4 +36,7 @@ pub fn process_effect_card_setup_select(
     } else {
         id_card_pile_draw.push(id_target);
     }
+
+    // The player put it there, so its draw depth is known
+    state.entities[id_target].card_draw_visible = true;
 }

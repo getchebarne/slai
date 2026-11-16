@@ -132,6 +132,7 @@ pub struct Entity {
     pub card_cost_kind: CardCostKind,
     pub card_cost_override: Option<CostOverride>,
     pub card_free_to_play_once: bool, // Setup / Forethought: the Card's next play costs 0, whatever its cost
+    pub card_draw_visible: bool,      // Its draw depth is known; read only while in the draw pile
     pub card_effects_play: [Effect; MAX_EFFECTS_PER_CARD],
     pub card_effects_play_len: u8,
     pub card_effects_discard: &'static [Effect],
@@ -210,6 +211,7 @@ pub const ENTITY_ZERO: Entity = Entity {
     card_cost_kind: CardCostKind::Fixed,
     card_cost_override: None,
     card_free_to_play_once: false,
+    card_draw_visible: false,
     card_effects_play: [EFFECT_ZERO; MAX_EFFECTS_PER_CARD],
     card_effects_play_len: 0,
     card_effects_discard: &[],

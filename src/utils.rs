@@ -410,11 +410,27 @@ pub fn place_card(state: &mut GameState, id_card: usize, pile: CardPile) -> bool
             } else {
                 state.rng.random_range(0..id_card_pile_draw.len())
             };
+
+            // The insert lands below the old top Card, which alone keeps a known draw depth
+            let id_top = id_card_pile_draw.last().copied();
             id_card_pile_draw.insert(idx, id_card);
+
+            // Two Cards or fewer: the new one under the old, every draw depth is known
+            let all_known = id_card_pile_draw.len() <= 2;
+            for &id in id_card_pile_draw.iter() {
+                if all_known {
+                    state.entities[id].card_draw_visible = true;
+                } else if Some(id) != id_top {
+                    state.entities[id].card_draw_visible = false;
+                }
+            }
         }
 
         // DrawTop goes on top of the draw pile, so it's the next Card drawn
-        CardPile::DrawTop => id_card_pile_draw.push(id_card),
+        CardPile::DrawTop => {
+            id_card_pile_draw.push(id_card);
+            state.entities[id_card].card_draw_visible = true;
+        }
 
         // Discard just goes to discard
         CardPile::Discard => id_card_pile_discard.push(id_card),
