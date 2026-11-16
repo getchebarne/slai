@@ -122,7 +122,7 @@ pub fn snapshot_state(py: Python<'_>, state: &GameState) -> PyResult<PyGameState
         potions: state
             .id_potions
             .iter()
-            .map(|&id| snapshot_potion(id, &state.entities[id]))
+            .map(|&id| snapshot_potion(state, id))
             .collect(),
         potion_slots_max: state.potion_slots_max,
         potion_drop_mod: state.potion_drop_mod,
@@ -148,12 +148,7 @@ pub fn snapshot_state(py: Python<'_>, state: &GameState) -> PyResult<PyGameState
             .iter()
             .map(|&id| {
                 if state.combat.active {
-                    snapshot_card_combat(
-                        state,
-                        id,
-                        &state.combat.id_card_pile_draw,
-                        state.combat.id_card_pile_draw.len() as u16,
-                    )
+                    snapshot_card_combat(state, id, state.combat.id_card_pile_draw.len() as u16)
                 } else {
                     snapshot_card(state, id)
                 }

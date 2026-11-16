@@ -230,7 +230,6 @@ pub fn recompute_legal_actions(state: &mut GameState) {
 
     // `state.effect_pending` takes precedence over the context focus
     if let Some(effect_pending) = state.effect_pending {
-        // effect_pending is written only on the Target::Resolve halt path
         let Target::Resolve {
             candidate_pool,
             filters,
@@ -239,7 +238,11 @@ pub fn recompute_legal_actions(state: &mut GameState) {
         else {
             unreachable!("effect_pending carries a Resolve target")
         };
+
+        // Push the pending `EffectKind`'s legal actions
         fill_legal_actions_effect_pending(state, effect_pending.kind, filters, candidate_pool);
+
+        // `SelectionKind::InputUpTo` is skippable
         if matches!(selection_kind, SelectionKind::InputUpTo { .. }) {
             state.legal_actions.push(Action::SelectionSkip);
         }
