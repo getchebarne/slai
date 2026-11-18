@@ -10,7 +10,7 @@ use crate::utils::entity_requires_target;
 
 use super::effect::PyEffect;
 use super::effect::snapshot_effect;
-use super::identity::identity_hash;
+use super::identity_hash;
 
 mirror_enum!(PyPotionName from PotionName, "PotionName", {
     Energy, Block, Strength, Dexterity, Fire, Explosive,

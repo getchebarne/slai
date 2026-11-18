@@ -40,7 +40,7 @@ use super::effect::PyEffectHeelHookProc;
 use super::effect::PyEffectModifierDelta;
 use super::effect::PyEffectSkewerProc;
 use super::effect::snapshot_effect;
-use super::identity::identity_hash;
+use super::identity_hash;
 use super::macros::flat_variants;
 use super::macros::mirror_enum;
 use super::modifier::PyModifierKind;

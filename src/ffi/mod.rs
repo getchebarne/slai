@@ -1,5 +1,4 @@
 // FFI package: one file per snapshot family, mirroring the engine layout
-mod identity;
 mod macros;
 
 pub mod action;
@@ -18,6 +17,10 @@ pub mod state;
 pub mod target;
 pub mod template;
 
+use std::collections::hash_map::DefaultHasher;
+use std::hash::Hash;
+use std::hash::Hasher;
+
 pub use action::*;
 pub use amount::*;
 pub use card::*;
@@ -33,3 +36,10 @@ pub use relic::*;
 pub use state::*;
 pub use target::*;
 pub use template::*;
+
+// Hash of a snapshot object whose `id` and `identity_hash` still hold 0, so it leaves the id out
+pub(crate) fn identity_hash<T: Hash>(snapshot: &T) -> u64 {
+    let mut hasher = DefaultHasher::new();
+    snapshot.hash(&mut hasher);
+    hasher.finish()
+}

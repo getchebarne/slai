@@ -9,7 +9,7 @@ use crate::types::RelicTier;
 
 use super::effect::PyEffect;
 use super::effect::snapshot_effect;
-use super::identity::identity_hash;
+use super::identity_hash;
 
 mirror_enum!(PyRelicName from RelicName, "RelicName", {
     RingOfTheSnake, Akabeko, Anchor, BagOfMarbles, BagOfPreparation, BloodVial, BronzeScales, Kunai,
