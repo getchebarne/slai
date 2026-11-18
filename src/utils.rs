@@ -411,15 +411,17 @@ pub fn place_card(state: &mut GameState, id_card: usize, pile: CardPile) -> bool
                 state.rng.random_range(0..id_card_pile_draw.len())
             };
 
-            // The insert lands below the old top Card, which alone keeps a known draw depth
+            // The game's random insert never lands on top, so the new Card goes under the old top
             let id_top = id_card_pile_draw.last().copied();
             id_card_pile_draw.insert(idx, id_card);
 
-            // Two Cards or fewer: the new one under the old, every draw depth is known
-            let all_known = id_card_pile_draw.len() <= 2;
+            // From an empty or one-Card pile the new Card had one slot, so every depth is known
+            let one_slot = id_card_pile_draw.len() <= 2;
             for &id in id_card_pile_draw.iter() {
-                if all_known {
+                if one_slot {
                     state.entities[id].card_draw_visible = true;
+
+                // Any Card but the old top may now sit one deeper, so only the old top stays known
                 } else if Some(id) != id_top {
                     state.entities[id].card_draw_visible = false;
                 }
