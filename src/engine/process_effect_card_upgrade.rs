@@ -72,6 +72,7 @@ pub fn process_effect_card_upgrade(id_target: Option<usize>, state: &mut GameSta
     state.entities[id_target].card_cost = cost;
     state.entities[id_target].card_cost_override = cost_override;
     state.entities[id_target].card_free_to_play_once = card.card_free_to_play_once;
+    state.entities[id_target].card_draw_visible = card.card_draw_visible;
     state.entities[id_target].card_bottled = card.card_bottled;
     state.entities[id_target].price = card.price;
 }

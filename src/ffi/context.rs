@@ -43,7 +43,7 @@ pub struct PyEnergy {
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct PyCombat {
     pub card_pile_hand: Vec<PyCard>,
-    pub card_pile_draw: Vec<PyCard>,
+    pub card_pile_draw: Vec<PyCard>, // Bottom first, the next draw last
     pub card_pile_discard: Vec<PyCard>,
     pub card_pile_exhaust: Vec<PyCard>,
     pub card_play_queue: Vec<PyCard>,

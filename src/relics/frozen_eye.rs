@@ -2,7 +2,7 @@ use crate::relics::RelicTemplate;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
-// No engine effect: `Combat.card_pile_draw` always lists the draw pile bottom first, the next draw last
+// No engine effect: the FFI gives every draw-pile Card its `draw_depth`
 pub static FROZEN_EYE: RelicTemplate = RelicTemplate {
     name: RelicName::FrozenEye,
     tier: RelicTier::Shop,

@@ -28,8 +28,10 @@ pub fn process_effect_hexaghost_burn_increase(state: &mut GameState, count: u8) 
         if state.entities[id_card].card_name == CardName::Burn
             && !state.entities[id_card].card_upgraded
         {
+            // A known draw depth lasts through the upgrade too
             state.entities[id_card] = Entity {
                 card_exhaust: state.entities[id_card].card_exhaust,
+                card_draw_visible: state.entities[id_card].card_draw_visible,
                 ..burn_upgraded
             };
         }

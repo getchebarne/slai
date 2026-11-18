@@ -20,4 +20,9 @@ pub fn process_effect_shuffle_card_pile_discard_into_card_pile_draw(state: &mut 
     }
     id_card_pile_draw.append(id_card_pile_discard);
     shuffle(&mut id_card_pile_draw[..], &mut state.rng);
+
+    // The shuffle hides every Card's draw depth
+    for &id_card in id_card_pile_draw.iter() {
+        state.entities[id_card].card_draw_visible = false;
+    }
 }
