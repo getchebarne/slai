@@ -7,7 +7,7 @@ use crate::game::GameState;
 use crate::types::EventName;
 
 use super::effect::PyEffect;
-use super::effect::snapshot_effect;
+use super::effect::snapshot_effects;
 
 mirror_enum!(PyEventName from EventName, "EventName", {
     Addict, BackToBasics, Beggar, BigFish, BonfireSpirits, Colosseum, CursedTome, DeadAdventurer,
@@ -39,10 +39,11 @@ pub(crate) fn snapshot_event_option(state: &GameState, id: usize) -> PyEventOpti
     let entity = &state.entities[id];
     PyEventOption {
         id,
-        effects: entity.event_option_effects[..entity.event_option_effects_len as usize]
-            .iter()
-            .map(snapshot_effect)
-            .collect(),
+        effects: snapshot_effects(
+            state,
+            &entity.event_option_effects[..entity.event_option_effects_len as usize],
+            None,
+        ),
         available: state
             .legal_actions
             .contains(&Action::EventOptionSelect { id_option: id }),

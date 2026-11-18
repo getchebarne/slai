@@ -7,12 +7,8 @@ use strum::IntoEnumIterator;
 use crate::action::Action;
 use crate::effect::PlaySource;
 use crate::entity::CardCostKind;
-use crate::entity::Entity;
 use crate::entity::PlayRestriction;
 use crate::game::GameState;
-use crate::modifier::ModifierKind;
-use crate::modifier::has_modifier;
-use crate::modifier::modifier_stacks;
 use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
@@ -23,29 +19,12 @@ use crate::types::RelicName;
 use crate::utils::entity_requires_target;
 use crate::utils::get_card_effective_cost;
 use crate::utils::has_relic;
-use crate::utils::scale_attack_damage;
-use crate::utils::scale_block_gain;
-use crate::utils::slow_factor;
-use crate::utils::strike_dummy_bonus;
-use crate::utils::vuln_factor;
-use crate::utils::weak_factor;
-use crate::utils::wrist_blade_bonus;
 
 use super::effect::PyEffect;
-use super::effect::PyEffectBlockGain;
-use super::effect::PyEffectDamageFinisher;
-use super::effect::PyEffectDamageFlechettes;
-use super::effect::PyEffectDamageMindBlast;
-use super::effect::PyEffectDamagePhysical;
-use super::effect::PyEffectEscapePlanCheck;
-use super::effect::PyEffectHeelHookProc;
-use super::effect::PyEffectModifierDelta;
-use super::effect::PyEffectSkewerProc;
-use super::effect::snapshot_effect;
+use super::effect::snapshot_effects;
 use super::identity_hash;
 use super::macros::flat_variants;
 use super::macros::mirror_enum;
-use super::modifier::PyModifierKind;
 
 mirror_enum!(PyCardKind from CardKind, "CardKind", {
     Attack, Skill, Power, Curse, Status,
@@ -356,145 +335,14 @@ impl CardName {
     }
 }
 
-// A combat Card's effects with the Character's Modifiers and Relic bonuses folded into the damage and block amounts; Wrist Blade reads `cost`, Mind Blast's base is `draw_pile_size`
-pub(crate) fn snapshot_adjusted_effects(
-    state: &GameState,
-    card: &Entity,
-    cost: u16,
-    draw_pile_size: u16,
-) -> Vec<PyEffect> {
-    let mods_char = &state.entities[state.id_character].modifiers;
-
-    // Strike Dummy and Wrist Blade join the base damage before scaling, as in the engine
-    let bonus = strike_dummy_bonus(card.card_name, &state.id_relics)
-        + wrist_blade_bonus(card, cost, &state.id_relics);
-    let vigor = if has_modifier(mods_char, ModifierKind::Vigor) {
-        modifier_stacks(mods_char, ModifierKind::Vigor).max(0) as u16
-    } else {
-        0
-    };
-    let str_stacks = if has_modifier(mods_char, ModifierKind::Strength) {
-        modifier_stacks(mods_char, ModifierKind::Strength)
-    } else {
-        0
-    };
-    let weak = has_modifier(mods_char, ModifierKind::Weak);
-    let double = has_modifier(mods_char, ModifierKind::DoubleDamage);
-    let pen_nib = has_modifier(mods_char, ModifierKind::PenNib);
-    let dex = if has_modifier(mods_char, ModifierKind::Dexterity) {
-        modifier_stacks(mods_char, ModifierKind::Dexterity)
-    } else {
-        0
-    };
-    let frail = has_modifier(mods_char, ModifierKind::Frail);
-    let no_block = has_modifier(mods_char, ModifierKind::NoBlock);
-
-    // Every hit of the Card shows the same scaled damage; Player attacker: Paper Krane never applies
-    let adjusted_damage = |base: u16| {
-        scale_attack_damage(
-            base.saturating_add(bonus).saturating_add(vigor),
-            str_stacks,
-            double,
-            pen_nib,
-            weak_factor(weak, false),
-            slow_factor(0),
-            vuln_factor(false, false),
-            false,
-        ) as u16
-    };
-
-    // No Block zeroes every block the Card would grant
-    let adjusted_block = |base: u16| {
-        if no_block {
-            0
-        } else {
-            scale_block_gain(base, dex, frail)
-        }
-    };
-
-    card.card_effects_play[..card.card_effects_play_len as usize]
-        .iter()
-        .map(snapshot_effect)
-        .map(|effect| match effect {
-            PyEffect::DamagePhysical(PyEffectDamagePhysical {
-                amount,
-                instances,
-                lifesteal,
-                if_poisoned,
-                block_from_hit,
-                target,
-            }) => PyEffect::DamagePhysical(PyEffectDamagePhysical {
-                amount: adjusted_damage(amount),
-                instances,
-                lifesteal,
-                if_poisoned,
-                block_from_hit,
-                target,
-            }),
-            PyEffect::DamageFinisher(PyEffectDamageFinisher { damage, target }) => {
-                PyEffect::DamageFinisher(PyEffectDamageFinisher {
-                    damage: adjusted_damage(damage),
-                    target,
-                })
-            }
-            PyEffect::DamageFlechettes(PyEffectDamageFlechettes { damage, target }) => {
-                PyEffect::DamageFlechettes(PyEffectDamageFlechettes {
-                    damage: adjusted_damage(damage),
-                    target,
-                })
-            }
-            PyEffect::DamageMindBlast(PyEffectDamageMindBlast { target, .. }) => {
-                PyEffect::DamageMindBlast(PyEffectDamageMindBlast {
-                    damage: adjusted_damage(draw_pile_size),
-                    target,
-                })
-            }
-            PyEffect::HeelHookProc(PyEffectHeelHookProc { damage, target }) => {
-                PyEffect::HeelHookProc(PyEffectHeelHookProc {
-                    damage: adjusted_damage(damage),
-                    target,
-                })
-            }
-            PyEffect::SkewerProc(PyEffectSkewerProc { damage, target }) => {
-                PyEffect::SkewerProc(PyEffectSkewerProc {
-                    damage: adjusted_damage(damage),
-                    target,
-                })
-            }
-            PyEffect::BlockGain(PyEffectBlockGain { amount, target }) => {
-                PyEffect::BlockGain(PyEffectBlockGain {
-                    amount: adjusted_block(amount),
-                    target,
-                })
-            }
-            // Dodge and Roll's next-turn block scales like its block
-            PyEffect::ModifierDelta(PyEffectModifierDelta {
-                kind: PyModifierKind::NextTurnBlock,
-                stacks,
-                target,
-            }) => PyEffect::ModifierDelta(PyEffectModifierDelta {
-                kind: PyModifierKind::NextTurnBlock,
-                stacks: adjusted_block(stacks.max(0) as u16) as i16,
-                target,
-            }),
-            PyEffect::EscapePlanCheck(PyEffectEscapePlanCheck { block, target }) => {
-                PyEffect::EscapePlanCheck(PyEffectEscapePlanCheck {
-                    block: adjusted_block(block),
-                    target,
-                })
-            }
-            other => other,
-        })
-        .collect()
-}
-
 // A Card outside the fight (the master deck, a reward, the shop, an event) shows its own cost and effects
 pub(crate) fn snapshot_card(state: &GameState, id_card: usize) -> PyCard {
     let card = &state.entities[id_card];
-    let effects_play = card.card_effects_play[..card.card_effects_play_len as usize]
-        .iter()
-        .map(snapshot_effect)
-        .collect();
+    let effects_play = snapshot_effects(
+        state,
+        &card.card_effects_play[..card.card_effects_play_len as usize],
+        None,
+    );
     build_py_card(
         state,
         id_card,
@@ -524,13 +372,12 @@ pub(crate) fn snapshot_card_combat_at_cost(
     play_source: Option<PyPlaySource>,
 ) -> PyCard {
     let card = &state.entities[id_card];
-    build_py_card(
+    let effects_play = snapshot_effects(
         state,
-        id_card,
-        cost,
-        snapshot_adjusted_effects(state, card, cost, draw_pile_size),
-        play_source,
-    )
+        &card.card_effects_play[..card.card_effects_play_len as usize],
+        Some((card, cost, draw_pile_size)),
+    );
+    build_py_card(state, id_card, cost, effects_play, play_source)
 }
 
 // The Card's own fields, with the cost, play effects and play source its place decides
@@ -583,12 +430,8 @@ fn build_py_card(
             .iter()
             .any(|action| matches!(action, Action::CardPlay { id_card: id, .. } if *id == id_card)),
         effects_play,
-        effects_discard: card
-            .card_effects_discard
-            .iter()
-            .map(snapshot_effect)
-            .collect(),
-        effects_draw: card.card_effects_draw.iter().map(snapshot_effect).collect(),
+        effects_discard: snapshot_effects(state, card.card_effects_discard, None),
+        effects_draw: snapshot_effects(state, card.card_effects_draw, None),
         price: card.price,
         play_source,
         draw_depth,

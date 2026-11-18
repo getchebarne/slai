@@ -22,6 +22,7 @@ use crate::map::get_active_room_kind;
 use crate::monsters::encounters::generate_act_elites;
 use crate::monsters::encounters::spawn_encounter_monsters;
 use crate::relics::get_relic;
+use crate::relics::trigger_relic_counter;
 use crate::types::ChestKind;
 use crate::types::DeltaSign;
 use crate::types::EventName;
@@ -202,21 +203,8 @@ pub fn process_effect_room_enter(state: &mut GameState, location: Location, land
 // Resolve a "?" Room into a concrete kind, then drift the running tallies
 fn roll_unknown_room(state: &mut GameState, left_shop: bool) -> RoomKind {
     // Tiny Chest: every 4th ? Room is forced Treasure; drift still runs as if rolled
-    let force_treasure = if let Some(id) = state.id_relics[RelicName::TinyChest as usize] {
-        // Increase counter
-        let counter = &mut state.entities[id].relic_counter;
-        *counter += 1;
-
-        // Reset
-        if *counter >= 4 {
-            *counter = 0;
-            true
-        } else {
-            false
-        }
-    } else {
-        false
-    };
+    let force_treasure = state.id_relics[RelicName::TinyChest as usize]
+        .is_some_and(|id| trigger_relic_counter(&mut state.entities[id]));
 
     // Resolve the Room kind
     let mut room_kind_resolved = if force_treasure {

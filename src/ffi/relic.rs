@@ -3,12 +3,12 @@ use pyo3::prelude::*;
 use super::macros::mirror_enum;
 
 use crate::effect::RelicExclusion;
-use crate::entity::Entity;
+use crate::game::GameState;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
 use super::effect::PyEffect;
-use super::effect::snapshot_effect;
+use super::effect::snapshot_effects;
 use super::identity_hash;
 
 mirror_enum!(PyRelicName from RelicName, "RelicName", {
@@ -72,7 +72,8 @@ pub struct PyRelic {
     identity_hash: u64,     // Hash of every field but the id; private: no struct update elsewhere
 }
 
-pub(crate) fn snapshot_relic(id: usize, entity: &Entity) -> PyRelic {
+pub(crate) fn snapshot_relic(state: &GameState, id: usize) -> PyRelic {
+    let entity = &state.entities[id];
     let py_relic = PyRelic {
         id: 0,
         name: entity.relic_name.into(),
@@ -80,41 +81,13 @@ pub(crate) fn snapshot_relic(id: usize, entity: &Entity) -> PyRelic {
         counter: entity.relic_counter,
         counter_reset: entity.relic_counter_reset,
         used_up: entity.relic_used_up,
-        effects_combat_start: entity
-            .relic_effects_combat_start
-            .iter()
-            .map(snapshot_effect)
-            .collect(),
-        effects_turn_start: entity
-            .relic_effects_turn_start
-            .iter()
-            .map(snapshot_effect)
-            .collect(),
-        effects_turn_end: entity
-            .relic_effects_turn_end
-            .iter()
-            .map(snapshot_effect)
-            .collect(),
-        effects_combat_end: entity
-            .relic_effects_combat_end
-            .iter()
-            .map(snapshot_effect)
-            .collect(),
-        effects_pickup: entity
-            .relic_effects_on_pickup
-            .iter()
-            .map(snapshot_effect)
-            .collect(),
-        effects_rest: entity
-            .relic_effects_on_rest
-            .iter()
-            .map(snapshot_effect)
-            .collect(),
-        effects_counter: entity
-            .relic_effects_counter
-            .iter()
-            .map(snapshot_effect)
-            .collect(),
+        effects_combat_start: snapshot_effects(state, entity.relic_effects_combat_start, None),
+        effects_turn_start: snapshot_effects(state, entity.relic_effects_turn_start, None),
+        effects_turn_end: snapshot_effects(state, entity.relic_effects_turn_end, None),
+        effects_combat_end: snapshot_effects(state, entity.relic_effects_combat_end, None),
+        effects_pickup: snapshot_effects(state, entity.relic_effects_on_pickup, None),
+        effects_rest: snapshot_effects(state, entity.relic_effects_on_rest, None),
+        effects_counter: snapshot_effects(state, entity.relic_effects_counter, None),
         price: entity.price,
         identity_hash: 0,
     };
