@@ -159,13 +159,13 @@ pub(crate) fn snapshot_combat(state: &GameState) -> PyCombat {
         card_play_queue: state
             .card_play_queue
             .iter()
-            .map(|card_play| PyCard {
-                play_source: Some(card_play.play_source.into()),
-                ..snapshot_card_combat_at_cost(
+            .map(|card_play| {
+                snapshot_card_combat_at_cost(
                     state,
                     card_play.id_card,
                     card_play.cost_effective,
                     card_play.draw_pile_size,
+                    Some(card_play.play_source.into()),
                 )
             })
             .collect(),

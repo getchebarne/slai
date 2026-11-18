@@ -10,6 +10,7 @@ use crate::utils::entity_requires_target;
 
 use super::effect::PyEffect;
 use super::effect::snapshot_effect;
+use super::identity_hash;
 
 mirror_enum!(PyPotionName from PotionName, "PotionName", {
     Energy, Block, Strength, Dexterity, Fire, Explosive,
@@ -44,12 +45,13 @@ pub struct PyPotion {
     pub effects: Vec<PyEffect>,
     pub price: Option<u16>, // While the Shop offers it
     pub usable: bool,       // Drinkable now: a PotionUse for it is legal
+    identity_hash: u64,     // Hash of every field but the id; private: no struct update elsewhere
 }
 
 pub(crate) fn snapshot_potion(state: &GameState, id: usize) -> PyPotion {
     let entity = &state.entities[id];
-    PyPotion {
-        id,
+    let py_potion = PyPotion {
+        id: 0,
         name: entity.potion_name.into(),
         rarity: entity.potion_rarity.into(),
         requires_target: entity_requires_target(entity),
@@ -60,5 +62,13 @@ pub(crate) fn snapshot_potion(state: &GameState, id: usize) -> PyPotion {
         usable: state.legal_actions.iter().any(
             |action| matches!(action, Action::PotionUse { id_potion, .. } if *id_potion == id),
         ),
+        identity_hash: 0,
+    };
+
+    // The hash is taken before the id is set, so it leaves the id out
+    PyPotion {
+        id,
+        identity_hash: identity_hash(&py_potion),
+        ..py_potion
     }
 }

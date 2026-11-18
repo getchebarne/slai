@@ -9,6 +9,7 @@ use crate::types::RelicTier;
 
 use super::effect::PyEffect;
 use super::effect::snapshot_effect;
+use super::identity_hash;
 
 mirror_enum!(PyRelicName from RelicName, "RelicName", {
     RingOfTheSnake, Akabeko, Anchor, BagOfMarbles, BagOfPreparation, BloodVial, BronzeScales, Kunai,
@@ -68,11 +69,12 @@ pub struct PyRelic {
     pub effects_rest: Vec<PyEffect>,
     pub effects_counter: Vec<PyEffect>,
     pub price: Option<u16>, // While the Shop offers it
+    identity_hash: u64,     // Hash of every field but the id; private: no struct update elsewhere
 }
 
 pub(crate) fn snapshot_relic(id: usize, entity: &Entity) -> PyRelic {
-    PyRelic {
-        id,
+    let py_relic = PyRelic {
+        id: 0,
         name: entity.relic_name.into(),
         tier: entity.relic_tier.into(),
         counter: entity.relic_counter,
@@ -114,5 +116,13 @@ pub(crate) fn snapshot_relic(id: usize, entity: &Entity) -> PyRelic {
             .map(snapshot_effect)
             .collect(),
         price: entity.price,
+        identity_hash: 0,
+    };
+
+    // The hash is taken before the id is set, so it leaves the id out
+    PyRelic {
+        id,
+        identity_hash: identity_hash(&py_relic),
+        ..py_relic
     }
 }

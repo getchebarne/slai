@@ -40,6 +40,7 @@ use super::effect::PyEffectHeelHookProc;
 use super::effect::PyEffectModifierDelta;
 use super::effect::PyEffectSkewerProc;
 use super::effect::snapshot_effect;
+use super::identity_hash;
 use super::macros::flat_variants;
 use super::macros::mirror_enum;
 use super::modifier::PyModifierKind;
@@ -204,6 +205,9 @@ pub struct PyCard {
 
     // What queued it while it waits in the card play queue
     pub play_source: Option<PyPlaySource>,
+
+    // Hash of every field but the id; private: no struct update elsewhere
+    identity_hash: u64,
 }
 
 // Display-name lookups
@@ -491,6 +495,7 @@ pub(crate) fn snapshot_card(state: &GameState, id_card: usize) -> PyCard {
         id_card,
         get_card_effective_cost(card, 0),
         effects_play,
+        None,
     )
 }
 
@@ -502,15 +507,16 @@ pub(crate) fn snapshot_card_combat(
 ) -> PyCard {
     let cost =
         get_card_effective_cost(&state.entities[id_card], state.combat.energy.energy_current);
-    snapshot_card_combat_at_cost(state, id_card, cost, draw_pile_size)
+    snapshot_card_combat_at_cost(state, id_card, cost, draw_pile_size, None)
 }
 
-// A Card of the fight priced at `cost`; a waiting play carries the cost it was queued at
+// A Card of the fight priced at `cost`; a waiting play carries its queued cost and play source
 pub(crate) fn snapshot_card_combat_at_cost(
     state: &GameState,
     id_card: usize,
     cost: u16,
     draw_pile_size: u16,
+    play_source: Option<PyPlaySource>,
 ) -> PyCard {
     let card = &state.entities[id_card];
     build_py_card(
@@ -518,19 +524,21 @@ pub(crate) fn snapshot_card_combat_at_cost(
         id_card,
         cost,
         snapshot_adjusted_effects(state, card, cost, draw_pile_size),
+        play_source,
     )
 }
 
-// The Card's own fields, with the cost and play effects its place decides
+// The Card's own fields, with the cost, play effects and play source its place decides
 fn build_py_card(
     state: &GameState,
     id_card: usize,
     cost: u16,
     effects_play: Vec<PyEffect>,
+    play_source: Option<PyPlaySource>,
 ) -> PyCard {
     let card = &state.entities[id_card];
-    PyCard {
-        id: id_card,
+    let py_card = PyCard {
+        id: 0,
         name: card.card_name.into(),
         cost,
         cost_base: card.card_cost,
@@ -565,6 +573,14 @@ fn build_py_card(
             .collect(),
         effects_draw: card.card_effects_draw.iter().map(snapshot_effect).collect(),
         price: card.price,
-        play_source: None,
+        play_source,
+        identity_hash: 0,
+    };
+
+    // The hash is taken before the id is set, so it leaves the id out
+    PyCard {
+        id: id_card,
+        identity_hash: identity_hash(&py_card),
+        ..py_card
     }
 }
