@@ -1,10 +1,10 @@
 use rand::Rng;
 
 use crate::consts::ACT_LAST_BOSS_CHEST;
-use crate::consts::GOLD_ELITE_MAX;
-use crate::consts::GOLD_ELITE_MIN;
-use crate::consts::GOLD_MONSTER_MAX;
-use crate::consts::GOLD_MONSTER_MIN;
+use crate::consts::MAX_GOLD_ELITE;
+use crate::consts::MAX_GOLD_MONSTER;
+use crate::consts::MIN_GOLD_ELITE;
+use crate::consts::MIN_GOLD_MONSTER;
 use crate::consts::RELIC_TIER_TH_COMMON;
 use crate::consts::RELIC_TIER_TH_UNCOMMON;
 use crate::effect::Amount;
@@ -152,12 +152,12 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
             // Boss gold pre-rolls here so Golden Idol still scales it at staging
             let gold_amount = match room_kind {
                 RoomKind::CombatMonster => (!escaped_monster).then_some(Amount::Range {
-                    min: GOLD_MONSTER_MIN,
-                    max: GOLD_MONSTER_MAX,
+                    min: MIN_GOLD_MONSTER,
+                    max: MAX_GOLD_MONSTER,
                 }),
                 RoomKind::CombatElite => Some(Amount::Range {
-                    min: GOLD_ELITE_MIN,
-                    max: GOLD_ELITE_MAX,
+                    min: MIN_GOLD_ELITE,
+                    max: MAX_GOLD_ELITE,
                 }),
                 RoomKind::CombatBoss => Some(Amount::Absolute(roll_boss_gold(
                     &mut state.rng,

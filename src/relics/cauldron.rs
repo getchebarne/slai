@@ -1,4 +1,4 @@
-use crate::consts::CAULDRON_POTION_COUNT;
+use crate::consts::NUM_CAULDRON_POTIONS;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::RewardRollTrigger;
@@ -22,7 +22,7 @@ pub static CAULDRON: RelicTemplate = RelicTemplate {
     effects_pickup: &[
         Effect {
             kind: EffectKind::RewardRollPotions {
-                count: CAULDRON_POTION_COUNT as u8,
+                count: NUM_CAULDRON_POTIONS as u8,
                 trigger: RewardRollTrigger::Cauldron,
             },
             id_source: None,

@@ -1,8 +1,8 @@
 use rand::Rng;
 
 use crate::cards::get_card;
-use crate::consts::NEOW_CARD_COUNT;
 use crate::consts::NEOW_UNCOMMON_CHANCE;
+use crate::consts::NUM_NEOW_CARDS;
 use crate::game::GameState;
 use crate::types::CardRarity;
 use crate::utils::card_pool;
@@ -11,8 +11,8 @@ use crate::utils::push_entity;
 // Neow's card offer rolls 3 Cards into the event's roll: Uncommon 33% and Common otherwise, or all Rare; a colorless offer turns Common into Uncommon
 pub fn process_effect_neow_cards_roll(state: &mut GameState, colorless: bool, rare_only: bool) {
     assert!(state.event.active, "NeowCardsRoll outside an event");
-    let mut card_names_rolled = Vec::with_capacity(NEOW_CARD_COUNT);
-    for _ in 0..NEOW_CARD_COUNT {
+    let mut card_names_rolled = Vec::with_capacity(NUM_NEOW_CARDS);
+    for _ in 0..NUM_NEOW_CARDS {
         let rarity = if rare_only {
             CardRarity::Rare
         } else {

@@ -15,7 +15,6 @@ use crate::consts::CARD_REWARD_ROLL_CHANCE_RARE_ELITE;
 use crate::consts::CARD_REWARD_ROLL_CHANCE_UNCOMMON;
 use crate::consts::CARD_REWARD_ROLL_CHANCE_UNCOMMON_ELITE;
 use crate::consts::CARD_REWARD_ROLL_OFFSET_BASE;
-use crate::consts::CARD_REWARD_ROLL_OFFSET_MIN;
 use crate::consts::CARD_REWARD_UPGRADE_CHANCE_ACT2;
 use crate::consts::CARD_REWARD_UPGRADE_CHANCE_ACT2_A12;
 use crate::consts::CARD_REWARD_UPGRADE_CHANCE_ACT3;
@@ -29,19 +28,20 @@ use crate::consts::FACTOR_VULN;
 use crate::consts::FACTOR_VULN_ODD_MUSHROOM;
 use crate::consts::FACTOR_WEAK;
 use crate::consts::FACTOR_WEAK_PAPER_KRANE;
-use crate::consts::GOLD_BOSS_MAX;
-use crate::consts::GOLD_BOSS_MIN;
 use crate::consts::MAX_CARD_REWARD_ROLL;
+use crate::consts::MAX_GOLD_BOSS;
 use crate::consts::MAX_MONSTERS;
+use crate::consts::MAX_NORMALITY_PLAYS;
 use crate::consts::MAX_SIZE_CARD_PILE_HAND;
-use crate::consts::NORMALITY_PLAYS_MAX;
+use crate::consts::MAX_VELVET_CHOKER_PLAYS;
+use crate::consts::MIN_CARD_REWARD_ROLL_OFFSET;
+use crate::consts::MIN_GOLD_BOSS;
 use crate::consts::RELIC_DIG_TH_COMMON_ACT4;
 use crate::consts::RELIC_DIG_TH_UNCOMMON_ACT4;
 use crate::consts::RELIC_GRANT_TH_COMMON;
 use crate::consts::RELIC_GRANT_TH_UNCOMMON;
 use crate::consts::SHOP_CARD_CUT_RARE;
 use crate::consts::SHOP_CARD_CUT_UNCOMMON;
-use crate::consts::VELVET_CHOKER_PLAYS_MAX;
 use crate::effect::Amount;
 use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
@@ -209,12 +209,12 @@ pub fn play_cap_reached(
     id_relics: &[Option<usize>; RelicName::COUNT],
     this_turn_cards_played: u16,
 ) -> bool {
-    let normality = this_turn_cards_played >= NORMALITY_PLAYS_MAX
+    let normality = this_turn_cards_played >= MAX_NORMALITY_PLAYS
         && id_card_pile_hand
             .iter()
             .any(|&id| entities[id].card_name == CardName::Normality);
     let choker = id_relics[RelicName::VelvetChoker as usize]
-        .is_some_and(|id| entities[id].relic_counter >= VELVET_CHOKER_PLAYS_MAX);
+        .is_some_and(|id| entities[id].relic_counter >= MAX_VELVET_CHOKER_PLAYS);
     normality || choker
 }
 
@@ -724,7 +724,7 @@ pub fn draw_relic_excluding(
 
 // Boss gold for a mid-run boss's Reward
 pub fn roll_boss_gold(rng: &mut impl Rng, ascension: u8) -> u16 {
-    let roll = rng.random_range(GOLD_BOSS_MIN..=GOLD_BOSS_MAX);
+    let roll = rng.random_range(MIN_GOLD_BOSS..=MAX_GOLD_BOSS);
     if ascension >= 13 {
         (roll * 3 + 2) / 4 // x0.75 rounded half-up
     } else {
@@ -1071,7 +1071,7 @@ pub fn roll_card_rewards(
                 CardRarity::Rare => character_reward_roll_offset = CARD_REWARD_ROLL_OFFSET_BASE,
                 CardRarity::Common => {
                     character_reward_roll_offset =
-                        (character_reward_roll_offset - 1).max(CARD_REWARD_ROLL_OFFSET_MIN);
+                        (character_reward_roll_offset - 1).max(MIN_CARD_REWARD_ROLL_OFFSET);
                 }
                 _ => {}
             }

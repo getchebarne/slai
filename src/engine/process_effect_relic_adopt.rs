@@ -1,4 +1,4 @@
-use crate::consts::POTION_SLOTS_MAX;
+use crate::consts::MAX_POTION_SLOTS;
 use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
 use crate::effect::EFFECT_DU_VU_DOLL_RECOUNT;
@@ -57,7 +57,7 @@ fn queue_pickup_effects(state: &mut GameState, id_relic: usize) {
     match name {
         // Potion Belt: gain 2 Potion slots
         RelicName::PotionBelt => {
-            state.potion_slots_max = (state.potion_slots_max + 2).min(POTION_SLOTS_MAX as u8);
+            state.potion_slots_max = (state.potion_slots_max + 2).min(MAX_POTION_SLOTS as u8);
         }
 
         // An Egg upgrades the matching Cards on offer: the Shop's stock and the staged bundles

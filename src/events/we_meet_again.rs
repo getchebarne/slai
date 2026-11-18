@@ -1,7 +1,7 @@
 use rand::Rng;
 
-use crate::consts::WE_MEET_AGAIN_GOLD_ASK_MAX;
-use crate::consts::WE_MEET_AGAIN_GOLD_ASK_MIN;
+use crate::consts::MAX_WE_MEET_AGAIN_GOLD_ASK;
+use crate::consts::MIN_WE_MEET_AGAIN_GOLD_ASK;
 use crate::effect::Amount;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
@@ -76,13 +76,13 @@ const OPTION_GIVE_CARD: [Effect; 3] = [
 
 // Catalog EOTs, option-table order; the ask enumerates its reachable values —
 // 0 (unrolled, gated off but visible) and every rollable 50..=150
-const GOLD_EOTS_LEN: usize = (WE_MEET_AGAIN_GOLD_ASK_MAX - WE_MEET_AGAIN_GOLD_ASK_MIN) as usize + 2;
+const GOLD_EOTS_LEN: usize = (MAX_WE_MEET_AGAIN_GOLD_ASK - MIN_WE_MEET_AGAIN_GOLD_ASK) as usize + 2;
 
 static GOLD_EOTS: [[Effect; 3]; GOLD_EOTS_LEN] = {
     let mut eots = [option_give_gold(0); GOLD_EOTS_LEN];
     let mut idx = 1;
     while idx < GOLD_EOTS_LEN {
-        eots[idx] = option_give_gold(WE_MEET_AGAIN_GOLD_ASK_MIN + idx as u16 - 1);
+        eots[idx] = option_give_gold(MIN_WE_MEET_AGAIN_GOLD_ASK + idx as u16 - 1);
         idx += 1;
     }
     eots
@@ -135,10 +135,10 @@ pub fn spawn(state: &mut GameState) -> Vec<usize> {
 
     // Gold ask capped by holdings; unrolled (option unavailable) below the minimum
     let gold = state.entities[state.id_character].character_gold;
-    let gold_ask = (gold >= WE_MEET_AGAIN_GOLD_ASK_MIN).then(|| {
+    let gold_ask = (gold >= MIN_WE_MEET_AGAIN_GOLD_ASK).then(|| {
         state
             .rng
-            .random_range(WE_MEET_AGAIN_GOLD_ASK_MIN..=gold.min(WE_MEET_AGAIN_GOLD_ASK_MAX))
+            .random_range(MIN_WE_MEET_AGAIN_GOLD_ASK..=gold.min(MAX_WE_MEET_AGAIN_GOLD_ASK))
     });
 
     // `extend` on an `Option` pushes only for `Some`, so an unrolled offer stays empty
@@ -148,7 +148,7 @@ pub fn spawn(state: &mut GameState) -> Vec<usize> {
 
     // GOLD_EOTS[0] is the unrolled 0; the rollable asks follow from MIN
     let idx_gold = match gold_ask {
-        Some(ask) => IDX_GIVE_GOLD + 1 + (ask - WE_MEET_AGAIN_GOLD_ASK_MIN) as usize,
+        Some(ask) => IDX_GIVE_GOLD + 1 + (ask - MIN_WE_MEET_AGAIN_GOLD_ASK) as usize,
         None => IDX_GIVE_GOLD,
     };
     let options = [

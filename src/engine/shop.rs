@@ -7,19 +7,19 @@ use strum::EnumCount;
 use crate::cards::get_card;
 use crate::cards::get_random_cards;
 use crate::consts::COLORLESS_RARE_CHANCE;
+use crate::consts::MAX_SHOP_PRICE_CARD_VARIANCE;
+use crate::consts::MAX_SHOP_PRICE_RELIC_POTION_VARIANCE;
+use crate::consts::MIN_SHOP_PRICE_CARD_VARIANCE;
+use crate::consts::MIN_SHOP_PRICE_RELIC_POTION_VARIANCE;
 use crate::consts::SHOP_PRICE_CARD_COMMON;
 use crate::consts::SHOP_PRICE_CARD_RARE;
 use crate::consts::SHOP_PRICE_CARD_UNCOMMON;
-use crate::consts::SHOP_PRICE_CARD_VARIANCE_MAX;
-use crate::consts::SHOP_PRICE_CARD_VARIANCE_MIN;
 use crate::consts::SHOP_PRICE_COLORLESS_DENOM;
 use crate::consts::SHOP_PRICE_COLORLESS_NUMER;
 use crate::consts::SHOP_PRICE_POTION_COMMON;
 use crate::consts::SHOP_PRICE_POTION_RARE;
 use crate::consts::SHOP_PRICE_POTION_UNCOMMON;
 use crate::consts::SHOP_PRICE_RELIC_COMMON;
-use crate::consts::SHOP_PRICE_RELIC_POTION_VARIANCE_MAX;
-use crate::consts::SHOP_PRICE_RELIC_POTION_VARIANCE_MIN;
 use crate::consts::SHOP_PRICE_RELIC_RARE;
 use crate::consts::SHOP_PRICE_RELIC_SHOP;
 use crate::consts::SHOP_PRICE_RELIC_SPECIAL;
@@ -117,11 +117,11 @@ pub(super) fn restock_relic(
 }
 
 fn roll_var_card(rng: &mut impl Rng) -> f32 {
-    rng.random_range(SHOP_PRICE_CARD_VARIANCE_MIN..SHOP_PRICE_CARD_VARIANCE_MAX)
+    rng.random_range(MIN_SHOP_PRICE_CARD_VARIANCE..MAX_SHOP_PRICE_CARD_VARIANCE)
 }
 
 fn roll_var_relic_n_potion(rng: &mut impl Rng) -> f32 {
-    rng.random_range(SHOP_PRICE_RELIC_POTION_VARIANCE_MIN..SHOP_PRICE_RELIC_POTION_VARIANCE_MAX)
+    rng.random_range(MIN_SHOP_PRICE_RELIC_POTION_VARIANCE..MAX_SHOP_PRICE_RELIC_POTION_VARIANCE)
 }
 
 fn get_card_base_price(rarity: CardRarity) -> u16 {

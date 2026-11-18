@@ -1,4 +1,4 @@
-use crate::consts::DISCOVER_ROLL_COUNT;
+use crate::consts::NUM_DISCOVER_ROLLS;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
@@ -21,7 +21,7 @@ pub static COLORLESS: PotionTemplate = PotionTemplate {
                 kind: None,
                 color: CardColor::Colorless,
                 exclude: &[],
-                count: DISCOVER_ROLL_COUNT,
+                count: NUM_DISCOVER_ROLLS,
             },
             id_source: None,
             target: Target::Direct(None),
@@ -38,7 +38,7 @@ pub static COLORLESS_DOUBLED: PotionTemplate = PotionTemplate {
                 kind: None,
                 color: CardColor::Colorless,
                 exclude: &[],
-                count: DISCOVER_ROLL_COUNT,
+                count: NUM_DISCOVER_ROLLS,
             },
             id_source: None,
             target: Target::Direct(None),

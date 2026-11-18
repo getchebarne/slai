@@ -1,4 +1,4 @@
-use crate::consts::POTION_SLOTS_MAX;
+use crate::consts::MAX_POTION_SLOTS;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
@@ -18,5 +18,5 @@ pub static ENTROPIC_BREW: PotionTemplate = PotionTemplate {
         },
         id_source: None,
         target: Target::Direct(None),
-    }; POTION_SLOTS_MAX],
+    }; MAX_POTION_SLOTS],
 };
