@@ -1,4 +1,4 @@
-use crate::consts::ORRERY_BUNDLE_COUNT;
+use crate::consts::NUM_ORRERY_BUNDLES;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::RewardRollTrigger;
@@ -21,7 +21,7 @@ pub static ORRERY: RelicTemplate = RelicTemplate {
     effects_combat_end: &[],
     effects_pickup: &[Effect {
         kind: EffectKind::RewardRollCards {
-            bundles: ORRERY_BUNDLE_COUNT as u8,
+            bundles: NUM_ORRERY_BUNDLES as u8,
             trigger: RewardRollTrigger::Orrery,
         },
         id_source: None,

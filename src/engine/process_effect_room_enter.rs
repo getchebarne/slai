@@ -1,10 +1,10 @@
 use rand::Rng;
 
-use crate::consts::BOSS_RELIC_REWARD_COUNT;
 use crate::consts::CHEST_SMALL_PCT;
 use crate::consts::CHEST_SMALL_PLUS_MEDIUM_PCT;
 use crate::consts::EVENT_SPECIAL_CHANCE;
 use crate::consts::MAP_HEIGHT;
+use crate::consts::NUM_BOSS_RELIC_REWARDS;
 use crate::consts::UNKNOWN_CHANCE_BASE_MONSTER;
 use crate::consts::UNKNOWN_CHANCE_BASE_SHOP;
 use crate::consts::UNKNOWN_CHANCE_BASE_TREASURE;
@@ -148,7 +148,7 @@ pub fn process_effect_room_enter(state: &mut GameState, location: Location, land
             // The Boss Room's treasure is the boss chest, holding three Boss Relics; any other rolls its kind
             state.chest.id_relics.clear();
             if state.location == Location::BossTreasure {
-                for _ in 0..BOSS_RELIC_REWARD_COUNT {
+                for _ in 0..NUM_BOSS_RELIC_REWARDS {
                     let name =
                         draw_relic_excluding(state, RelicTier::Boss, RelicExclusion::Unfiltered);
                     let id_relic = push_entity(&mut state.entities, get_relic(name));

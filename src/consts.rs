@@ -22,16 +22,16 @@ pub const ASCENSION_HP_START_CUT_LEVEL: u8 = 6;
 pub const SILENT_HP_MAX_A14_DELTA: u16 = 4;
 pub const HEALTH_START_A6_NUMER: u16 = 9;
 pub const HEALTH_START_A6_DENOM: u16 = 10;
-pub const GOLD_MONSTER_MIN: u16 = 10;
-pub const GOLD_MONSTER_MAX: u16 = 20;
-pub const GOLD_ELITE_MIN: u16 = 25;
-pub const GOLD_ELITE_MAX: u16 = 35;
-pub const GOLD_BOSS_MIN: u16 = 95;
-pub const GOLD_BOSS_MAX: u16 = 105;
+pub const MIN_GOLD_MONSTER: u16 = 10;
+pub const MAX_GOLD_MONSTER: u16 = 20;
+pub const MIN_GOLD_ELITE: u16 = 25;
+pub const MAX_GOLD_ELITE: u16 = 35;
+pub const MIN_GOLD_BOSS: u16 = 95;
+pub const MAX_GOLD_BOSS: u16 = 105;
 
 // Widest reward-gold offer: boss roll + Golden Idol's 25% (rounded half-up)
-pub const REWARD_GOLD_MAX: u16 = GOLD_BOSS_MAX + (GOLD_BOSS_MAX + 2) / 4;
-pub const BOSS_RELIC_REWARD_COUNT: usize = 3;
+pub const MAX_REWARD_GOLD: u16 = MAX_GOLD_BOSS + (MAX_GOLD_BOSS + 2) / 4;
+pub const NUM_BOSS_RELIC_REWARDS: usize = 3;
 pub const LIBRARY_CARD_COUNT: usize = 20;
 
 // Largest single Card-reward roll (The Library's 20)
@@ -51,11 +51,11 @@ pub const MAX_COMBAT_CARD_REWARD: usize = 4;
 pub const CARD_REWARD_BASE_COUNT: usize = 3;
 
 // Most bundles a Reward context can hold: Orrery's five
-pub const ORRERY_BUNDLE_COUNT: usize = 5;
+pub const NUM_ORRERY_BUNDLES: usize = 5;
 
 // Cauldron's brew, staged as Potion rewards
-pub const CAULDRON_POTION_COUNT: usize = 5;
-pub const MAX_REWARD_CARD_BUNDLES: usize = ORRERY_BUNDLE_COUNT;
+pub const NUM_CAULDRON_POTIONS: usize = 5;
+pub const MAX_REWARD_CARD_BUNDLES: usize = NUM_ORRERY_BUNDLES;
 const _: () = assert!(CARD_REWARD_BASE_COUNT + 1 <= MAX_COMBAT_CARD_REWARD);
 pub const FACTOR_BACK_ATTACK: f32 = 1.5;
 pub const FACTOR_WEAK: f32 = 0.75;
@@ -91,8 +91,8 @@ pub const TIME_WARP_PLAYS: i16 = 12;
 pub const TIME_WARP_STRENGTH: i16 = 2;
 
 // Normality in hand caps the turn's plays at 3, Velvet Choker at 6
-pub const NORMALITY_PLAYS_MAX: u16 = 3;
-pub const VELVET_CHOKER_PLAYS_MAX: i16 = 6;
+pub const MAX_NORMALITY_PLAYS: u16 = 3;
+pub const MAX_VELVET_CHOKER_PLAYS: i16 = 6;
 
 // Event roll-pool stakes: the widest offer any event places in `id_roll_*`
 pub const MAX_SIZE_CARD_PILE_EVENT_ROLL: usize = 2 * MATCH_AND_KEEP_ATTEMPTS as usize; // Match and Keep!
@@ -101,7 +101,7 @@ pub const MAX_SIZE_POTION_EVENT_ROLL: usize = 1; // We Meet Again
 
 // Card rewards
 pub const CARD_REWARD_ROLL_OFFSET_BASE: i8 = 5;
-pub const CARD_REWARD_ROLL_OFFSET_MIN: i8 = -40;
+pub const MIN_CARD_REWARD_ROLL_OFFSET: i8 = -40;
 
 // Cumulative cuts: Rare below the first, Uncommon below the second
 pub const CARD_REWARD_ROLL_CHANCE_RARE: i32 = 3;
@@ -174,8 +174,8 @@ pub const CHEST_LARGE_TH_COMMON: u8 = 0;
 pub const CHEST_LARGE_TH_UNCOMMON: u8 = 75;
 
 // Chest gold: base x U[0.9, 1.1] inclusive
-pub const CHEST_GOLD_VARIANCE_MIN: f32 = 0.9;
-pub const CHEST_GOLD_VARIANCE_MAX: f32 = 1.1;
+pub const MIN_CHEST_GOLD_VARIANCE: f32 = 0.9;
+pub const MAX_CHEST_GOLD_VARIANCE: f32 = 1.1;
 
 // Cumulative thresholds for the elite reward's own Relic-tier roll, the same in every act
 pub const RELIC_TIER_TH_COMMON: u8 = 50;
@@ -200,7 +200,7 @@ pub const ENCOUNTER_POOL_CAPACITY_ELITE: usize = NUM_ENCOUNTERS_ELITE;
 // Potions
 pub const POTION_SLOTS_DEFAULT: u8 = 3;
 pub const POTION_SLOTS_DEFAULT_A11: u8 = 2;
-pub const POTION_SLOTS_MAX: usize = 5;
+pub const MAX_POTION_SLOTS: usize = 5;
 
 // Potion drop swing: chance = base + mod; +10 on miss, -10 on hit
 pub const POTION_DROP_CHANCE_BASE: i32 = 40;
@@ -212,19 +212,19 @@ pub const POTION_TH_COMMON: u8 = 65;
 pub const POTION_TH_UNCOMMON: u8 = 90;
 
 // Discovery: number of Card options offered
-pub const DISCOVER_ROLL_COUNT: u8 = 3;
+pub const NUM_DISCOVER_ROLLS: u8 = 3;
 
 // Neow: Cards per offer, 33% Uncommon-else-Common roll, gold amounts, Lament charge count
-pub const NEOW_CARD_COUNT: usize = 3;
-pub const NEOW_POTION_COUNT: u8 = 3;
+pub const NUM_NEOW_CARDS: usize = 3;
+pub const NUM_NEOW_POTIONS: u8 = 3;
 pub const NEOW_UNCOMMON_CHANCE: i32 = 33;
 pub const NEOW_GOLD_SMALL: u16 = 100;
 pub const NEOW_GOLD_LARGE: u16 = 250;
 pub const NEOW_LAMENT_COMBATS: i16 = 3;
 
 // We Meet Again: gold ask rolled MIN..=gold.min(MAX); option unavailable below MIN
-pub const WE_MEET_AGAIN_GOLD_ASK_MIN: u16 = 50;
-pub const WE_MEET_AGAIN_GOLD_ASK_MAX: u16 = 150;
+pub const MIN_WE_MEET_AGAIN_GOLD_ASK: u16 = 50;
+pub const MAX_WE_MEET_AGAIN_GOLD_ASK: u16 = 150;
 
 // Match and Keep!: attempts of two flips each
 pub const MATCH_AND_KEEP_ATTEMPTS: u8 = 5;
@@ -235,8 +235,8 @@ pub const SHOP_PRICE_CARD_UNCOMMON: u16 = 75;
 pub const SHOP_PRICE_CARD_RARE: u16 = 150;
 pub const SHOP_PRICE_COLORLESS_NUMER: u16 = 6;
 pub const SHOP_PRICE_COLORLESS_DENOM: u16 = 5;
-pub const SHOP_PRICE_CARD_VARIANCE_MIN: f32 = 0.9;
-pub const SHOP_PRICE_CARD_VARIANCE_MAX: f32 = 1.1;
+pub const MIN_SHOP_PRICE_CARD_VARIANCE: f32 = 0.9;
+pub const MAX_SHOP_PRICE_CARD_VARIANCE: f32 = 1.1;
 
 // Shop pricing — Potions and Relics: base x U[0.95, 1.05]
 pub const SHOP_PRICE_POTION_COMMON: u16 = 50;
@@ -247,8 +247,8 @@ pub const SHOP_PRICE_RELIC_UNCOMMON: u16 = 250;
 pub const SHOP_PRICE_RELIC_RARE: u16 = 300;
 pub const SHOP_PRICE_RELIC_SHOP: u16 = 150;
 pub const SHOP_PRICE_RELIC_SPECIAL: u16 = 400;
-pub const SHOP_PRICE_RELIC_POTION_VARIANCE_MIN: f32 = 0.95;
-pub const SHOP_PRICE_RELIC_POTION_VARIANCE_MAX: f32 = 1.05;
+pub const MIN_SHOP_PRICE_RELIC_POTION_VARIANCE: f32 = 0.95;
+pub const MAX_SHOP_PRICE_RELIC_POTION_VARIANCE: f32 = 1.05;
 
 pub const SHOP_PURGE_COST_BASE: u16 = 75;
 pub const SHOP_PURGE_COST_INCREMENT: u16 = 25;
@@ -280,18 +280,18 @@ const fn price_sup(base: u16, variance_max: f32) -> u16 {
 }
 
 // Derived stock-price ceilings, post-A16 markup, pre-discount (discounts only lower)
-pub const SHOP_PRICE_CARD_MAX: u16 = bump_price_a16(price_sup(
+pub const MAX_SHOP_PRICE_CARD: u16 = bump_price_a16(price_sup(
     SHOP_PRICE_CARD_RARE * SHOP_PRICE_COLORLESS_NUMER / SHOP_PRICE_COLORLESS_DENOM,
-    SHOP_PRICE_CARD_VARIANCE_MAX,
+    MAX_SHOP_PRICE_CARD_VARIANCE,
 ));
 // Circlet's Special price stays out: it reaches a shelf only once the Rare pool is spent
-pub const SHOP_PRICE_RELIC_MAX: u16 = bump_price_a16(price_sup(
+pub const MAX_SHOP_PRICE_RELIC: u16 = bump_price_a16(price_sup(
     SHOP_PRICE_RELIC_RARE,
-    SHOP_PRICE_RELIC_POTION_VARIANCE_MAX,
+    MAX_SHOP_PRICE_RELIC_POTION_VARIANCE,
 ));
-pub const SHOP_PRICE_POTION_MAX: u16 = bump_price_a16(price_sup(
+pub const MAX_SHOP_PRICE_POTION: u16 = bump_price_a16(price_sup(
     SHOP_PRICE_POTION_RARE,
-    SHOP_PRICE_RELIC_POTION_VARIANCE_MAX,
+    MAX_SHOP_PRICE_RELIC_POTION_VARIANCE,
 ));
 
 // Shop inventory composition

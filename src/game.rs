@@ -9,8 +9,6 @@ use crate::action::handle_action;
 use crate::action::recompute_legal_actions;
 use crate::character::get_silent_starter_deck;
 use crate::character::spawn_silent;
-use crate::consts::BOSS_RELIC_REWARD_COUNT;
-use crate::consts::DISCOVER_ROLL_COUNT;
 use crate::consts::ENCOUNTER_POOL_CAPACITY_ELITE;
 use crate::consts::ENCOUNTER_POOL_CAPACITY_NORMAL;
 use crate::consts::MAP_HEIGHT;
@@ -19,12 +17,14 @@ use crate::consts::MAX_CANDIDATES;
 use crate::consts::MAX_EFFECTS_PER_HANDLER;
 use crate::consts::MAX_ENTITIES;
 use crate::consts::MAX_MONSTERS;
+use crate::consts::MAX_POTION_SLOTS;
 use crate::consts::MAX_SIZE_CARD_PILE_HAND;
 use crate::consts::MAX_SIZE_DECK;
+use crate::consts::NUM_BOSS_RELIC_REWARDS;
+use crate::consts::NUM_DISCOVER_ROLLS;
 use crate::consts::PANACHE_PLAYS;
 use crate::consts::POTION_SLOTS_DEFAULT;
 use crate::consts::POTION_SLOTS_DEFAULT_A11;
-use crate::consts::POTION_SLOTS_MAX;
 use crate::consts::SHOP_PURGE_COST_BASE;
 use crate::consts::SHOP_SLOTS_CARD_TOTAL;
 use crate::consts::SHOP_SLOTS_POTION;
@@ -198,7 +198,7 @@ pub fn create_game_state(
     id_relics[RelicName::RingOfTheSnake as usize] = Some(id_ring_of_the_snake);
 
     // Belt capacity is a run-level rule (3, or 2 at ascension 11+); the belt starts empty
-    let id_potions: Vec<usize> = Vec::with_capacity(POTION_SLOTS_MAX);
+    let id_potions: Vec<usize> = Vec::with_capacity(MAX_POTION_SLOTS);
     let potion_slots_max = if ascension >= 11 {
         POTION_SLOTS_DEFAULT_A11
     } else {
@@ -301,7 +301,7 @@ pub fn create_game_state(
             id_monster_selected: None,
             id_card_last_drawn: None,
             id_card_pile_nightmare: Vec::new(),
-            id_card_pile_discover: Vec::with_capacity(DISCOVER_ROLL_COUNT as usize),
+            id_card_pile_discover: Vec::with_capacity(NUM_DISCOVER_ROLLS as usize),
             id_card_origins: Vec::new(),
             energy: Energy {
                 energy_current: 0,
@@ -374,7 +374,7 @@ pub fn create_game_state(
             active: false,
             chest_kind: ChestKind::Small,
             chest_opened: false,
-            id_relics: Vec::with_capacity(BOSS_RELIC_REWARD_COUNT),
+            id_relics: Vec::with_capacity(NUM_BOSS_RELIC_REWARDS),
         },
         game_over: false,
         shop_purge_cost_run: SHOP_PURGE_COST_BASE,

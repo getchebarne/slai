@@ -5,7 +5,7 @@ use crate::consts::ASCENSION_HP_MAX_CUT_LEVEL;
 use crate::consts::ASCENSION_HP_START_CUT_LEVEL;
 use crate::consts::NEOW_GOLD_LARGE;
 use crate::consts::NEOW_GOLD_SMALL;
-use crate::consts::NEOW_POTION_COUNT;
+use crate::consts::NUM_NEOW_POTIONS;
 use crate::consts::STARTING_GOLD;
 use crate::effect::Amount;
 use crate::effect::CandidateFilter;
@@ -183,7 +183,7 @@ const fn effect_bonus(bonus: NeowBonus, health_bonus: u16) -> Effect {
         },
         NeowBonus::ThreeSmallPotions => Effect {
             kind: EffectKind::RewardRollPotions {
-                count: NEOW_POTION_COUNT,
+                count: NUM_NEOW_POTIONS,
                 trigger: RewardRollTrigger::NeowPotions,
             },
             id_source: None,
