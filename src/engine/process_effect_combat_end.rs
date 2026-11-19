@@ -91,7 +91,8 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
         }
 
         // The act's last map row has no next Room: its empty Reward's RoomExit enters the boss
-        if matches!(state.location, Location::Overworld { y, .. } if y == map_row_last(state.act)) {
+        if matches!(state.map.location, Location::Overworld { y, .. } if y == map_row_last(state.act))
+        {
             reward_reset(&mut state.reward);
             state.reward.active = true;
         }
@@ -139,15 +140,14 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
         }
     } else {
         // From Act 3 on, a Boss Room fight rolls no reward; every other fight rolls its reward
-        if !(matches!(state.location, Location::BossRoom) && state.act > ACT_LAST_BOSS_CHEST) {
+        if !(matches!(state.map.location, Location::BossRoom) && state.act > ACT_LAST_BOSS_CHEST) {
             // A "?" that resolved to a plain fight rewards as a normal Monster Room
-            let room_kind =
-                match get_active_room_kind(&state.id_rooms, state.location, &state.entities)
-                    .expect("Combat reward outside any room")
-                {
-                    RoomKind::Unknown => RoomKind::CombatMonster,
-                    kind => kind,
-                };
+            let room_kind = match get_active_room_kind(&state.map, &state.entities)
+                .expect("Combat reward outside any room")
+            {
+                RoomKind::Unknown => RoomKind::CombatMonster,
+                kind => kind,
+            };
 
             // Boss gold pre-rolls here so Golden Idol still scales it at staging
             let gold_amount = match room_kind {
@@ -185,7 +185,7 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
             }
 
             // A won fight in the burning Room grants the Emerald Key; the mark is only drawn while the key isn't held
-            if get_active_room_burning(&state.id_rooms, state.location, &state.entities) {
+            if get_active_room_burning(&state.map, &state.entities) {
                 queue_effect_untargeted(state, EffectKind::KeyObtain { key: Key::Emerald });
             }
 
@@ -210,7 +210,7 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
     queue_combat_end_relics(state);
 
     // From Act 3 on, the run's last Boss Room fight ends it once the combat-end Relics have resolved, resting on Map: Act 3's last with the door shut, or the Heart
-    if matches!(state.location, Location::BossRoom) && state.act > ACT_LAST_BOSS_CHEST {
+    if matches!(state.map.location, Location::BossRoom) && state.act > ACT_LAST_BOSS_CHEST {
         // Act 3's door opens with the final act on and all three keys; no key can change between here and its RoomExit
         let door_open = state.act == 3
             && state.final_act
@@ -244,9 +244,7 @@ fn relic_drops(state: &GameState) -> Vec<(RelicRoll, RelicExclusion)> {
             .map(|roll| (roll, RelicExclusion::Unfiltered))
             .collect();
     }
-    if get_active_room_kind(&state.id_rooms, state.location, &state.entities)
-        != Some(RoomKind::CombatElite)
-    {
+    if get_active_room_kind(&state.map, &state.entities) != Some(RoomKind::CombatElite) {
         return Vec::new();
     }
     let roll = RelicRoll::Thresholds {

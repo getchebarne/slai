@@ -36,18 +36,13 @@ pub fn process_effect_act_transition(state: &mut GameState) {
     });
 
     // Fresh map, with a burning elite while the Emerald Key isn't held; stale Room entities stay in the arena, unreachable via `id_rooms`
-    let (id_rooms, location) = generate_map(
+    state.map = generate_map(
         state.act,
         &mut state.rng,
         &mut state.entities,
         state.ascension,
         state.final_act && !state.key_emerald,
     );
-    state.id_rooms = id_rooms;
-    state.location = location;
-
-    // No Room is current at Location::Start
-    state.room_kind_resolved = None;
 
     // Re-roll the act's Encounter Pools and Boss
     state.encounter_pool_normal.clear();
