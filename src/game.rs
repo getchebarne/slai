@@ -60,6 +60,18 @@ pub enum Location {
     Victory, // Passed through on the way to Act 4: its entry hooks run, then the act transition
 }
 
+pub type IdRooms = [[Option<usize>; MAP_WIDTH]; MAP_HEIGHT];
+
+// The act's map and the location on it
+#[derive(Debug, Clone)]
+pub struct Map {
+    pub id_rooms: IdRooms,
+    pub location: Location,
+
+    // What the current Room resolved into, None at Location::Start; a "?" keeps Unknown on the map
+    pub room_kind_resolved: Option<RoomKind>,
+}
+
 // GameState: the single source of truth
 #[derive(Debug, Clone)]
 pub struct GameState {
@@ -94,15 +106,11 @@ pub struct GameState {
     // A pick's ids until the pick ends, from any pool; only a pick of several Cards leaves any at a halt
     pub id_selected: Vec<usize>,
 
-    // Location
-    pub location: Location,
-
-    // What the current Room resolved into, None at Location::Start; a "?" keeps Unknown on the map
-    pub room_kind_resolved: Option<RoomKind>,
+    // Map
+    pub map: Map,
 
     // Entities and indices
     pub entities: Vec<Entity>,
-    pub id_rooms: [[Option<usize>; MAP_WIDTH]; MAP_HEIGHT],
     pub id_character: usize,
 
     // Monster encounters
@@ -214,7 +222,7 @@ pub fn create_game_state(
     }
 
     // Initialize map; a new run holds no key, so the switch alone marks its burning elite
-    let (id_rooms, location) = generate_map(1, &mut rng, &mut entities, ascension, final_act);
+    let map = generate_map(1, &mut rng, &mut entities, ascension, final_act);
 
     // Pre-generate Monster encounters
     let mut encounter_pool_normal: Vec<MonsterEncounter> =
@@ -263,9 +271,7 @@ pub fn create_game_state(
         relic_seq_next: 1,
         id_potions,
         potion_slots_max,
-        id_rooms,
-        location,
-        room_kind_resolved: None,
+        map,
         encounter_pool_normal,
         encounter_pool_elite,
         encounter_boss,

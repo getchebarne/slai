@@ -645,7 +645,9 @@ pub fn relic_can_spawn(
         RelicName::TheCourier
         | RelicName::MawBank
         | RelicName::OldCoin
-        | RelicName::SmilingMask => floor <= 48 && state.room_kind_resolved != Some(RoomKind::Shop),
+        | RelicName::SmilingMask => {
+            floor <= 48 && state.map.room_kind_resolved != Some(RoomKind::Shop)
+        }
         RelicName::PreservedInsect => floor <= 52,
         _ => true,
     }

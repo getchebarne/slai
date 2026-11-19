@@ -104,7 +104,7 @@ pub fn process_effect_combat_start(state: &mut GameState, elite: bool) {
     });
 
     // The burning Room: one roll buffs the opening roster, behind its spawn kits and ahead of the battle-start Relics
-    if get_active_room_burning(&state.id_rooms, state.location, &state.entities) {
+    if get_active_room_burning(&state.map, &state.entities) {
         let act = state.act as i16;
         let kind = match state.rng.random_range(0..4) {
             0 => EffectKind::ModifierDelta {
