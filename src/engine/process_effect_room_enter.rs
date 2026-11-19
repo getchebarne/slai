@@ -35,8 +35,8 @@ use crate::utils::has_relic;
 use crate::utils::push_entity;
 
 pub fn process_effect_room_enter(state: &mut GameState, location: Location, landing: bool) {
-    state.location = location;
-    let room_kind = get_active_room_kind(&state.id_rooms, state.location, &state.entities);
+    state.map.location = location;
+    let room_kind = get_active_room_kind(&state.map, &state.entities);
 
     // The entry Relics pay out first, so everything the Room generates sees their gold
     if !landing {
@@ -95,12 +95,12 @@ pub fn process_effect_room_enter(state: &mut GameState, location: Location, land
     // A "?" (Unknown) node resolves into a concrete kind on entry via drifting odds
     let room_kind_resolved = if room_kind == RoomKind::Unknown {
         // The recorded kind is still the Room just left; this entry overwrites it below
-        let left_shop = state.room_kind_resolved == Some(RoomKind::Shop);
+        let left_shop = state.map.room_kind_resolved == Some(RoomKind::Shop);
         roll_unknown_room(state, left_shop)
     } else {
         room_kind
     };
-    state.room_kind_resolved = Some(room_kind_resolved);
+    state.map.room_kind_resolved = Some(room_kind_resolved);
 
     match room_kind_resolved {
         RoomKind::CombatBoss => {
@@ -146,7 +146,7 @@ pub fn process_effect_room_enter(state: &mut GameState, location: Location, land
         RoomKind::Treasure => {
             // The Boss Room's treasure is the boss chest, holding three Boss Relics; any other rolls its kind
             state.chest.id_relics.clear();
-            if state.location == Location::BossTreasure {
+            if state.map.location == Location::BossTreasure {
                 for _ in 0..BOSS_RELIC_REWARD_COUNT {
                     let name =
                         draw_relic_excluding(state, RelicTier::Boss, RelicExclusion::Unfiltered);
@@ -292,7 +292,7 @@ fn draw_event(state: &mut GameState) -> Option<EventName> {
     // Draw-gated events stay pooled until eligible
     let gold = state.entities[state.id_character].character_gold;
     let vitals = state.entities[state.id_character].vitals;
-    let row = match state.location {
+    let row = match state.map.location {
         Location::Overworld { y, .. } => y,
         _ => 0,
     };

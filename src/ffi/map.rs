@@ -1,20 +1,41 @@
 use pyo3::inspect::PyStaticExpr;
 use pyo3::prelude::*;
 use pyo3::sync::PyOnceLock;
+use pyo3::type_hint_union;
+use pyo3::type_object::PyTypeInfo;
 
+use super::macros::flat_variants;
 use super::macros::mirror_enum;
 
-use crate::consts::MAP_HEIGHT;
 use crate::game::GameState;
+use crate::game::IdRooms;
 use crate::game::Location;
 use crate::map::edge_indices;
 use crate::types::RoomKind;
 
-use super::monster::PyMonsterEncounter;
-
 mirror_enum!(PyRoomKind from RoomKind, "RoomKind", {
     CombatMonster, CombatElite, CombatBoss, RestSite, Treasure, EventRoom, Shop, Unknown,
 });
+
+flat_variants!(PyLocation {
+    Start => PyLocationStart as "LocationStart",
+    Overworld => PyLocationOverworld as "LocationOverworld" { y: usize, x: usize },
+    BossRoom => PyLocationBossRoom as "LocationBossRoom",
+    BossTreasure => PyLocationBossTreasure as "LocationBossTreasure",
+    Victory => PyLocationVictory as "LocationVictory",
+});
+
+impl From<Location> for PyLocation {
+    fn from(location: Location) -> Self {
+        match location {
+            Location::Start => Self::Start(PyLocationStart),
+            Location::Overworld { y, x } => Self::Overworld(PyLocationOverworld { y, x }),
+            Location::BossRoom => Self::BossRoom(PyLocationBossRoom),
+            Location::BossTreasure => Self::BossTreasure(PyLocationBossTreasure),
+            Location::Victory => Self::Victory(PyLocationVictory),
+        }
+    }
+}
 
 #[pyclass(
     skip_from_py_object,
@@ -23,58 +44,59 @@ mirror_enum!(PyRoomKind from RoomKind, "RoomKind", {
     name = "Room",
     module = "slai.slai"
 )]
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct PyRoom {
     pub id: usize,
     pub room_kind: PyRoomKind,
     pub edges: Vec<usize>,
     pub burning: bool, // The act's burning elite, shown from the map's creation to the act's end
 
-    // Its row and column in the Map's `rooms`
+    // Its row and column in the Map's `id_rooms`
     pub y: usize,
     pub x: usize,
 }
 
 #[pyclass(frozen, get_all, name = "Map", module = "slai.slai")]
 pub struct PyMap {
-    pub rooms: PyRooms,
-    pub y_current: Option<usize>,
-    pub x_current: Option<usize>,
-    pub room_kind_resolved: Option<PyRoomKind>, // What the current Room resolved into ("?" stays Unknown in `rooms`); a Shop rules out a Shop from the next "?"
-    pub boss: PyMonsterEncounter, // The act's boss as the map shows it; from the A20 stop's RoomExit on, the second boss
-    pub boss_fights_after: u8, // Boss fights still to come after `boss`'s: 1 in Act 3 from A20 until the second one starts, else 0
+    pub id_rooms: PyIdRooms,
+    pub location: PyLocation,
+
+    // The current Room's resolved kind ("?" stays Unknown on its Room); no Shop "?" after a Shop
+    pub room_kind_resolved: Option<PyRoomKind>,
     pub identity_hash: u64,
 }
 
-// The Room grid, made into its Python lists on the first read; every read returns the same lists
-pub struct PyRooms {
-    grid: Vec<Vec<Option<PyRoom>>>,
+// The Room id grid, made into its Python lists on the first read; every read returns the same lists
+pub struct PyIdRooms {
+    id_rooms: IdRooms,
     object: PyOnceLock<Py<PyAny>>,
 }
 
 // Typed as the grid's lists; the field's getter converts by reference
-impl<'py> IntoPyObject<'py> for PyRooms {
+impl<'py> IntoPyObject<'py> for PyIdRooms {
     type Target = PyAny;
     type Output = Bound<'py, PyAny>;
     type Error = PyErr;
-    const OUTPUT_TYPE: PyStaticExpr = <Vec<Vec<Option<PyRoom>>> as IntoPyObject<'py>>::OUTPUT_TYPE;
+    const OUTPUT_TYPE: PyStaticExpr = <IdRooms as IntoPyObject<'py>>::OUTPUT_TYPE;
 
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        (&self).into_pyobject(py).map(|rooms| rooms.to_owned())
+        (&self)
+            .into_pyobject(py)
+            .map(|id_rooms| id_rooms.to_owned())
     }
 }
 
-impl<'a, 'py> IntoPyObject<'py> for &'a PyRooms {
+impl<'a, 'py> IntoPyObject<'py> for &'a PyIdRooms {
     type Target = PyAny;
     type Output = Borrowed<'a, 'py, PyAny>;
     type Error = PyErr;
-    const OUTPUT_TYPE: PyStaticExpr = <Vec<Vec<Option<PyRoom>>> as IntoPyObject<'py>>::OUTPUT_TYPE;
+    const OUTPUT_TYPE: PyStaticExpr = <IdRooms as IntoPyObject<'py>>::OUTPUT_TYPE;
 
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        let rooms = self.object.get_or_try_init(py, || {
-            self.grid.clone().into_pyobject(py).map(Bound::unbind)
-        })?;
-        Ok(rooms.bind_borrowed(py))
+        let id_rooms = self
+            .object
+            .get_or_try_init(py, || self.id_rooms.into_pyobject(py).map(Bound::unbind))?;
+        Ok(id_rooms.bind_borrowed(py))
     }
 }
 
@@ -84,7 +106,7 @@ fn map_identity_hash(state: &GameState) -> u64 {
     use std::hash::Hash;
     use std::hash::Hasher;
     let mut hasher = std::collections::hash_map::DefaultHasher::new();
-    for (y, row) in state.id_rooms.iter().enumerate() {
+    for (y, row) in state.map.id_rooms.iter().enumerate() {
         for (x, cell) in row.iter().enumerate() {
             if let Some(id_room) = *cell {
                 let room = &state.entities[id_room];
@@ -96,47 +118,25 @@ fn map_identity_hash(state: &GameState) -> u64 {
 }
 
 pub(crate) fn snapshot_map(state: &GameState) -> PyMap {
-    let grid = state
-        .id_rooms
-        .iter()
-        .enumerate()
-        .map(|(y, row)| {
-            row.iter()
-                .enumerate()
-                .map(|(x, cell)| {
-                    cell.map(|id_room| {
-                        let room = &state.entities[id_room];
-                        PyRoom {
-                            id: id_room,
-                            room_kind: room.room_kind.into(),
-                            edges: edge_indices(room.room_edges).collect(),
-                            burning: room.room_burning,
-                            y,
-                            x,
-                        }
-                    })
-                })
-                .collect()
-        })
-        .collect();
-
-    let (y_current, x_current) = match state.location {
-        Location::Start => (None, None),
-        Location::Overworld { y, x } => (Some(y), Some(x)),
-        Location::BossRoom | Location::BossTreasure | Location::Victory => {
-            (Some(MAP_HEIGHT), Some(0))
-        }
-    };
     PyMap {
-        rooms: PyRooms {
-            grid,
+        id_rooms: PyIdRooms {
+            id_rooms: state.map.id_rooms,
             object: PyOnceLock::new(),
         },
-        y_current,
-        x_current,
-        room_kind_resolved: state.room_kind_resolved.map(Into::into),
-        boss: state.encounter_boss.into(),
-        boss_fights_after: state.encounter_pool_boss.len() as u8,
+        location: state.map.location.into(),
+        room_kind_resolved: state.map.room_kind_resolved.map(Into::into),
         identity_hash: map_identity_hash(state),
+    }
+}
+
+pub(crate) fn snapshot_room(state: &GameState, id_room: usize) -> PyRoom {
+    let room = &state.entities[id_room];
+    PyRoom {
+        id: id_room,
+        room_kind: room.room_kind.into(),
+        edges: edge_indices(room.room_edges).collect(),
+        burning: room.room_burning,
+        y: room.room_y,
+        x: room.room_x,
     }
 }

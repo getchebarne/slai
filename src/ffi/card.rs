@@ -2,10 +2,8 @@ use pyo3::inspect::PyStaticExpr;
 use pyo3::prelude::*;
 use pyo3::type_hint_union;
 use pyo3::type_object::PyTypeInfo;
-use strum::IntoEnumIterator;
 
 use crate::action::Action;
-use crate::effect::PlaySource;
 use crate::entity::CardCostKind;
 use crate::entity::Entity;
 use crate::entity::PlayRestriction;
@@ -114,50 +112,6 @@ mirror_enum!(PyCardName from CardName, "CardName", {
     RitualDagger, Necronomicurse,
 });
 
-#[pyclass(
-    skip_from_py_object,
-    eq,
-    eq_int,
-    frozen,
-    name = "PlaySource",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, strum::EnumIter)]
-pub enum PyPlaySource {
-    Hand,
-    DrawTop,
-    Replay,
-    ReplayCopy,
-    TurnEnd,
-}
-
-#[pymethods]
-impl PyPlaySource {
-    // Declaration order, which is also int() order
-    #[staticmethod]
-    fn members() -> Vec<PyPlaySource> {
-        PyPlaySource::iter().collect()
-    }
-
-    // Hash by raw discriminant so eq_int and hash agree; the derived hash
-    // breaks Python's eq/hash contract for int-keyed dicts
-    fn __hash__(&self) -> isize {
-        *self as isize
-    }
-}
-
-impl From<PlaySource> for PyPlaySource {
-    fn from(play_source: PlaySource) -> Self {
-        match play_source {
-            PlaySource::Hand => Self::Hand,
-            PlaySource::DrawTop => Self::DrawTop,
-            PlaySource::Replay => Self::Replay,
-            PlaySource::ReplayCopy { .. } => Self::ReplayCopy,
-            PlaySource::TurnEnd { .. } => Self::TurnEnd,
-        }
-    }
-}
-
 // Exposed structs
 #[pyclass(
     skip_from_py_object,
@@ -168,7 +122,7 @@ impl From<PlaySource> for PyPlaySource {
     name = "Card",
     module = "slai.slai"
 )]
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub struct PyCard {
     pub id: usize, // Entity ID
     pub name: PyCardName,
@@ -204,9 +158,6 @@ pub struct PyCard {
 
     // Price while the Shop offers it
     pub price: Option<u16>,
-
-    // What queued it while it waits in the card play queue
-    pub play_source: Option<PyPlaySource>,
 
     // The Cards above it in the draw pile, when its draw depth is known (Frozen Eye: always)
     pub draw_depth: Option<u16>,
@@ -500,7 +451,6 @@ pub(crate) fn snapshot_card(state: &GameState, id_card: usize) -> PyCard {
         id_card,
         get_card_effective_cost(card, 0),
         effects_play,
-        None,
     )
 }
 
@@ -512,16 +462,15 @@ pub(crate) fn snapshot_card_combat(
 ) -> PyCard {
     let cost =
         get_card_effective_cost(&state.entities[id_card], state.combat.energy.energy_current);
-    snapshot_card_combat_at_cost(state, id_card, cost, draw_pile_size, None)
+    snapshot_card_combat_at_cost(state, id_card, cost, draw_pile_size)
 }
 
-// A Card of the fight priced at `cost`; a waiting play carries its queued cost and play source
+// A Card of the fight priced at `cost`; a waiting play carries its queued cost
 pub(crate) fn snapshot_card_combat_at_cost(
     state: &GameState,
     id_card: usize,
     cost: u16,
     draw_pile_size: u16,
-    play_source: Option<PyPlaySource>,
 ) -> PyCard {
     let card = &state.entities[id_card];
     build_py_card(
@@ -529,17 +478,15 @@ pub(crate) fn snapshot_card_combat_at_cost(
         id_card,
         cost,
         snapshot_adjusted_effects(state, card, cost, draw_pile_size),
-        play_source,
     )
 }
 
-// The Card's own fields, with the cost, play effects and play source its place decides
+// The Card's own fields, with the cost and play effects its place decides
 fn build_py_card(
     state: &GameState,
     id_card: usize,
     cost: u16,
     effects_play: Vec<PyEffect>,
-    play_source: Option<PyPlaySource>,
 ) -> PyCard {
     let card = &state.entities[id_card];
 
@@ -590,7 +537,6 @@ fn build_py_card(
             .collect(),
         effects_draw: card.card_effects_draw.iter().map(snapshot_effect).collect(),
         price: card.price,
-        play_source,
         draw_depth,
         identity_hash: 0,
     };

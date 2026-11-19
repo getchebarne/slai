@@ -157,6 +157,8 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyCard;
     #[pymodule_export]
+    use super::ffi::PyCardPlay;
+    #[pymodule_export]
     use super::ffi::PyCharacter;
     #[pymodule_export]
     use super::ffi::PyEnergy;
@@ -432,6 +434,16 @@ mod slai {
     use super::ffi::PyEffectWheelSpin;
     #[pymodule_export]
     use super::ffi::PyEvent;
+    #[pymodule_export]
+    use super::ffi::PyLocationBossRoom;
+    #[pymodule_export]
+    use super::ffi::PyLocationBossTreasure;
+    #[pymodule_export]
+    use super::ffi::PyLocationOverworld;
+    #[pymodule_export]
+    use super::ffi::PyLocationStart;
+    #[pymodule_export]
+    use super::ffi::PyLocationVictory;
     #[pymodule_export]
     use super::ffi::PyRestSite;
     #[pymodule_export]

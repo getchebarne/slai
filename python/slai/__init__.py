@@ -155,6 +155,7 @@ Action = _rs.Action
 
 # Views
 Card = _rs.Card
+CardPlay = _rs.CardPlay
 Character = _rs.Character
 Energy = _rs.Energy
 EventOption = _rs.EventOption
@@ -424,6 +425,19 @@ CardCostKind = (
     | CardCostKindXCost
 )
 
+LocationStart = _rs.LocationStart
+LocationOverworld = _rs.LocationOverworld
+LocationBossRoom = _rs.LocationBossRoom
+LocationBossTreasure = _rs.LocationBossTreasure
+LocationVictory = _rs.LocationVictory
+Location = (
+    LocationStart
+    | LocationOverworld
+    | LocationBossRoom
+    | LocationBossTreasure
+    | LocationVictory
+)
+
 AmountAbsolute = _rs.AmountAbsolute
 AmountRelative = _rs.AmountRelative
 AmountRange = _rs.AmountRange
@@ -508,6 +522,7 @@ __all__ = [
     "ACTION_SPEC_REGISTRY",
     # Views
     "Card",
+    "CardPlay",
     "Character",
     "Energy",
     "EventOption",
@@ -551,6 +566,12 @@ __all__ = [
     "CardCostKindMinusDiscardsThisTurn",
     "CardCostKindGrowsOnDamageInstanceTaken",
     "CardCostKindXCost",
+    "Location",
+    "LocationStart",
+    "LocationOverworld",
+    "LocationBossRoom",
+    "LocationBossTreasure",
+    "LocationVictory",
     "Target",
     "Effect",
     "PendingEffect",

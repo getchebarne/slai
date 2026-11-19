@@ -4,6 +4,7 @@ use strum::IntoEnumIterator;
 use super::macros::mirror_enum;
 
 use super::effect::PyEffect;
+use super::effect::id_target_shown;
 use super::effect::snapshot_effect;
 use crate::consts::FACTOR_BACK_ATTACK;
 use crate::effect::EffectKind;
@@ -18,7 +19,6 @@ use crate::types::MonsterEncounter;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
 use crate::types::RelicName;
-use crate::utils::entity_requires_target;
 use crate::utils::has_relic;
 use crate::utils::scale_attack_damage;
 use crate::utils::slow_factor;
@@ -143,7 +143,7 @@ pub struct PyIntent {
     name = "Monster",
     module = "slai.slai"
 )]
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub struct PyMonster {
     pub id: usize,
     pub slot: u8, // The roster index: Monsters act in slot order, and a summon takes its leader's first free post
@@ -163,10 +163,6 @@ pub struct PyMonster {
 }
 
 pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
-    if !state.combat.active {
-        return Vec::new();
-    }
-
     // Runic Dome hides every Monster's upcoming move; its history shows only the executed moves
     let move_hidden = has_relic(&state.id_relics, RelicName::RunicDome);
     let character = &state.entities[state.id_character];
@@ -287,8 +283,7 @@ pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
                 matches!(
                     card_play.play_source,
                     PlaySource::Replay | PlaySource::ReplayCopy { .. }
-                ) && entity_requires_target(&state.entities[card_play.id_card])
-                    && card_play.id_target == Some(id_monster)
+                ) && id_target_shown(state, card_play) == Some(id_monster)
             });
 
             PyMonster {
