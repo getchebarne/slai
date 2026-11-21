@@ -14,7 +14,7 @@ use crate::effect::RelicRoll;
 use crate::effect::ScaledAt;
 use crate::effect::Target;
 use crate::game::GameState;
-use crate::game::Location;
+use crate::types::Location;
 use crate::utils::entity_requires_target;
 
 use super::amount::PyAmount;

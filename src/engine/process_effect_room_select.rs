@@ -2,8 +2,8 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
-use crate::game::Location;
 use crate::map::has_edge;
+use crate::types::Location;
 use crate::types::RelicName;
 
 pub fn process_effect_room_select(id_target: Option<usize>, state: &mut GameState) {

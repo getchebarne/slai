@@ -8,9 +8,9 @@ use super::macros::flat_variants;
 use super::macros::mirror_enum;
 
 use crate::game::GameState;
-use crate::game::IdRooms;
-use crate::game::Location;
 use crate::map::edge_indices;
+use crate::types::IdRooms;
+use crate::types::Location;
 use crate::types::RoomKind;
 
 mirror_enum!(PyRoomKind from RoomKind, "RoomKind", {

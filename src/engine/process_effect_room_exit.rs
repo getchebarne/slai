@@ -3,9 +3,9 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
-use crate::game::Location;
 use crate::map::map_row_last;
 use crate::types::Focus;
+use crate::types::Location;
 use crate::utils::context_focus;
 
 pub fn process_effect_room_exit(state: &mut GameState) {

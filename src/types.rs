@@ -1,6 +1,8 @@
 use strum::EnumCount;
 use strum::EnumIter;
 
+use crate::consts::MAP_HEIGHT;
+use crate::consts::MAP_WIDTH;
 use crate::consts::MAX_MONSTERS;
 use crate::consts::PANACHE_PLAYS;
 use crate::entity::Entity;
@@ -230,6 +232,28 @@ pub struct Chest {
     pub chest_kind: ChestKind,
     pub chest_opened: bool,
     pub id_relics: Vec<usize>, // The boss chest's three Boss Relics
+}
+
+// The Map's Room ids, row by row; None where a cell holds no Room
+pub type IdRooms = [[Option<usize>; MAP_WIDTH]; MAP_HEIGHT];
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Location {
+    Start,
+    Overworld { y: usize, x: usize },
+    BossRoom,
+    BossTreasure, // The boss chest's Room, entered on leaving an Act 1 or Act 2 Boss Room
+    Victory, // Passed through on the way to Act 4: its entry hooks run, then the act transition
+}
+
+// The act's map and the location on it
+#[derive(Debug, Clone)]
+pub struct Map {
+    pub id_rooms: IdRooms,
+    pub location: Location,
+
+    // What the current Room resolved into, None at Location::Start; a "?" keeps Unknown on the map
+    pub room_kind_resolved: Option<RoomKind>,
 }
 
 // The focused context

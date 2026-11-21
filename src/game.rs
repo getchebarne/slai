@@ -13,8 +13,6 @@ use crate::consts::BOSS_RELIC_REWARD_COUNT;
 use crate::consts::DISCOVER_ROLL_COUNT;
 use crate::consts::ENCOUNTER_POOL_CAPACITY_ELITE;
 use crate::consts::ENCOUNTER_POOL_CAPACITY_NORMAL;
-use crate::consts::MAP_HEIGHT;
-use crate::consts::MAP_WIDTH;
 use crate::consts::MAX_CANDIDATES;
 use crate::consts::MAX_EFFECTS_PER_HANDLER;
 use crate::consts::MAX_ENTITIES;
@@ -50,27 +48,6 @@ use crate::relics::get_relic;
 use crate::types::*;
 use crate::utils::push_entity;
 use crate::utils::shuffle;
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Location {
-    Start,
-    Overworld { y: usize, x: usize },
-    BossRoom,
-    BossTreasure, // The boss chest's Room, entered on leaving an Act 1 or Act 2 Boss Room
-    Victory, // Passed through on the way to Act 4: its entry hooks run, then the act transition
-}
-
-pub type IdRooms = [[Option<usize>; MAP_WIDTH]; MAP_HEIGHT];
-
-// The act's map and the location on it
-#[derive(Debug, Clone)]
-pub struct Map {
-    pub id_rooms: IdRooms,
-    pub location: Location,
-
-    // What the current Room resolved into, None at Location::Start; a "?" keeps Unknown on the map
-    pub room_kind_resolved: Option<RoomKind>,
-}
 
 // GameState: the single source of truth
 #[derive(Debug, Clone)]
