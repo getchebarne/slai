@@ -3,10 +3,10 @@ use crate::types::EventName;
 use crate::types::Focus;
 use crate::utils::context_focus;
 
-pub fn process_effect_event_advance_state(state: &mut GameState, delta: i8) {
+pub fn process_effect_event_advance_stage(state: &mut GameState, delta: i8) {
     assert!(
         context_focus(state) == Focus::Event,
-        "EventAdvanceState outside the Event context"
+        "EventAdvanceStage outside the Event context"
     );
     assert!(
         matches!(
@@ -16,7 +16,7 @@ pub fn process_effect_event_advance_state(state: &mut GameState, delta: i8) {
                 | EventName::ScrapOoze
                 | EventName::CursedTome
         ),
-        "EventAdvanceState on stateless event: {:?}",
+        "EventAdvanceStage on stageless event: {:?}",
         state.event.name
     );
     let stage = &mut state.event.stage;

@@ -3,7 +3,7 @@ use crate::effect::EffectKind;
 use crate::effect::RelicExclusion;
 use crate::effect::RelicRoll;
 use crate::effect::Target;
-use crate::events::EFFECT_EVENT_ADVANCE;
+use crate::events::EFFECT_EVENT_ADVANCE_STAGE;
 use crate::events::EFFECT_EVENT_CONSUME;
 use crate::events::EOT_LEAVE;
 use crate::events::EventOptionTemplate;
@@ -21,16 +21,16 @@ const BOOK_POOL: &[RelicName] = &[
 ];
 
 // Read: open the book and start turning pages
-const OPTION_READ: [Effect; 1] = [EFFECT_EVENT_ADVANCE];
+const OPTION_READ: [Effect; 1] = [EFFECT_EVENT_ADVANCE_STAGE];
 
 // Page 1: 1 HP
-const OPTION_PAGE_1: [Effect; 2] = [health_delta(1), EFFECT_EVENT_ADVANCE];
+const OPTION_PAGE_1: [Effect; 2] = [health_delta(1), EFFECT_EVENT_ADVANCE_STAGE];
 
 // Page 2: 2 HP
-const OPTION_PAGE_2: [Effect; 2] = [health_delta(2), EFFECT_EVENT_ADVANCE];
+const OPTION_PAGE_2: [Effect; 2] = [health_delta(2), EFFECT_EVENT_ADVANCE_STAGE];
 
 // Page 3: 3 HP
-const OPTION_PAGE_3: [Effect; 2] = [health_delta(3), EFFECT_EVENT_ADVANCE];
+const OPTION_PAGE_3: [Effect; 2] = [health_delta(3), EFFECT_EVENT_ADVANCE_STAGE];
 
 // The book is staged as a reward the player may leave; consume first, so it overlays the event
 const fn take_book(damage: u16) -> [Effect; 3] {

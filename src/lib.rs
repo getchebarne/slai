@@ -321,7 +321,7 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEffectEscapePlanCheck;
     #[pymodule_export]
-    use super::ffi::PyEffectEventAdvanceState;
+    use super::ffi::PyEffectEventAdvanceStage;
     #[pymodule_export]
     use super::ffi::PyEffectEventClose;
     #[pymodule_export]

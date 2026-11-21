@@ -152,7 +152,7 @@ pub enum EffectKind {
     EscapePlanCheck {
         block: u16,
     },
-    EventAdvanceState {
+    EventAdvanceStage {
         delta: i8,
     },
     EventClose,

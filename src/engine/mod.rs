@@ -52,7 +52,7 @@ pub mod process_effect_distraction_add;
 pub mod process_effect_du_vu_doll_recount;
 pub mod process_effect_energy_delta;
 pub mod process_effect_escape_plan_check;
-pub mod process_effect_event_advance_state;
+pub mod process_effect_event_advance_stage;
 pub mod process_effect_event_close;
 pub mod process_effect_event_consume;
 pub mod process_effect_face_monster;
@@ -195,7 +195,7 @@ use self::process_effect_distraction_add::process_effect_distraction_add;
 use self::process_effect_du_vu_doll_recount::process_effect_du_vu_doll_recount;
 use self::process_effect_energy_delta::process_effect_energy_delta;
 use self::process_effect_escape_plan_check::process_effect_escape_plan_check;
-use self::process_effect_event_advance_state::process_effect_event_advance_state;
+use self::process_effect_event_advance_stage::process_effect_event_advance_stage;
 use self::process_effect_event_close::process_effect_event_close;
 use self::process_effect_event_consume::process_effect_event_consume;
 use self::process_effect_face_monster::process_effect_face_monster;
@@ -995,7 +995,7 @@ fn dispatch_by_kind(
             enqueue_rest_of_targets(state, kind, id_source, id_targets);
             process_effect_relic_adopt(id_targets.first().copied(), state)
         }
-        EffectKind::EventAdvanceState { delta } => process_effect_event_advance_state(state, delta),
+        EffectKind::EventAdvanceStage { delta } => process_effect_event_advance_stage(state, delta),
         EffectKind::ScrapOozeReach {
             chance,
             advance_on_miss,

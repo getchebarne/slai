@@ -172,7 +172,7 @@ flat_variants!(PyEffect {
     CombatStart => PyEffectCombatStart as "EffectCombatStart",
     AdventurerSearch => PyEffectAdventurerSearch as "EffectAdventurerSearch",
     RelicGrantSpecific => PyEffectRelicGrantSpecific as "EffectRelicGrantSpecific" { name: PyRelicName },
-    EventAdvanceState => PyEffectEventAdvanceState as "EffectEventAdvanceState" { delta: i8 },
+    EventAdvanceStage => PyEffectEventAdvanceStage as "EffectEventAdvanceStage" { delta: i8 },
     ScrapOozeReach => PyEffectScrapOozeReach as "EffectScrapOozeReach" { chance: u8, advance_on_miss: bool },
     EventConsume => PyEffectEventConsume as "EffectEventConsume",
     EventClose => PyEffectEventClose as "EffectEventClose",
@@ -340,7 +340,7 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
                     | EffectKind::CombatStart { .. }
                     | EffectKind::DistractionAdd
                     | EffectKind::EnergyDelta { .. }
-                    | EffectKind::EventAdvanceState { .. }
+                    | EffectKind::EventAdvanceStage { .. }
                     | EffectKind::EventClose
                     | EffectKind::EventConsume
                     | EffectKind::Gamble { .. }
@@ -561,8 +561,8 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
         EffectKind::RelicGrantSpecific { name } => {
             PyEffect::RelicGrantSpecific(PyEffectRelicGrantSpecific { name: name.into() })
         }
-        EffectKind::EventAdvanceState { delta } => {
-            PyEffect::EventAdvanceState(PyEffectEventAdvanceState { delta })
+        EffectKind::EventAdvanceStage { delta } => {
+            PyEffect::EventAdvanceStage(PyEffectEventAdvanceStage { delta })
         }
         EffectKind::ScrapOozeReach {
             chance,
