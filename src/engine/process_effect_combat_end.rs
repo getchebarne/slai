@@ -211,12 +211,8 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
 
     // From Act 3 on, the run's last Boss Room fight ends it once the combat-end Relics have resolved, resting on Map: Act 3's last with the door shut, or the Heart
     if matches!(state.map.location, Location::BossRoom) && state.act > ACT_LAST_BOSS_CHEST {
-        // Act 3's door opens with the final act on and all three keys; no key can change between here and its RoomExit
-        let door_open = state.act == 3
-            && state.final_act
-            && state.key_emerald
-            && state.key_ruby
-            && state.key_sapphire;
+        // Act 3's door opens with all three keys; no key can change between here and its RoomExit
+        let door_open = state.act == 3 && state.key_emerald && state.key_ruby && state.key_sapphire;
         if state.encounter_pool_boss.is_empty() && !door_open {
             state.phase_queue.push_back(Effect {
                 kind: EffectKind::GameOver,

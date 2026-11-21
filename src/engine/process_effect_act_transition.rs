@@ -41,7 +41,7 @@ pub fn process_effect_act_transition(state: &mut GameState) {
         &mut state.rng,
         &mut state.entities,
         state.ascension,
-        state.final_act && !state.key_emerald,
+        !state.key_emerald,
     );
 
     // Re-roll the act's Encounter Pools and Boss

@@ -898,8 +898,8 @@ fn fill_legal_actions_rest_site(state: &mut GameState) {
             any_option = true;
         }
 
-        // With the final act on: Recall for the Ruby Key until it's held; no Relic gates it
-        if state.final_act && !state.key_ruby {
+        // Recall for the Ruby Key until it's held; no Relic gates it
+        if !state.key_ruby {
             state.legal_actions.push(Action::RestRecall);
             any_option = true;
         }

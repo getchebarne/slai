@@ -63,7 +63,6 @@ pub struct PyGameState {
     pub chest: Option<Py<PyChest>>,
     pub game_over: bool,
     pub ascension: u8,
-    pub final_act: bool, // The keys and Act 4 are on for this run; fixed at creation
 
     // Keys for Act IV
     pub key_emerald: bool,
@@ -175,7 +174,6 @@ pub fn snapshot_state(py: Python<'_>, state: &GameState) -> PyResult<PyGameState
             .transpose()?,
         game_over: state.game_over,
         ascension: state.ascension,
-        final_act: state.final_act,
         key_emerald: state.key_emerald,
         key_ruby: state.key_ruby,
         key_sapphire: state.key_sapphire,

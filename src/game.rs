@@ -79,7 +79,7 @@ pub struct GameState {
     pub ascension: u8,
     pub rng: SmallRng,
 
-    // Current act, 1-based; Act 3's last boss fight ends the run, or with the final act on and all three keys opens the door to Act 4
+    // Current act, 1-based; Act 3's last boss fight ends the run unless all three keys open Act 4
     pub act: u8,
 
     // The run's floor: +1 for every Room entered, never at the act transition
@@ -174,9 +174,6 @@ pub struct GameState {
     // When set, the run opens on Neow's blessing before the first Room selection
     pub neow: bool,
 
-    // When set, the keys and Act 4 are on for this run; fixed at creation
-    pub final_act: bool,
-
     // The keys held: false at a new run, set once by KeyObtain and never cleared
     pub key_emerald: bool,
     pub key_ruby: bool,
@@ -184,13 +181,7 @@ pub struct GameState {
 }
 
 // Create and initialize
-pub fn create_game_state(
-    ascension: u8,
-    seed: u64,
-    fast_mode: bool,
-    neow: bool,
-    final_act: bool,
-) -> GameState {
+pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) -> GameState {
     let mut rng = SmallRng::seed_from_u64(seed);
 
     // Initialize empty entities arena
@@ -221,8 +212,8 @@ pub fn create_game_state(
         id_card_pile_deck.push(id_card);
     }
 
-    // Initialize map; a new run holds no key, so the switch alone marks its burning elite
-    let map = generate_map(1, &mut rng, &mut entities, ascension, final_act);
+    // Initialize map; a new run holds no key, so it marks its burning elite
+    let map = generate_map(1, &mut rng, &mut entities, ascension, true);
 
     // Pre-generate Monster encounters
     let mut encounter_pool_normal: Vec<MonsterEncounter> =
@@ -387,7 +378,6 @@ pub fn create_game_state(
         legal_actions: Vec::new(),
         fast_mode,
         neow,
-        final_act,
         key_emerald: false,
         key_ruby: false,
         key_sapphire: false,

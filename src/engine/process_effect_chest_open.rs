@@ -152,8 +152,8 @@ pub fn process_effect_chest_open(state: &mut GameState) {
         },
     );
 
-    // The Sapphire Key: with the final act on, offered until the run holds it; queued right behind the chest's own roll, which it links, and ahead of N'loth's removal
-    if state.final_act && !state.key_sapphire {
+    // The Sapphire Key until it's held: behind the chest's roll it links, ahead of N'loth's removal
+    if !state.key_sapphire {
         queue_effect_untargeted(state, EffectKind::KeySapphireLink);
     }
 
