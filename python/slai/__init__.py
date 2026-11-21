@@ -239,7 +239,7 @@ EffectMonsterSpawn = _rs.EffectMonsterSpawn
 EffectCombatStart = _rs.EffectCombatStart
 EffectAdventurerSearch = _rs.EffectAdventurerSearch
 EffectRelicGrantSpecific = _rs.EffectRelicGrantSpecific
-EffectEventAdvanceState = _rs.EffectEventAdvanceState
+EffectEventAdvanceStage = _rs.EffectEventAdvanceStage
 EffectScrapOozeReach = _rs.EffectScrapOozeReach
 EffectEventConsume = _rs.EffectEventConsume
 EffectEventClose = _rs.EffectEventClose
@@ -331,7 +331,7 @@ Effect = (
     | EffectCombatStart
     | EffectAdventurerSearch
     | EffectRelicGrantSpecific
-    | EffectEventAdvanceState
+    | EffectEventAdvanceStage
     | EffectScrapOozeReach
     | EffectEventConsume
     | EffectEventClose
@@ -624,7 +624,7 @@ __all__ = [
     "EffectCombatStart",
     "EffectAdventurerSearch",
     "EffectRelicGrantSpecific",
-    "EffectEventAdvanceState",
+    "EffectEventAdvanceStage",
     "EffectScrapOozeReach",
     "EffectEventConsume",
     "EffectEventClose",
