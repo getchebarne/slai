@@ -113,8 +113,8 @@ pub const EFFECT_DECK_TRANSFORM_SELECT_1: Effect = Effect {
     },
 };
 
-pub const EFFECT_EVENT_ADVANCE: Effect = Effect {
-    kind: EffectKind::EventAdvanceState { delta: 1 },
+pub const EFFECT_EVENT_ADVANCE_STAGE: Effect = Effect {
+    kind: EffectKind::EventAdvanceStage { delta: 1 },
     id_source: None,
     target: Target::Direct(None),
 };

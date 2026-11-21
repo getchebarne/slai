@@ -26,7 +26,7 @@ const OPTION_TAKE: &[Effect] = &[
         target: Target::Direct(None),
     },
     Effect {
-        kind: EffectKind::EventAdvanceState { delta: 1 }, // Outrun / Smash / Hide
+        kind: EffectKind::EventAdvanceStage { delta: 1 }, // Outrun / Smash / Hide
         id_source: None,
         target: Target::Direct(None),
     },

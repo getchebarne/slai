@@ -3,7 +3,7 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::RelicRoll;
 use crate::effect::Target;
-use crate::events::EFFECT_EVENT_ADVANCE;
+use crate::events::EFFECT_EVENT_ADVANCE_STAGE;
 use crate::events::EFFECT_EVENT_CLOSE;
 use crate::events::EventLoot;
 use crate::events::EventOptionTemplate;
@@ -28,7 +28,7 @@ const fn monster_spawn(name: MonsterName, slot: usize) -> Effect {
 // First bout: the event stays live beneath the fight and resumes with no reward
 const OPTION_FIGHT: &[Effect] = &[
     Effect {
-        kind: EffectKind::EventAdvanceState { delta: 1 },
+        kind: EffectKind::EventAdvanceStage { delta: 1 },
         id_source: None,
         target: Target::Direct(None),
     },
@@ -43,7 +43,7 @@ const OPTION_FIGHT: &[Effect] = &[
 
 // Second bout: an elite pair with a rare+uncommon Relic purse and 100 gold
 const OPTION_FIGHT_NOBS: &[Effect] = &[
-    EFFECT_EVENT_ADVANCE,
+    EFFECT_EVENT_ADVANCE_STAGE,
     monster_spawn(MonsterName::Taskmaster, 0),
     monster_spawn(MonsterName::GremlinNob, 1),
     Effect {

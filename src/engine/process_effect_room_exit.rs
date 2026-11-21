@@ -3,9 +3,9 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
-use crate::game::Location;
 use crate::map::map_row_last;
 use crate::types::Focus;
+use crate::types::Location;
 use crate::utils::context_focus;
 
 pub fn process_effect_room_exit(state: &mut GameState) {
@@ -27,7 +27,7 @@ pub fn process_effect_room_exit(state: &mut GameState) {
     }
 
     // An Act 1 or Act 2 Boss Room opens onto its treasure Room, whose exit starts the next act
-    match state.location {
+    match state.map.location {
         Location::BossRoom if state.act <= ACT_LAST_BOSS_CHEST => {
             state.effect_queue.push_front(Effect {
                 kind: EffectKind::RoomEnter {
@@ -78,7 +78,7 @@ pub fn process_effect_room_exit(state: &mut GameState) {
     }
 
     // Leaving a Room on the act's last map row (a row-14 rest site, Act 4's elite) enters the boss; Secret Portal enters it from its event
-    if matches!(state.location, Location::Overworld { y, .. } if y == map_row_last(state.act)) {
+    if matches!(state.map.location, Location::Overworld { y, .. } if y == map_row_last(state.act)) {
         state.effect_queue.push_front(Effect {
             kind: EffectKind::RoomEnter {
                 location: Location::BossRoom,

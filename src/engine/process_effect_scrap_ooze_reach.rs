@@ -28,7 +28,7 @@ pub fn process_effect_scrap_ooze_reach(state: &mut GameState, chance: u8, advanc
         });
     } else if advance_on_miss {
         state.effect_buf.push(Effect {
-            kind: EffectKind::EventAdvanceState { delta: 1 },
+            kind: EffectKind::EventAdvanceStage { delta: 1 },
             id_source: None,
             target: Target::Direct(None),
         });

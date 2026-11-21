@@ -28,7 +28,7 @@ mirror_enum!(PyEventName from EventName, "EventName", {
     name = "EventOption",
     module = "slai.slai"
 )]
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub struct PyEventOption {
     pub id: usize,
     pub effects: Vec<PyEffect>,

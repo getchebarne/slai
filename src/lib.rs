@@ -103,10 +103,10 @@ impl GameEnv {
     const MATCH_AND_KEEP_ATTEMPTS: u8 = consts::MATCH_AND_KEEP_ATTEMPTS;
 
     #[new]
-    #[pyo3(signature = (ascension=0, fast_mode=false, neow=false, final_act=true))]
-    fn new(ascension: u8, fast_mode: bool, neow: bool, final_act: bool) -> Self {
+    #[pyo3(signature = (ascension=0, fast_mode=false, neow=false))]
+    fn new(ascension: u8, fast_mode: bool, neow: bool) -> Self {
         // Placeholder seed; consumers must call `reset(seed=...)` before stepping (gymnasium convention)
-        let state = create_game_state(ascension, 0, fast_mode, neow, final_act);
+        let state = create_game_state(ascension, 0, fast_mode, neow);
         GameEnv { state }
     }
 
@@ -114,13 +114,7 @@ impl GameEnv {
     #[pyo3(signature = (seed=42))]
     fn reset(&mut self, py: Python<'_>, seed: u64) -> PyResult<PyGameState> {
         let asc = self.state.ascension;
-        self.state = create_game_state(
-            asc,
-            seed,
-            self.state.fast_mode,
-            self.state.neow,
-            self.state.final_act,
-        );
+        self.state = create_game_state(asc, seed, self.state.fast_mode, self.state.neow);
         snapshot_state(py, &self.state)
     }
 
@@ -156,6 +150,8 @@ mod slai {
     // Snapshot views
     #[pymodule_export]
     use super::ffi::PyCard;
+    #[pymodule_export]
+    use super::ffi::PyCardPlay;
     #[pymodule_export]
     use super::ffi::PyCharacter;
     #[pymodule_export]
@@ -325,7 +321,7 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEffectEscapePlanCheck;
     #[pymodule_export]
-    use super::ffi::PyEffectEventAdvanceState;
+    use super::ffi::PyEffectEventAdvanceStage;
     #[pymodule_export]
     use super::ffi::PyEffectEventClose;
     #[pymodule_export]
@@ -432,6 +428,16 @@ mod slai {
     use super::ffi::PyEffectWheelSpin;
     #[pymodule_export]
     use super::ffi::PyEvent;
+    #[pymodule_export]
+    use super::ffi::PyLocationBossRoom;
+    #[pymodule_export]
+    use super::ffi::PyLocationBossTreasure;
+    #[pymodule_export]
+    use super::ffi::PyLocationOverworld;
+    #[pymodule_export]
+    use super::ffi::PyLocationStart;
+    #[pymodule_export]
+    use super::ffi::PyLocationVictory;
     #[pymodule_export]
     use super::ffi::PyRestSite;
     #[pymodule_export]

@@ -20,9 +20,14 @@ pub fn process_effect_card_nightmare_spawn(id_target: Option<usize>, state: &mut
         .iter()
         .position(|&(id, _)| id == id_target)
         .expect("CardNightmareSpawn requires a pending snapshot");
+
+    // Remove from Nightmare pile
     state.combat.id_card_pile_nightmare.remove(idx);
 
+    // Clear Effect buffer
     state.effect_buf.clear();
+
+    // Push `NIGHTMARE_COPIES` plain copies
     let card_template = state.entities[id_target];
     for _ in 0..NIGHTMARE_COPIES {
         let id_card = push_entity(&mut state.entities, card_template);

@@ -53,7 +53,7 @@ mirror_enum!(PyRelicExclusion from RelicExclusion, "RelicExclusion", {
     name = "Relic",
     module = "slai.slai"
 )]
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub struct PyRelic {
     pub id: usize,
     pub name: PyRelicName,

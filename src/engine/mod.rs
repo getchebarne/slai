@@ -52,7 +52,7 @@ pub mod process_effect_distraction_add;
 pub mod process_effect_du_vu_doll_recount;
 pub mod process_effect_energy_delta;
 pub mod process_effect_escape_plan_check;
-pub mod process_effect_event_advance_state;
+pub mod process_effect_event_advance_stage;
 pub mod process_effect_event_close;
 pub mod process_effect_event_consume;
 pub mod process_effect_face_monster;
@@ -195,7 +195,7 @@ use self::process_effect_distraction_add::process_effect_distraction_add;
 use self::process_effect_du_vu_doll_recount::process_effect_du_vu_doll_recount;
 use self::process_effect_energy_delta::process_effect_energy_delta;
 use self::process_effect_escape_plan_check::process_effect_escape_plan_check;
-use self::process_effect_event_advance_state::process_effect_event_advance_state;
+use self::process_effect_event_advance_stage::process_effect_event_advance_stage;
 use self::process_effect_event_close::process_effect_event_close;
 use self::process_effect_event_consume::process_effect_event_consume;
 use self::process_effect_face_monster::process_effect_face_monster;
@@ -301,11 +301,11 @@ use crate::effect::pool_is_cards;
 use crate::entity::Entity;
 use crate::entity::EntityKind;
 use crate::game::GameState;
-use crate::game::Location;
 use crate::map::get_active_room_kind;
 use crate::types::Combat;
 use crate::types::Event;
 use crate::types::EventName;
+use crate::types::Location;
 use crate::types::RoomKind;
 use crate::utils::filter_candidates;
 use crate::utils::monsters_alive;
@@ -995,7 +995,7 @@ fn dispatch_by_kind(
             enqueue_rest_of_targets(state, kind, id_source, id_targets);
             process_effect_relic_adopt(id_targets.first().copied(), state)
         }
-        EffectKind::EventAdvanceState { delta } => process_effect_event_advance_state(state, delta),
+        EffectKind::EventAdvanceStage { delta } => process_effect_event_advance_stage(state, delta),
         EffectKind::ScrapOozeReach {
             chance,
             advance_on_miss,
@@ -1082,7 +1082,7 @@ fn ensure_context_validity(state: &GameState) {
     if state.game_over {
         return;
     }
-    let room_kind = get_active_room_kind(&state.id_rooms, state.location, &state.entities);
+    let room_kind = get_active_room_kind(&state.map, &state.entities);
 
     // At most one Room context owns the visit
     let room_contexts_active = [
@@ -1141,7 +1141,7 @@ fn ensure_context_validity(state: &GameState) {
             room_kind == Some(RoomKind::RestSite),
             "RestSite context inconsistent with room kind {:?} at {:?}",
             room_kind,
-            state.location
+            state.map.location
         );
     }
     if state.chest.active {
@@ -1149,7 +1149,7 @@ fn ensure_context_validity(state: &GameState) {
             matches!(room_kind, Some(RoomKind::Treasure | RoomKind::Unknown)),
             "Chest context inconsistent with room kind {:?} at {:?}",
             room_kind,
-            state.location
+            state.map.location
         );
     }
     if state.shop.active {
@@ -1157,20 +1157,20 @@ fn ensure_context_validity(state: &GameState) {
             matches!(room_kind, Some(RoomKind::Shop | RoomKind::Unknown)),
             "Shop context inconsistent with room kind {:?} at {:?}",
             room_kind,
-            state.location
+            state.map.location
         );
     }
     if state.event.active {
         // Neow rests over Location::Start, before any Room exists
         let ok = if matches!(state.event.name, EventName::Neow) {
-            state.location == Location::Start
+            state.map.location == Location::Start
         } else {
             matches!(room_kind, Some(RoomKind::EventRoom | RoomKind::Unknown))
         };
         assert!(
             ok,
             "Event context inconsistent with room kind {:?} at {:?}",
-            room_kind, state.location
+            room_kind, state.map.location
         );
     }
     if state.combat.active {
@@ -1187,7 +1187,7 @@ fn ensure_context_validity(state: &GameState) {
             ),
             "Combat context inconsistent with room kind {:?} at {:?}",
             room_kind,
-            state.location
+            state.map.location
         );
     }
     // Treasure/RestSite/Shop: chest loot, Dream Catcher's rest reward, and
@@ -1205,11 +1205,11 @@ fn ensure_context_validity(state: &GameState) {
                     | RoomKind::Shop
                     | RoomKind::Unknown
             )
-        ) || state.location == Location::Start;
+        ) || state.map.location == Location::Start;
         assert!(
             ok,
             "Reward context inconsistent with room kind {:?} at {:?}",
-            room_kind, state.location
+            room_kind, state.map.location
         );
 
         // A set link names a staged Relic; checked only while open, as RoomExit leaves it on the closed Reward until the next reset

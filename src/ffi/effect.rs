@@ -4,13 +4,18 @@ use pyo3::inspect::PyStaticExpr;
 use pyo3::prelude::*;
 use pyo3::type_hint_union;
 use pyo3::type_object::PyTypeInfo;
+use strum::IntoEnumIterator;
 
+use crate::effect::CardPlay;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::PlaySource;
 use crate::effect::RelicRoll;
 use crate::effect::ScaledAt;
 use crate::effect::Target;
-use crate::game::Location;
+use crate::game::GameState;
+use crate::types::Location;
+use crate::utils::entity_requires_target;
 
 use super::amount::PyAmount;
 use super::amount::PyAmountScalar;
@@ -36,6 +41,91 @@ mirror_enum!(PyRewardRollTrigger from RewardRollTrigger, "RewardRollTrigger", {
     EventFightUnpaid, Lab, Library, NeowPotions, Orrery, SensoryStone, SmokeBomb, TinyHouse,
     WomanInBlue,
 });
+
+#[pyclass(
+    skip_from_py_object,
+    eq,
+    eq_int,
+    frozen,
+    name = "PlaySource",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, strum::EnumIter)]
+pub enum PyPlaySource {
+    Hand,
+    DrawTop,
+    Replay,
+    ReplayCopy,
+    TurnEnd,
+}
+
+#[pymethods]
+impl PyPlaySource {
+    // Declaration order, which is also int() order
+    #[staticmethod]
+    fn members() -> Vec<PyPlaySource> {
+        PyPlaySource::iter().collect()
+    }
+
+    // Hash by raw discriminant so eq_int and hash agree; the derived hash
+    // breaks Python's eq/hash contract for int-keyed dicts
+    fn __hash__(&self) -> isize {
+        *self as isize
+    }
+}
+
+impl From<PlaySource> for PyPlaySource {
+    fn from(play_source: PlaySource) -> Self {
+        match play_source {
+            PlaySource::Hand => Self::Hand,
+            PlaySource::DrawTop => Self::DrawTop,
+            PlaySource::Replay => Self::Replay,
+            PlaySource::ReplayCopy { .. } => Self::ReplayCopy,
+            PlaySource::TurnEnd { .. } => Self::TurnEnd,
+        }
+    }
+}
+
+// A Card play waiting in the card play queue; a Card queued twice has two
+#[pyclass(
+    skip_from_py_object,
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "CardPlay",
+    module = "slai.slai"
+)]
+#[derive(Debug, PartialEq, Eq, Hash)]
+pub struct PyCardPlay {
+    pub id_card: usize,
+
+    // Shown only when the Card needs a target, the play isn't draw-top and it's still in the roster
+    pub id_target: Option<usize>,
+    pub play_source: PyPlaySource,
+    pub energy: u16,         // Fixed when queued; X-cost Cards read it as X
+    pub cost_effective: u16, // Fixed when queued; the play's cost, which a hand play pays
+    pub draw_pile_size: u16, // Fixed when queued; Mind Blast hits for it
+}
+
+pub(crate) fn snapshot_card_play(state: &GameState, card_play: &CardPlay) -> PyCardPlay {
+    PyCardPlay {
+        id_card: card_play.id_card,
+        id_target: id_target_shown(state, card_play),
+        play_source: card_play.play_source.into(),
+        energy: card_play.energy,
+        cost_effective: card_play.cost_effective,
+        draw_pile_size: card_play.draw_pile_size,
+    }
+}
+
+pub(crate) fn id_target_shown(state: &GameState, card_play: &CardPlay) -> Option<usize> {
+    card_play.id_target.filter(|&id_target| {
+        card_play.play_source != PlaySource::DrawTop
+            && entity_requires_target(&state.entities[card_play.id_card])
+            && state.combat.id_monsters.contains(&Some(id_target))
+    })
+}
 
 // Mirrors only EffectKind variants reachable from static Card/Monster defs or a halted selection; snapshot_effect panics on runtime-only variants
 flat_variants!(PyEffect {
@@ -82,7 +172,7 @@ flat_variants!(PyEffect {
     CombatStart => PyEffectCombatStart as "EffectCombatStart",
     AdventurerSearch => PyEffectAdventurerSearch as "EffectAdventurerSearch",
     RelicGrantSpecific => PyEffectRelicGrantSpecific as "EffectRelicGrantSpecific" { name: PyRelicName },
-    EventAdvanceState => PyEffectEventAdvanceState as "EffectEventAdvanceState" { delta: i8 },
+    EventAdvanceStage => PyEffectEventAdvanceStage as "EffectEventAdvanceStage" { delta: i8 },
     ScrapOozeReach => PyEffectScrapOozeReach as "EffectScrapOozeReach" { chance: u8, advance_on_miss: bool },
     EventConsume => PyEffectEventConsume as "EffectEventConsume",
     EventClose => PyEffectEventClose as "EffectEventClose",
@@ -250,7 +340,7 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
                     | EffectKind::CombatStart { .. }
                     | EffectKind::DistractionAdd
                     | EffectKind::EnergyDelta { .. }
-                    | EffectKind::EventAdvanceState { .. }
+                    | EffectKind::EventAdvanceStage { .. }
                     | EffectKind::EventClose
                     | EffectKind::EventConsume
                     | EffectKind::Gamble { .. }
@@ -471,8 +561,8 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
         EffectKind::RelicGrantSpecific { name } => {
             PyEffect::RelicGrantSpecific(PyEffectRelicGrantSpecific { name: name.into() })
         }
-        EffectKind::EventAdvanceState { delta } => {
-            PyEffect::EventAdvanceState(PyEffectEventAdvanceState { delta })
+        EffectKind::EventAdvanceStage { delta } => {
+            PyEffect::EventAdvanceStage(PyEffectEventAdvanceStage { delta })
         }
         EffectKind::ScrapOozeReach {
             chance,

@@ -38,7 +38,7 @@ pub fn process_effect_reward_roll_potions(
 
             // A burning elite with Black Star drops no Potion, White Beast Statue's 100 included; the roll and its drift still happen
             let capped = has_relic(&state.id_relics, RelicName::BlackStar)
-                && get_active_room_burning(&state.id_rooms, state.location, &state.entities);
+                && get_active_room_burning(&state.map, &state.entities);
             let chance = if capped {
                 0
             } else if statue {

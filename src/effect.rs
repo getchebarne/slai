@@ -1,4 +1,3 @@
-use crate::game::Location;
 use crate::modifier::ModifierKind;
 use crate::types::CardColor;
 use crate::types::CardKind;
@@ -8,6 +7,7 @@ use crate::types::CardRarity;
 use crate::types::CostScope;
 use crate::types::DeltaSign;
 use crate::types::Key;
+use crate::types::Location;
 use crate::types::MonsterName;
 use crate::types::RelicName;
 use crate::types::RelicTier;
@@ -152,7 +152,7 @@ pub enum EffectKind {
     EscapePlanCheck {
         block: u16,
     },
-    EventAdvanceState {
+    EventAdvanceStage {
         delta: i8,
     },
     EventClose,

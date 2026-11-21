@@ -16,7 +16,6 @@ use crate::effect::TurnEndCharacterStage;
 use crate::engine::fill_buf_candidates;
 use crate::events::event_option_available;
 use crate::game::GameState;
-use crate::game::Location;
 use crate::map::has_edge;
 use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
@@ -27,6 +26,7 @@ use crate::types::DeltaSign;
 use crate::types::EventName;
 use crate::types::Focus;
 use crate::types::Key;
+use crate::types::Location;
 use crate::types::PotionName;
 use crate::types::RelicName;
 use crate::types::Reward;
@@ -637,6 +637,11 @@ fn fill_legal_actions_effect_pending(
 
     // Apply the filters over the whole set; staged selections are out of the running
     filter_candidates(filters, &mut id_candidates, &state.entities, None);
+
+    // A draw-pile selection lists its Cards by id, so the draw order stays hidden
+    if pool == CandidatePool::CardPileDraw {
+        id_candidates.sort_unstable();
+    }
     for id in id_candidates {
         if !state.id_selected.contains(&id) {
             state.legal_actions.push(selection_action(kind, id));
@@ -893,8 +898,8 @@ fn fill_legal_actions_rest_site(state: &mut GameState) {
             any_option = true;
         }
 
-        // With the final act on: Recall for the Ruby Key until it's held; no Relic gates it
-        if state.final_act && !state.key_ruby {
+        // Recall for the Ruby Key until it's held; no Relic gates it
+        if !state.key_ruby {
             state.legal_actions.push(Action::RestRecall);
             any_option = true;
         }
@@ -917,9 +922,9 @@ fn fill_legal_actions_chest(state: &mut GameState) {
 }
 
 fn push_room_select_actions(state: &mut GameState) {
-    match state.location {
+    match state.map.location {
         Location::Start => {
-            for &id_room in state.id_rooms[0].iter().flatten() {
+            for &id_room in state.map.id_rooms[0].iter().flatten() {
                 state.legal_actions.push(Action::RoomSelect { id_room });
             }
         }
@@ -928,7 +933,7 @@ fn push_room_select_actions(state: &mut GameState) {
             if y_next >= MAP_HEIGHT {
                 return;
             }
-            if let Some(id_current) = state.id_rooms[y][x] {
+            if let Some(id_current) = state.map.id_rooms[y][x] {
                 let edges = state.entities[id_current].room_edges;
 
                 // Wing Boots: with charges left, any next-row Room is reachable
@@ -936,7 +941,7 @@ fn push_room_select_actions(state: &mut GameState) {
                     .is_some_and(|id| state.entities[id].relic_counter > 0);
                 for x in 0..MAP_WIDTH {
                     if (winged || has_edge(edges, x))
-                        && let Some(id_room) = state.id_rooms[y_next][x]
+                        && let Some(id_room) = state.map.id_rooms[y_next][x]
                     {
                         state.legal_actions.push(Action::RoomSelect { id_room });
                     }
@@ -958,7 +963,7 @@ fn push_potion_actions(state: &mut GameState) {
     let turn_ended = in_combat && state.combat.turn_ended;
 
     // A Room's event holds until the next Room is entered, even after its screen closes
-    let in_we_meet_again = state.room_kind_resolved == Some(RoomKind::EventRoom)
+    let in_we_meet_again = state.map.room_kind_resolved == Some(RoomKind::EventRoom)
         && state.event.name == EventName::WeMeetAgain;
     for &id_potion in &state.id_potions {
         let potion = &state.entities[id_potion];

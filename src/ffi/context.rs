@@ -1,24 +1,14 @@
 use pyo3::prelude::*;
 
+use crate::consts::MAX_MONSTERS;
 use crate::game::GameState;
 use crate::types::ChestKind;
+use crate::types::Combat;
 use crate::types::EventName;
 
-use super::card::PyCard;
-use super::card::snapshot_card;
-use super::card::snapshot_card_combat;
-use super::card::snapshot_card_combat_at_cost;
 use super::event::PyEventName;
-use super::event::PyEventOption;
-use super::event::snapshot_event_option;
 use super::macros::mirror_enum;
-use super::monster::PyMonster;
 use super::monster::PyMonsterEncounter;
-use super::monster::snapshot_monsters;
-use super::potion::PyPotion;
-use super::potion::snapshot_potion;
-use super::relic::PyRelic;
-use super::relic::snapshot_relic;
 
 mirror_enum!(PyChestKind from ChestKind, "ChestKind", {
     Small, Medium, Large, Boss,
@@ -42,52 +32,81 @@ pub struct PyEnergy {
 #[pyclass(eq, hash, frozen, get_all, name = "Combat", module = "slai.slai")]
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct PyCombat {
-    pub card_pile_hand: Vec<PyCard>,
-    pub card_pile_draw: Vec<PyCard>, // Bottom first, the next draw last
-    pub card_pile_discard: Vec<PyCard>,
-    pub card_pile_exhaust: Vec<PyCard>,
-    pub card_play_queue: Vec<PyCard>,
-    pub energy: PyEnergy,
-    pub monsters: Vec<PyMonster>,
-    pub card_pile_stasis: Vec<Option<PyCard>>, // Parallel to `monsters`: the Card each one holds in Stasis
-    pub card_pile_discover: Vec<PyCard>,
-    pub bombs: Vec<(u8, u16)>,
-    pub card_pile_nightmare: Vec<PyCard>, // Each arrives NIGHTMARE_COPIES times next turn
-    pub panache_countdown: u8,            // Plays left until Panache's hit
-    pub this_turn_discards: u16, // Cards discarded this turn (Sneaky Strike's refund, Eviscerate's discount)
-    pub this_turn_attacks: u16,  // Attacks played this turn (Finisher's hits)
-    pub this_turn_cards_played: u16, // Cards played this turn (Normality's cap)
-    pub orange_pellets_played_attack: bool, // Card kinds played since Orange Pellets last fired this turn
+    pub id_card_pile_hand: Vec<usize>,
+    pub id_card_pile_draw: Vec<usize>,
+    pub id_card_pile_discard: Vec<usize>,
+    pub id_card_pile_exhaust: Vec<usize>,
+    pub id_card_pile_discover: Vec<usize>,
+    pub id_card_pile_stasis: [Option<usize>; MAX_MONSTERS], // Slot-parallel to `id_monsters`
+    pub id_monsters: [Option<usize>; MAX_MONSTERS],         // The roster's slots, None where empty
+
+    // Live Bombs: (turns left, damage, seq)
+    pub bombs: Vec<(u8, u16, u32)>,
+
+    // Nightmare'd Cards (id, seq)
+    pub id_card_pile_nightmare: Vec<(usize, u32)>,
+
+    // Plays left until Panache's hit
+    pub panache_countdown: u8,
+
+    // This turn counters
+    pub this_turn_discards: u16,
+    pub this_turn_attacks: u16,
+    pub this_turn_cards_played: u16,
+
+    // Orange pellets state
+    pub orange_pellets_played_attack: bool,
     pub orange_pellets_played_skill: bool,
     pub orange_pellets_played_power: bool,
-    pub turn_end_pending: bool, // From an early turn end to its first pass
-    pub turn_end_started: bool, // From the turn end's first pass to the Character's next turn start
-    pub turn_ended: bool, // From the first Monster turn start to the Character's next turn start
-    pub this_combat_thief_escaped: bool, // A Smoke Bomb then still keeps the reward
-    pub this_combat_monster_died: bool, // Monsters escaping afterwards no longer cost a normal fight its gold and Potion roll
-    pub boss_fight: bool, // A boss Monster opened this fight; it stays set after the boss leaves the roster
-    pub gold_stolen: u16, // The killed thieves' purse, claimed apart from the room's gold
+
+    // Turn end progress flags, for mid-turn-end halts
+    pub turn_end_pending: bool,
+    pub turn_end_started: bool,
+    pub turn_ended: bool,
+
+    // If a thief escaped, Smoke Bomb keeps the reward
+    pub this_combat_thief_escaped: bool,
+
+    // The killed thieves' purse, claimed apart from the room's gold
+    pub gold_stolen: u16,
+
+    // Monsters escaping afterwards no longer cost a normal fight its gold and Potion roll
+    pub this_combat_monster_died: bool,
+
+    // A boss Monster opened this fight; it stays set after the boss leaves the roster
+    pub boss_fight: bool,
+
+    // Energy
+    pub energy: PyEnergy,
 }
 
 #[pyclass(eq, hash, frozen, get_all, name = "Reward", module = "slai.slai")]
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct PyReward {
-    pub cards: Vec<Vec<PyCard>>,
-    pub relics: Vec<PyRelic>,
-    pub relic_linked: Option<PyRelic>, // The Relic the Sapphire Key is linked to, also in `relics`; None means no key on offer
-    pub potions: Vec<PyPotion>,
+    pub id_cards: Vec<Vec<usize>>,
+    pub id_relics: Vec<usize>,
+    pub id_relic_linked: Option<usize>, // The Relic the Sapphire Key is linked to
+    pub id_potions: Vec<usize>,
+
+    // Gold (organic and stolen)
     pub gold: Option<u16>,
-    pub gold_stolen: Option<u16>, // The thieves' purse, claimed apart from the room's gold
-    pub relics_exclusive: bool,   // The boss chest's Relics are mutually exclusive
-    pub cards_forced: bool,       // Cannot skip Card rewards (The Library)
+    pub gold_stolen: Option<u16>,
+
+    // A Boss chest's Relic picks are mutually exclusive
+    pub relics_exclusive: bool,
+
+    // Wether the Cards can be skipped (The Library)
+    pub cards_forced: bool,
 }
 
 #[pyclass(eq, hash, frozen, get_all, name = "Shop", module = "slai.slai")]
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct PyShop {
-    pub cards: Vec<PyCard>,
-    pub relics: Vec<PyRelic>,
-    pub potions: Vec<PyPotion>,
+    pub id_cards: Vec<usize>,
+    pub id_relics: Vec<usize>,
+    pub id_potions: Vec<usize>,
+
+    // Purge data
     pub purge_cost: u16,
     pub purged: bool,
 }
@@ -95,152 +114,113 @@ pub struct PyShop {
 #[pyclass(eq, hash, frozen, get_all, name = "Event", module = "slai.slai")]
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct PyEvent {
+    pub id_card_pile_event_roll: Vec<usize>,
+    pub id_card_match_flipped: Option<usize>, // Match and Keep! only
+    pub id_card_match_pairs: Vec<usize>,      // Match and Keep! only
+    pub id_event_options: Vec<usize>,
+    pub id_relic_event_roll: Vec<usize>,
+    pub id_potion_event_roll: Vec<usize>,
+
+    // The Event's name
     pub name: PyEventName,
+
+    // Wether it has been consumed
     pub consumed: bool,
+
+    // For Events that advance stage only (e.g., Golden Idol, Cursed Tome, etc.)
     pub stage: u8,
-    pub options: Vec<PyEventOption>,
+
+    // Some Events Options read the Character's max when they were sopened
     pub health_max_at_open: u16,
-    pub card_pile_event_roll: Vec<PyCard>,
-    pub relic_event_roll: Vec<PyRelic>,
-    pub potion_event_roll: Vec<PyPotion>,
-    pub adventurer_elite: Option<PyMonsterEncounter>, // Only while the event is Dead Adventurer
+
+    // Dead Adventurer only
+    pub adventurer_elite: Option<PyMonsterEncounter>,
     pub found_gold: bool,
     pub found_nothing: bool,
     pub found_relic: bool,
 
-    // Match and Keep!: the face-up first flip, the count of Cards never flipped, one Card per matched pair, the attempts left
-    pub card_match_flipped: Option<PyCard>,
+    // Match and Keep! only
     pub card_match_unseen_count: u8,
-    pub card_match_pairs: Vec<PyCard>,
     pub match_attempts: u8,
 }
 
 #[pyclass(eq, hash, frozen, get_all, name = "RestSite", module = "slai.slai")]
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct PyRestSite {
-    pub done: bool,
+    pub consumed: bool,
 }
 
 #[pyclass(eq, hash, frozen, get_all, name = "Chest", module = "slai.slai")]
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct PyChest {
-    pub kind: PyChestKind,
-    pub opened: bool,
+    pub chest_kind: PyChestKind,
+    pub chest_opened: bool,
 }
 
 pub(crate) fn snapshot_combat(state: &GameState) -> PyCombat {
     let combat = &state.combat;
-
-    // A Card played now has Mind Blast hit for the draw pile as it stands; a waiting play keeps the cost and size it was queued with
-    let draw_pile_size = combat.id_card_pile_draw.len() as u16;
     PyCombat {
-        card_pile_hand: combat
-            .id_card_pile_hand
-            .iter()
-            .map(|&id| snapshot_card_combat(state, id, draw_pile_size))
-            .collect(),
+        id_card_pile_hand: combat.id_card_pile_hand.clone(),
+        id_card_pile_draw: id_card_pile_draw_sorted(combat),
+        id_card_pile_discard: combat.id_card_pile_discard.clone(),
+        id_card_pile_exhaust: combat.id_card_pile_exhaust.clone(),
+        id_card_pile_discover: combat.id_card_pile_discover.clone(),
+        id_card_pile_stasis: combat.id_card_pile_stasis,
+        id_monsters: combat.id_monsters,
 
-        // A draw-pile Card is judged as if it had left the draw pile
-        card_pile_draw: combat
-            .id_card_pile_draw
-            .iter()
-            .map(|&id| snapshot_card_combat(state, id, draw_pile_size - 1))
-            .collect(),
-        card_pile_discard: combat
-            .id_card_pile_discard
-            .iter()
-            .map(|&id| snapshot_card_combat(state, id, draw_pile_size))
-            .collect(),
-        card_pile_exhaust: combat
-            .id_card_pile_exhaust
-            .iter()
-            .map(|&id| snapshot_card_combat(state, id, draw_pile_size))
-            .collect(),
-        card_play_queue: state
-            .card_play_queue
-            .iter()
-            .map(|card_play| {
-                snapshot_card_combat_at_cost(
-                    state,
-                    card_play.id_card,
-                    card_play.cost_effective,
-                    card_play.draw_pile_size,
-                    Some(card_play.play_source.into()),
-                )
-            })
-            .collect(),
+        bombs: combat.bombs.clone(),
+
+        id_card_pile_nightmare: combat.id_card_pile_nightmare.clone(),
+
+        panache_countdown: combat.panache_countdown,
+
+        this_turn_discards: combat.this_turn_discards,
+        this_turn_attacks: combat.this_turn_attacks,
+        this_turn_cards_played: combat.this_turn_cards_played,
+
+        orange_pellets_played_attack: combat.orange_pellets_played_attack,
+        orange_pellets_played_skill: combat.orange_pellets_played_skill,
+        orange_pellets_played_power: combat.orange_pellets_played_power,
+
+        turn_end_pending: combat.turn_end_pending,
+        turn_end_started: combat.turn_end_started,
+        turn_ended: combat.turn_ended,
+
+        this_combat_thief_escaped: combat.this_combat_thief_escaped,
+
+        gold_stolen: combat.gold_stolen,
+
+        this_combat_monster_died: combat.this_combat_monster_died,
+
+        boss_fight: combat.boss_fight,
+
         energy: PyEnergy {
             energy_current: combat.energy.energy_current,
             energy_max: combat.energy.energy_max,
         },
-        monsters: snapshot_monsters(state),
-        // Walks the filled roster slots as `monsters` does, so the two line up
-        card_pile_stasis: combat
-            .id_monsters
-            .iter()
-            .zip(&combat.id_card_pile_stasis)
-            .filter_map(|(&id_monster, &id_card)| {
-                id_monster.map(|_| {
-                    id_card.map(|id_card| snapshot_card_combat(state, id_card, draw_pile_size))
-                })
-            })
-            .collect(),
-        card_pile_discover: combat
-            .id_card_pile_discover
-            .iter()
-            .map(|&id| snapshot_card_combat(state, id, draw_pile_size))
-            .collect(),
-        bombs: combat
-            .bombs
-            .iter()
-            .map(|&(turns, damage, _)| (turns, damage))
-            .collect(),
-        card_pile_nightmare: combat
-            .id_card_pile_nightmare
-            .iter()
-            .map(|&(id, _)| snapshot_card_combat(state, id, draw_pile_size))
-            .collect(),
-        panache_countdown: combat.panache_countdown,
-        this_turn_discards: combat.this_turn_discards,
-        this_turn_attacks: combat.this_turn_attacks,
-        this_turn_cards_played: combat.this_turn_cards_played,
-        orange_pellets_played_attack: combat.orange_pellets_played_attack,
-        orange_pellets_played_skill: combat.orange_pellets_played_skill,
-        orange_pellets_played_power: combat.orange_pellets_played_power,
-        turn_end_pending: combat.turn_end_pending,
-        turn_end_started: combat.turn_end_started,
-        turn_ended: combat.turn_ended,
-        this_combat_thief_escaped: combat.this_combat_thief_escaped,
-        this_combat_monster_died: combat.this_combat_monster_died,
-        boss_fight: combat.boss_fight,
-        gold_stolen: combat.gold_stolen,
     }
+}
+
+// The draw pile's ids by ascending id, so the draw order stays hidden
+pub(crate) fn id_card_pile_draw_sorted(combat: &Combat) -> Vec<usize> {
+    let mut id_card_pile_draw = combat.id_card_pile_draw.clone();
+    id_card_pile_draw.sort_unstable();
+    id_card_pile_draw
 }
 
 pub(crate) fn snapshot_reward(state: &GameState) -> PyReward {
     let reward = &state.reward;
     PyReward {
-        cards: reward
-            .id_cards
-            .iter()
-            .map(|bundle| bundle.iter().map(|&id| snapshot_card(state, id)).collect())
-            .collect(),
-        relics: reward
-            .id_relics
-            .iter()
-            .map(|&id| snapshot_relic(id, &state.entities[id]))
-            .collect(),
-        relic_linked: reward
-            .id_relic_linked
-            .map(|id| snapshot_relic(id, &state.entities[id])),
-        potions: reward
-            .id_potions
-            .iter()
-            .map(|&id| snapshot_potion(state, id))
-            .collect(),
+        id_cards: reward.id_cards.clone(),
+        id_relics: reward.id_relics.clone(),
+        id_relic_linked: reward.id_relic_linked,
+        id_potions: reward.id_potions.clone(),
+
         gold: reward.gold,
         gold_stolen: reward.gold_stolen,
+
         relics_exclusive: reward.relics_exclusive,
+
         cards_forced: reward.cards_forced,
     }
 }
@@ -248,21 +228,10 @@ pub(crate) fn snapshot_reward(state: &GameState) -> PyReward {
 pub(crate) fn snapshot_shop(state: &GameState) -> PyShop {
     let shop = &state.shop;
     PyShop {
-        cards: shop
-            .id_cards
-            .iter()
-            .map(|&id| snapshot_card(state, id))
-            .collect(),
-        relics: shop
-            .id_relics
-            .iter()
-            .map(|&id| snapshot_relic(id, &state.entities[id]))
-            .collect(),
-        potions: shop
-            .id_potions
-            .iter()
-            .map(|&id| snapshot_potion(state, id))
-            .collect(),
+        id_cards: shop.id_cards.clone(),
+        id_relics: shop.id_relics.clone(),
+        id_potions: shop.id_potions.clone(),
+
         purge_cost: shop.purge_cost,
         purged: shop.purged,
     }
@@ -271,58 +240,42 @@ pub(crate) fn snapshot_shop(state: &GameState) -> PyShop {
 pub(crate) fn snapshot_event(state: &GameState) -> PyEvent {
     let event = &state.event;
     PyEvent {
+        id_card_pile_event_roll: event.id_card_pile_event_roll.clone(),
+        id_card_match_flipped: event.id_card_match_flipped,
+        id_card_match_pairs: event.id_card_match_pairs.clone(),
+        id_event_options: event.id_event_options.clone(),
+        id_relic_event_roll: event.id_relic_event_roll.clone(),
+        id_potion_event_roll: event.id_potion_event_roll.clone(),
+
         name: event.name.into(),
+
+        consumed: event.consumed,
+
         stage: event.stage,
+
+        health_max_at_open: event.health_max_at_open,
+
+        adventurer_elite: (event.name == EventName::DeadAdventurer)
+            .then_some(event.adventurer_elite.into()),
         found_gold: event.found_gold,
         found_nothing: event.found_nothing,
         found_relic: event.found_relic,
-        options: event
-            .id_event_options
-            .iter()
-            .map(|&id| snapshot_event_option(state, id))
-            .collect(),
-        health_max_at_open: event.health_max_at_open,
-        consumed: event.consumed,
-        adventurer_elite: (event.name == EventName::DeadAdventurer)
-            .then_some(event.adventurer_elite.into()),
-        card_pile_event_roll: event
-            .id_card_pile_event_roll
-            .iter()
-            .map(|&id| snapshot_card(state, id))
-            .collect(),
-        relic_event_roll: event
-            .id_relic_event_roll
-            .iter()
-            .map(|&id| snapshot_relic(id, &state.entities[id]))
-            .collect(),
-        potion_event_roll: event
-            .id_potion_event_roll
-            .iter()
-            .map(|&id| snapshot_potion(state, id))
-            .collect(),
-        card_match_flipped: event
-            .id_card_match_flipped
-            .map(|id| snapshot_card(state, id)),
+
         card_match_unseen_count: event.id_card_match_unseen.len() as u8,
-        card_match_pairs: event
-            .id_card_match_pairs
-            .iter()
-            .map(|&id| snapshot_card(state, id))
-            .collect(),
         match_attempts: event.match_attempts,
     }
 }
 
 pub(crate) fn snapshot_rest_site(state: &GameState) -> PyRestSite {
     PyRestSite {
-        done: state.rest_site.consumed,
+        consumed: state.rest_site.consumed,
     }
 }
 
 pub(crate) fn snapshot_chest(state: &GameState) -> PyChest {
     let chest = &state.chest;
     PyChest {
-        kind: chest.chest_kind.into(),
-        opened: chest.chest_opened,
+        chest_kind: chest.chest_kind.into(),
+        chest_opened: chest.chest_opened,
     }
 }

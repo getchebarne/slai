@@ -7,7 +7,7 @@ use crate::events::EventOptionTemplate;
 use crate::events::bake_options;
 use crate::events::make_event_option_template;
 use crate::game::GameState;
-use crate::game::Location;
+use crate::types::Location;
 
 // Enter takes the portal at once: the event closes first, so the boss fight is the Boss Room's, not the event's
 const OPTION_ENTER: [Effect; 2] = [
