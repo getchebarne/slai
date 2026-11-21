@@ -54,6 +54,13 @@ pub struct PyGameState {
     // Every Entity keyed by id
     pub entities: PyEntities,
 
+    // Cross-context Entity IDs
+    pub id_character: usize,
+    pub id_card_pile_deck: Vec<usize>,
+    pub id_relics: Vec<usize>, // In pickup order
+    pub id_potions: Vec<usize>,
+    pub id_selected: Vec<usize>,
+
     // Contexts: None while inactive; all None = Focus::Map
     pub combat: Option<Py<PyCombat>>,
     pub reward: Option<Py<PyReward>>,
@@ -61,7 +68,13 @@ pub struct PyGameState {
     pub shop: Option<Py<PyShop>>,
     pub rest_site: Option<Py<PyRestSite>>,
     pub chest: Option<Py<PyChest>>,
-    pub game_over: bool,
+
+    // The Map
+    pub map: Py<PyMap>,
+    pub encounter_boss: PyMonsterEncounter,
+    pub encounter_pool_boss_count: u8,
+
+    // Ascension
     pub ascension: u8,
 
     // Keys for Act IV
@@ -73,28 +86,30 @@ pub struct PyGameState {
     pub act: u8,
     pub floor: u8,
 
-    pub id_character: usize,
-    pub id_card_pile_deck: Vec<usize>,
-    pub id_relics: Vec<usize>, // In pickup order
-    pub id_potions: Vec<usize>,
+    // Potion stuff
     pub potion_slots_max: u8,
-    pub potion_drop_mod: i32, // A combat's potion drop chance is 40 plus this within 0..=100, 0 in an escaped normal fight, 100 with White Beast Statue, 0 at a burning elite with Black Star; a drop lowers it by 10, a miss raises it by 10
-    pub shop_purge_cost_run: u16, // A Shop's Card removal price before Relic discounts: 75 plus 25 per shop purge
-    pub unknown_chance_monster: f32, // A "?" Room's odds; the event chance is what the three leave
+    pub potion_drop_mod: i32,
+
+    // Current Shop purge cost
+    pub shop_purge_cost_run: u16,
+
+    // Unkown-`RoomType` spawn chances
+    pub unknown_chance_monster: f32,
     pub unknown_chance_shop: f32,
     pub unknown_chance_treasure: f32,
+
+    // Event pools
     pub pool_events: Vec<PyEventName>, // Events a "?" can still become, regular then special; each is drawn without replacement, and both lists are empty in Act 4
     pub pool_event_special: Vec<PyEventName>,
-    pub map: Py<PyMap>,
 
-    // The act's boss as the map shows it; from the A20 stop's RoomExit on, the second boss
-    pub encounter_boss: PyMonsterEncounter,
-
-    // Boss fights after `encounter_boss`'s: 1 in Act 3 from A20 until the second one starts, else 0
-    pub encounter_pool_boss_count: u8,
+    // The current halted Effect
     pub effect_pending: Option<PyEffectPendingObject>,
-    pub id_selected: Vec<usize>,
+
+    // Card plays queued (e.g., Duplication, Burst, Necromonicon, etc.)
     pub card_play_queue: Vec<Py<PyCardPlay>>,
+
+    // Are we still going?
+    pub game_over: bool,
 }
 
 // The entity table as one Python dict, built once; every read returns the same dict
@@ -142,6 +157,14 @@ pub fn snapshot_state(py: Python<'_>, state: &GameState) -> PyResult<PyGameState
     let mut id_relics: Vec<usize> = state.id_relics.iter().flatten().copied().collect();
     id_relics.sort_unstable_by_key(|&id| state.entities[id].relic_seq);
     Ok(PyGameState {
+        entities: snapshot_entities(py, state)?,
+
+        id_character: state.id_character,
+        id_card_pile_deck: state.id_card_pile_deck.clone(),
+        id_relics,
+        id_potions: state.id_potions.clone(),
+        id_selected: state.id_selected.clone(),
+
         combat: state
             .combat
             .active
@@ -172,63 +195,74 @@ pub fn snapshot_state(py: Python<'_>, state: &GameState) -> PyResult<PyGameState
             .active
             .then(|| Py::new(py, snapshot_chest(state)))
             .transpose()?,
-        game_over: state.game_over,
+
+        map: Py::new(py, snapshot_map(state))?,
+        encounter_boss: state.encounter_boss.into(),
+        encounter_pool_boss_count: state.encounter_pool_boss.len() as u8,
+
         ascension: state.ascension,
+
         key_emerald: state.key_emerald,
         key_ruby: state.key_ruby,
         key_sapphire: state.key_sapphire,
+
         act: state.act,
         floor: state.floor,
-        entities: snapshot_entities(py, state)?,
-        id_character: state.id_character,
-        id_card_pile_deck: state.id_card_pile_deck.clone(),
-        id_relics,
-        id_potions: state.id_potions.clone(),
+
         potion_slots_max: state.potion_slots_max,
         potion_drop_mod: state.potion_drop_mod,
+
         shop_purge_cost_run: state.shop_purge_cost_run,
+
         unknown_chance_monster: state.unknown_chance_monster,
         unknown_chance_shop: state.unknown_chance_shop,
         unknown_chance_treasure: state.unknown_chance_treasure,
+
         pool_events: state.pool_events.iter().map(|&name| name.into()).collect(),
         pool_event_special: state
             .pool_event_special
             .iter()
             .map(|&name| name.into())
             .collect(),
-        map: Py::new(py, snapshot_map(state))?,
-        encounter_boss: state.encounter_boss.into(),
-        encounter_pool_boss_count: state.encounter_pool_boss.len() as u8,
+
         effect_pending: state
             .effect_pending
             .as_ref()
             .map(|effect| snapshot_effect_pending(py, effect))
             .transpose()?,
-        id_selected: state.id_selected.clone(),
+
         card_play_queue: state
             .card_play_queue
             .iter()
             .map(|card_play| Py::new(py, snapshot_card_play(state, card_play)))
             .collect::<PyResult<_>>()?,
+
+        game_over: state.game_over,
     })
 }
 
 // Each Entity once: a Card from its combat pile, else its first queued play, else its own values
 fn snapshot_entities(py: Python<'_>, state: &GameState) -> PyResult<PyEntities> {
     let entities = PyDict::new(py);
-    insert_absent(&entities, [&state.id_character], |_| {
+
+    // Character
+    insert_if_absent(&entities, [&state.id_character], |_| {
         snapshot_character(state)
     })?;
-    insert_absent(
+
+    // Rooms
+    insert_if_absent(
         &entities,
         state.map.id_rooms.iter().flatten().flatten(),
         |id| snapshot_room(state, id),
     )?;
 
-    // A Card played now has Mind Blast hit for the draw pile as it stands
+    // Context: Combat
     let combat = &state.combat;
     if combat.active {
         let draw_pile_size = combat.id_card_pile_draw.len() as u16;
+
+        // Cards
         let id_cards = combat
             .id_card_pile_hand
             .iter()
@@ -242,14 +276,16 @@ fn snapshot_entities(py: Python<'_>, state: &GameState) -> PyResult<PyEntities> 
                     .iter()
                     .map(|(id_card, _)| id_card),
             );
-        insert_absent(&entities, id_cards, |id| {
+        insert_if_absent(&entities, id_cards, |id| {
             snapshot_card_combat(state, id, draw_pile_size)
         })?;
 
-        // The draw pile's Cards, judged as if drawn, go in by id so the dict hides the draw order
-        insert_absent(&entities, &id_card_pile_draw_sorted(combat), |id| {
+        // The draw pile's Cards go in by id so the dict hides the draw order
+        insert_if_absent(&entities, &id_card_pile_draw_sorted(combat), |id| {
             snapshot_card_combat(state, id, draw_pile_size - 1)
         })?;
+
+        // Monsters
         for monster in snapshot_monsters(state) {
             if !entities.contains(monster.id)? {
                 entities.set_item(monster.id, monster)?;
@@ -270,53 +306,78 @@ fn snapshot_entities(py: Python<'_>, state: &GameState) -> PyResult<PyEntities> 
         }
     }
 
-    // Every other Entity shows its own values; the selected pile adds no second snapshot
+    // Deck
     let id_cards = state.id_card_pile_deck.iter().chain(&state.id_selected);
-    insert_absent(&entities, id_cards, |id| snapshot_card(state, id))?;
-    insert_absent(&entities, state.id_relics.iter().flatten(), |id| {
+    insert_if_absent(&entities, id_cards, |id| snapshot_card(state, id))?;
+
+    // Relics
+    insert_if_absent(&entities, state.id_relics.iter().flatten(), |id| {
         snapshot_relic(id, &state.entities[id])
     })?;
-    insert_absent(&entities, &state.id_potions, |id| {
+
+    // Potions
+    insert_if_absent(&entities, &state.id_potions, |id| {
         snapshot_potion(state, id)
     })?;
 
-    // The open contexts' offers and stakes
+    // Context: Reward
     let reward = &state.reward;
     if reward.active {
-        insert_absent(&entities, reward.id_cards.iter().flatten(), |id| {
+        // Cards
+        insert_if_absent(&entities, reward.id_cards.iter().flatten(), |id| {
             snapshot_card(state, id)
         })?;
+
+        // Relics
         let id_relics = reward.id_relics.iter().chain(&reward.id_relic_linked);
-        insert_absent(&entities, id_relics, |id| {
+        insert_if_absent(&entities, id_relics, |id| {
             snapshot_relic(id, &state.entities[id])
         })?;
-        insert_absent(&entities, &reward.id_potions, |id| {
+
+        // Potions
+        insert_if_absent(&entities, &reward.id_potions, |id| {
             snapshot_potion(state, id)
         })?;
     }
+
+    // Context: Shop
     let shop = &state.shop;
     if shop.active {
-        insert_absent(&entities, &shop.id_cards, |id| snapshot_card(state, id))?;
-        insert_absent(&entities, &shop.id_relics, |id| {
+        // Cards
+        insert_if_absent(&entities, &shop.id_cards, |id| snapshot_card(state, id))?;
+
+        // Relics
+        insert_if_absent(&entities, &shop.id_relics, |id| {
             snapshot_relic(id, &state.entities[id])
         })?;
-        insert_absent(&entities, &shop.id_potions, |id| snapshot_potion(state, id))?;
+
+        // Potions
+        insert_if_absent(&entities, &shop.id_potions, |id| snapshot_potion(state, id))?;
     }
+
+    // Context: Event
     let event = &state.event;
     if event.active {
-        insert_absent(&entities, &event.id_event_options, |id| {
+        // Event Options
+        insert_if_absent(&entities, &event.id_event_options, |id| {
             snapshot_event_option(state, id)
         })?;
+
+        // Cards
         let id_cards = event
             .id_card_pile_event_roll
             .iter()
             .chain(&event.id_card_match_flipped)
             .chain(&event.id_card_match_pairs);
-        insert_absent(&entities, id_cards, |id| snapshot_card(state, id))?;
-        insert_absent(&entities, &event.id_relic_event_roll, |id| {
+        insert_if_absent(&entities, id_cards, |id| snapshot_card(state, id))?;
+
+        // Relics
+        insert_if_absent(&entities, &event.id_relic_event_roll, |id| {
             snapshot_relic(id, &state.entities[id])
         })?;
-        insert_absent(&entities, &event.id_potion_event_roll, |id| {
+
+        // Potions
+        insert_if_absent(&entities, &event.id_potion_event_roll, |id| {
             snapshot_potion(state, id)
         })?;
     }
@@ -324,7 +385,7 @@ fn snapshot_entities(py: Python<'_>, state: &GameState) -> PyResult<PyEntities> 
 }
 
 // Adds each id's snapshot unless a collection read before it already did
-fn insert_absent<'a, 'py, T: IntoPyObject<'py>>(
+fn insert_if_absent<'a, 'py, T: IntoPyObject<'py>>(
     entities: &Bound<'py, PyDict>,
     ids: impl IntoIterator<Item = &'a usize>,
     snapshot: impl Fn(usize) -> T,
