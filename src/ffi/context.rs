@@ -14,22 +14,14 @@ mirror_enum!(PyChestKind from ChestKind, "ChestKind", {
     Small, Medium, Large, Boss,
 });
 
-#[pyclass(
-    skip_from_py_object,
-    eq,
-    hash,
-    frozen,
-    get_all,
-    name = "Energy",
-    module = "slai.slai"
-)]
+#[pyclass(eq, hash, frozen, get_all, name = "Energy", module = "slai._slai")]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyEnergy {
     pub energy_current: u16,
     pub energy_max: u16,
 }
 
-#[pyclass(eq, hash, frozen, get_all, name = "Combat", module = "slai.slai")]
+#[pyclass(eq, hash, frozen, get_all, name = "Combat", module = "slai._slai")]
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct PyCombat {
     pub id_card_pile_hand: Vec<usize>,
@@ -80,7 +72,7 @@ pub struct PyCombat {
     pub energy: PyEnergy,
 }
 
-#[pyclass(eq, hash, frozen, get_all, name = "Reward", module = "slai.slai")]
+#[pyclass(eq, hash, frozen, get_all, name = "Reward", module = "slai._slai")]
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct PyReward {
     pub id_cards: Vec<Vec<usize>>,
@@ -99,7 +91,7 @@ pub struct PyReward {
     pub cards_forced: bool,
 }
 
-#[pyclass(eq, hash, frozen, get_all, name = "Shop", module = "slai.slai")]
+#[pyclass(eq, hash, frozen, get_all, name = "Shop", module = "slai._slai")]
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct PyShop {
     pub id_cards: Vec<usize>,
@@ -111,7 +103,7 @@ pub struct PyShop {
     pub purged: bool,
 }
 
-#[pyclass(eq, hash, frozen, get_all, name = "Event", module = "slai.slai")]
+#[pyclass(eq, hash, frozen, get_all, name = "Event", module = "slai._slai")]
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct PyEvent {
     pub id_card_pile_event_roll: Vec<usize>,
@@ -144,13 +136,13 @@ pub struct PyEvent {
     pub match_attempts: u8,
 }
 
-#[pyclass(eq, hash, frozen, get_all, name = "RestSite", module = "slai.slai")]
+#[pyclass(eq, hash, frozen, get_all, name = "RestSite", module = "slai._slai")]
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct PyRestSite {
     pub consumed: bool,
 }
 
-#[pyclass(eq, hash, frozen, get_all, name = "Chest", module = "slai.slai")]
+#[pyclass(eq, hash, frozen, get_all, name = "Chest", module = "slai._slai")]
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct PyChest {
     pub chest_kind: PyChestKind,

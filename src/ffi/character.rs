@@ -5,7 +5,7 @@ use crate::game::GameState;
 use super::modifier::PyModifier;
 use super::modifier::snapshot_modifiers;
 
-#[pyclass(frozen, get_all, name = "Character", module = "slai.slai")]
+#[pyclass(frozen, get_all, name = "Character", module = "slai._slai")]
 #[derive(Debug)]
 pub struct PyCharacter {
     pub id: usize,

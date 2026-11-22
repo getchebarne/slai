@@ -27,15 +27,7 @@ mirror_enum!(PyModifierKind from ModifierKind, "ModifierKind", {
     }
 });
 
-#[pyclass(
-    skip_from_py_object,
-    eq,
-    hash,
-    frozen,
-    get_all,
-    name = "Modifier",
-    module = "slai.slai"
-)]
+#[pyclass(eq, hash, frozen, get_all, name = "Modifier", module = "slai._slai")]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyModifier {
     pub kind: PyModifierKind,

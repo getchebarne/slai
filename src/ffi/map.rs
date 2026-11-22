@@ -35,13 +35,7 @@ impl From<Location> for PyLocation {
     }
 }
 
-#[pyclass(
-    skip_from_py_object,
-    frozen,
-    get_all,
-    name = "Room",
-    module = "slai.slai"
-)]
+#[pyclass(frozen, get_all, name = "Room", module = "slai._slai")]
 #[derive(Debug)]
 pub struct PyRoom {
     pub id: usize,
@@ -54,7 +48,7 @@ pub struct PyRoom {
     pub x: usize,
 }
 
-#[pyclass(frozen, get_all, name = "Map", module = "slai.slai")]
+#[pyclass(frozen, get_all, name = "Map", module = "slai._slai")]
 pub struct PyMap {
     pub id_rooms: PyIdRooms,
     pub location: PyLocation,

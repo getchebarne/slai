@@ -25,15 +25,7 @@ mirror_enum!(PyPotionRarity from PotionRarity, "PotionRarity", {
     Common, Uncommon, Rare,
 });
 
-#[pyclass(
-    skip_from_py_object,
-    eq,
-    hash,
-    frozen,
-    get_all,
-    name = "Potion",
-    module = "slai.slai"
-)]
+#[pyclass(eq, hash, frozen, get_all, name = "Potion", module = "slai._slai")]
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct PyPotion {
     pub id: usize,

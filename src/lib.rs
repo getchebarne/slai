@@ -28,7 +28,7 @@ use game::step;
 
 // GameEnv
 
-#[pyclass(module = "slai.slai")]
+#[pyclass(module = "slai._slai")]
 struct GameEnv {
     state: game::GameState,
 }
@@ -138,7 +138,7 @@ impl GameEnv {
 }
 
 #[pymodule]
-mod slai {
+mod _slai {
     #[pymodule_export]
     use super::GameEnv;
     // Action layer

@@ -1,6 +1,6 @@
 from typing import Iterator, NamedTuple, Optional, TypeAlias, Union
 
-from . import slai as _rs
+from . import _slai as _rs
 
 # Every enum is re-exported raw
 ActionType = _rs.ActionType

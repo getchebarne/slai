@@ -3,5 +3,5 @@
 /.venv
 /.vscode
 /python/slai/__pycache__
-/python/slai/slai.cpython*
+/python/slai/_slai.cpython*
 play/

@@ -44,15 +44,7 @@ mirror_enum!(PyRelicExclusion from RelicExclusion, "RelicExclusion", {
     Unfiltered, Screenless, NonCampfire,
 });
 
-#[pyclass(
-    skip_from_py_object,
-    eq,
-    hash,
-    frozen,
-    get_all,
-    name = "Relic",
-    module = "slai.slai"
-)]
+#[pyclass(eq, hash, frozen, get_all, name = "Relic", module = "slai._slai")]
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct PyRelic {
     pub id: usize,

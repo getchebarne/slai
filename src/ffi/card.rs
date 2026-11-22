@@ -89,15 +89,7 @@ mirror_enum!(PyCardName from CardName, "CardName", {
 });
 
 // Exposed structs
-#[pyclass(
-    skip_from_py_object,
-    eq,
-    hash,
-    frozen,
-    get_all,
-    name = "Card",
-    module = "slai.slai"
-)]
+#[pyclass(eq, hash, frozen, get_all, name = "Card", module = "slai._slai")]
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct PyCard {
     pub id: usize, // Entity ID

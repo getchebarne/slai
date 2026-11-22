@@ -49,7 +49,7 @@ use super::relic::PyRelic;
 use super::relic::snapshot_relic;
 
 // The contexts, entities, Map, queued plays and pending Effect are Python objects built once
-#[pyclass(frozen, get_all, name = "GameState", module = "slai.slai")]
+#[pyclass(frozen, get_all, name = "GameState", module = "slai._slai")]
 #[derive(Debug)]
 pub struct PyGameState {
     // Every Entity keyed by id

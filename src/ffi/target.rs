@@ -40,15 +40,7 @@ impl From<SelectionKind> for PySelectionKind {
     }
 }
 
-#[pyclass(
-    skip_from_py_object,
-    eq,
-    hash,
-    frozen,
-    get_all,
-    name = "Target",
-    module = "slai.slai"
-)]
+#[pyclass(eq, hash, frozen, get_all, name = "Target", module = "slai._slai")]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyTarget {
     pub candidate_pool: PyCandidatePool,

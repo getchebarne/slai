@@ -19,20 +19,19 @@ macro_rules! flat_variants {
     // @cls PyAmountAbsolute, "AmountAbsolute" { amount: u16 }
     (@cls $cls:ident, $name:literal { $($f:ident : $t:ty),+ $(,)? }) => {
         #[pyclass(
-            skip_from_py_object,
             eq,
             hash,
             frozen,
             get_all,
             name = $name,
-            module = "slai.slai"
+            module = "slai._slai"
         )]
         #[derive(Debug, Clone, PartialEq, Eq, Hash)]
         pub struct $cls { $(pub $f: $t,)+ }
     };
     // @cls PyAmountEventGoldAsk, "AmountEventGoldAsk"
     (@cls $cls:ident, $name:literal) => {
-        #[pyclass(skip_from_py_object, eq, hash, frozen, name = $name, module = "slai.slai")]
+        #[pyclass(eq, hash, frozen, name = $name, module = "slai._slai")]
         #[derive(Debug, Clone, PartialEq, Eq, Hash)]
         pub struct $cls;
     };
@@ -76,14 +75,13 @@ macro_rules! flat_variants {
 /// ```
 ///
 /// Table order = declaration order = int discriminant
-/// stays a compile error. Mirrored enums are snapshot-only, so the pyclass is
-/// always `skip_from_py_object`. Call sites need `use pyo3::prelude::*` in scope.
+/// stays a compile error. Call sites need `use pyo3::prelude::*` in scope.
 macro_rules! mirror_enum {
     ($py:ident from $internal:ident, $name:literal, { $($v:ident),+ $(,)? }) => {
         mirror_enum!($py from $internal, $name, { $($v),+ }, {});
     };
     ($py:ident from $internal:ident, $name:literal, { $($v:ident),+ $(,)? }, { $($extra:item)* }) => {
-        #[pyclass(skip_from_py_object, eq, eq_int, frozen, name = $name, module = "slai.slai")]
+        #[pyclass(eq, eq_int, frozen, name = $name, module = "slai._slai")]
         #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
         pub enum $py { $($v,)+ }
 

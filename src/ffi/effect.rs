@@ -53,14 +53,7 @@ mirror_enum!(PyRewardRollTrigger from RewardRollTrigger, "RewardRollTrigger", {
     WomanInBlue,
 });
 
-#[pyclass(
-    skip_from_py_object,
-    eq,
-    eq_int,
-    frozen,
-    name = "PlaySource",
-    module = "slai.slai"
-)]
+#[pyclass(eq, eq_int, frozen, name = "PlaySource", module = "slai._slai")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, strum::EnumIter)]
 pub enum PyPlaySource {
     Hand,
@@ -98,15 +91,7 @@ impl From<PlaySource> for PyPlaySource {
 }
 
 // A Card play waiting in the card play queue; a Card queued twice has two
-#[pyclass(
-    skip_from_py_object,
-    eq,
-    hash,
-    frozen,
-    get_all,
-    name = "CardPlay",
-    module = "slai.slai"
-)]
+#[pyclass(eq, hash, frozen, get_all, name = "CardPlay", module = "slai._slai")]
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct PyCardPlay {
     pub id_card: usize,
