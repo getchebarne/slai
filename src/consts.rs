@@ -29,8 +29,6 @@ pub const GOLD_ELITE_MAX: u16 = 35;
 pub const GOLD_BOSS_MIN: u16 = 95;
 pub const GOLD_BOSS_MAX: u16 = 105;
 
-// Widest reward-gold offer: boss roll + Golden Idol's 25% (rounded half-up)
-pub const REWARD_GOLD_MAX: u16 = GOLD_BOSS_MAX + (GOLD_BOSS_MAX + 2) / 4;
 pub const BOSS_RELIC_REWARD_COUNT: usize = 3;
 pub const LIBRARY_CARD_COUNT: usize = 20;
 
