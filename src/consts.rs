@@ -29,8 +29,6 @@ pub const GOLD_ELITE_MAX: u16 = 35;
 pub const GOLD_BOSS_MIN: u16 = 95;
 pub const GOLD_BOSS_MAX: u16 = 105;
 
-// Widest reward-gold offer: boss roll + Golden Idol's 25% (rounded half-up)
-pub const REWARD_GOLD_MAX: u16 = GOLD_BOSS_MAX + (GOLD_BOSS_MAX + 2) / 4;
 pub const BOSS_RELIC_REWARD_COUNT: usize = 3;
 pub const LIBRARY_CARD_COUNT: usize = 20;
 
@@ -89,6 +87,10 @@ pub const PANACHE_PLAYS: u8 = 5;
 // Time Warp ends the Character's turn on every 12th Card played, counted across turns, and gives every Monster 2 Strength
 pub const TIME_WARP_PLAYS: i16 = 12;
 pub const TIME_WARP_STRENGTH: i16 = 2;
+
+// Normality in hand caps the turn's plays at 3, Velvet Choker at 6
+pub const NORMALITY_PLAYS_MAX: u16 = 3;
+pub const VELVET_CHOKER_PLAYS_MAX: i16 = 6;
 
 // Event roll-pool stakes: the widest offer any event places in `id_roll_*`
 pub const MAX_SIZE_CARD_PILE_EVENT_ROLL: usize = 2 * MATCH_AND_KEEP_ATTEMPTS as usize; // Match and Keep!

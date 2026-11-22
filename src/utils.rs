@@ -34,12 +34,14 @@ use crate::consts::GOLD_BOSS_MIN;
 use crate::consts::MAX_CARD_REWARD_ROLL;
 use crate::consts::MAX_MONSTERS;
 use crate::consts::MAX_SIZE_CARD_PILE_HAND;
+use crate::consts::NORMALITY_PLAYS_MAX;
 use crate::consts::RELIC_DIG_TH_COMMON_ACT4;
 use crate::consts::RELIC_DIG_TH_UNCOMMON_ACT4;
 use crate::consts::RELIC_GRANT_TH_COMMON;
 use crate::consts::RELIC_GRANT_TH_UNCOMMON;
 use crate::consts::SHOP_CARD_CUT_RARE;
 use crate::consts::SHOP_CARD_CUT_UNCOMMON;
+use crate::consts::VELVET_CHOKER_PLAYS_MAX;
 use crate::effect::Amount;
 use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
@@ -207,12 +209,12 @@ pub fn play_cap_reached(
     id_relics: &[Option<usize>; RelicName::COUNT],
     this_turn_cards_played: u16,
 ) -> bool {
-    let normality = this_turn_cards_played >= 3
+    let normality = this_turn_cards_played >= NORMALITY_PLAYS_MAX
         && id_card_pile_hand
             .iter()
             .any(|&id| entities[id].card_name == CardName::Normality);
     let choker = id_relics[RelicName::VelvetChoker as usize]
-        .is_some_and(|id| entities[id].relic_counter >= 6);
+        .is_some_and(|id| entities[id].relic_counter >= VELVET_CHOKER_PLAYS_MAX);
     normality || choker
 }
 

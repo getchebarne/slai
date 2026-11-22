@@ -9,7 +9,7 @@ use crate::types::PotionRarity;
 use crate::utils::entity_requires_target;
 
 use super::effect::PyEffect;
-use super::effect::snapshot_effect;
+use super::effect::snapshot_effects;
 use super::identity_hash;
 
 mirror_enum!(PyPotionName from PotionName, "PotionName", {
@@ -57,7 +57,7 @@ pub(crate) fn snapshot_potion(state: &GameState, id: usize) -> PyPotion {
         requires_target: entity_requires_target(entity),
         combat_only: entity.potion_combat_only,
         doubled: entity.potion_doubled,
-        effects: entity.potion_effects.iter().map(snapshot_effect).collect(),
+        effects: snapshot_effects(state, entity.potion_effects, None),
         price: entity.price,
         usable: state.legal_actions.iter().any(
             |action| matches!(action, Action::PotionUse { id_potion, .. } if *id_potion == id),
