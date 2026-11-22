@@ -62,7 +62,7 @@ mirror_enum!(PyMonsterEncounter from MonsterEncounter, "MonsterEncounter", {
     eq_int,
     frozen,
     name = "IntentKind",
-    module = "slai.slai"
+    module = "slai._slai"
 )]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, strum::EnumIter)]
 pub enum PyIntentKind {
@@ -118,15 +118,7 @@ impl From<Intent> for PyIntentKind {
     }
 }
 
-#[pyclass(
-    skip_from_py_object,
-    eq,
-    hash,
-    frozen,
-    get_all,
-    name = "Intent",
-    module = "slai.slai"
-)]
+#[pyclass(eq, hash, frozen, get_all, name = "Intent", module = "slai._slai")]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyIntent {
     pub kind: PyIntentKind,
@@ -134,15 +126,7 @@ pub struct PyIntent {
     pub instances: Option<u8>,
 }
 
-#[pyclass(
-    skip_from_py_object,
-    eq,
-    hash,
-    frozen,
-    get_all,
-    name = "Monster",
-    module = "slai.slai"
-)]
+#[pyclass(eq, hash, frozen, get_all, name = "Monster", module = "slai._slai")]
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct PyMonster {
     pub id: usize,

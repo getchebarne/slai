@@ -1,6 +1,6 @@
-from typing import Iterator, NamedTuple, Optional, Union
+from typing import Iterator, NamedTuple, Optional, TypeAlias, Union
 
-from . import slai as _rs
+from . import _slai as _rs
 
 # Every enum is re-exported raw
 ActionType = _rs.ActionType
@@ -190,6 +190,7 @@ get_event_option_templates = _rs.get_event_option_templates
 # Sum types: one flat frozen class per variant (EffectDamagePhysical, ...) plus a
 # PEP 604 union alias per family. The union works as annotation, isinstance target,
 # and typing.get_args source alike; the FFI returns instances of the flat classes.
+# The generated _slai.pyi imports the union aliases by name; keep them even when unused here
 EffectDamagePhysical = _rs.EffectDamagePhysical
 EffectHeelHookProc = _rs.EffectHeelHookProc
 EffectSkewerProc = _rs.EffectSkewerProc
@@ -281,7 +282,7 @@ EffectHealthSet = _rs.EffectHealthSet
 EffectRoomEnter = _rs.EffectRoomEnter
 EffectPhilosopherStoneProc = _rs.EffectPhilosopherStoneProc
 RewardRollTrigger = _rs.RewardRollTrigger
-Effect = (
+Effect: TypeAlias = (
     EffectDamagePhysical
     | EffectHeelHookProc
     | EffectSkewerProc
@@ -374,37 +375,13 @@ Effect = (
     | EffectPhilosopherStoneProc
 )
 
-# The kinds that can park in GameState.effect_pending. A halt only happens on a
-# Target::Resolve carrying Input/InputUpTo, so this is a strict subset of Effect
-# — mirrored from ffi/effect.rs's PyPendingEffect, which is what `pending`
-# actually returns.
-PendingEffect = (
-    EffectBonfireOffer
-    | EffectCardAdopt
-    | EffectCardBottle
-    | EffectCardDiscard
-    | EffectCardDiscoverSelect
-    | EffectCardDuplicate
-    | EffectCardExhaust
-    | EffectCardMove
-    | EffectCardNightmareSelect
-    | EffectCardPurge
-    | EffectCardRetain
-    | EffectCardSetupSelect
-    | EffectCardTransform
-    | EffectCardUpgrade
-    | EffectMatchFlipSeen
-    | EffectRelicLose
-    | EffectRestSmith
-    | EffectRestToke
-)
 CandidatePool = _rs.CandidatePool
 SelectionKindAll = _rs.SelectionKindAll
 SelectionKindSingle = _rs.SelectionKindSingle
 SelectionKindRandom = _rs.SelectionKindRandom
 SelectionKindInput = _rs.SelectionKindInput
 SelectionKindInputUpTo = _rs.SelectionKindInputUpTo
-SelectionKind = (
+SelectionKind: TypeAlias = (
     SelectionKindAll
     | SelectionKindSingle
     | SelectionKindRandom
@@ -418,7 +395,7 @@ CardCostKindFixed = _rs.CardCostKindFixed
 CardCostKindMinusDiscardsThisTurn = _rs.CardCostKindMinusDiscardsThisTurn
 CardCostKindGrowsOnDamageInstanceTaken = _rs.CardCostKindGrowsOnDamageInstanceTaken
 CardCostKindXCost = _rs.CardCostKindXCost
-CardCostKind = (
+CardCostKind: TypeAlias = (
     CardCostKindFixed
     | CardCostKindMinusDiscardsThisTurn
     | CardCostKindGrowsOnDamageInstanceTaken
@@ -430,7 +407,7 @@ LocationOverworld = _rs.LocationOverworld
 LocationBossRoom = _rs.LocationBossRoom
 LocationBossTreasure = _rs.LocationBossTreasure
 LocationVictory = _rs.LocationVictory
-Location = (
+Location: TypeAlias = (
     LocationStart
     | LocationOverworld
     | LocationBossRoom
@@ -441,7 +418,8 @@ Location = (
 AmountAbsolute = _rs.AmountAbsolute
 AmountRelative = _rs.AmountRelative
 AmountRange = _rs.AmountRange
-Amount = AmountAbsolute | AmountRelative | AmountRange
+Amount: TypeAlias = AmountAbsolute | AmountRelative | AmountRange
+AmountScalar: TypeAlias = AmountAbsolute | AmountRelative
 RestSite = _rs.RestSite
 Chest = _rs.Chest
 ChestKind = _rs.ChestKind
@@ -526,7 +504,6 @@ __all__ = [
     "LocationVictory",
     "Target",
     "Effect",
-    "PendingEffect",
     "EffectDamagePhysical",
     "EffectHeelHookProc",
     "EffectSkewerProc",
@@ -622,6 +599,7 @@ __all__ = [
     "AmountAbsolute",
     "AmountRelative",
     "AmountRange",
+    "AmountScalar",
     "RestSite",
     "Chest",
     "ChestKind",

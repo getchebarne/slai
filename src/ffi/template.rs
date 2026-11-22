@@ -39,13 +39,12 @@ use super::relic::PyRelicName;
 use super::relic::PyRelicTier;
 
 #[pyclass(
-    skip_from_py_object,
     eq,
     hash,
     frozen,
     get_all,
     name = "CardTemplate",
-    module = "slai.slai"
+    module = "slai._slai"
 )]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyCardTemplate {
@@ -73,13 +72,12 @@ pub struct PyCardTemplate {
 }
 
 #[pyclass(
-    skip_from_py_object,
     eq,
     hash,
     frozen,
     get_all,
     name = "RelicTemplate",
-    module = "slai.slai"
+    module = "slai._slai"
 )]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyRelicTemplate {
@@ -96,13 +94,12 @@ pub struct PyRelicTemplate {
 }
 
 #[pyclass(
-    skip_from_py_object,
     eq,
     hash,
     frozen,
     get_all,
     name = "PotionTemplate",
-    module = "slai.slai"
+    module = "slai._slai"
 )]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyPotionTemplate {
@@ -115,13 +112,12 @@ pub struct PyPotionTemplate {
 }
 
 #[pyclass(
-    skip_from_py_object,
     eq,
     hash,
     frozen,
     get_all,
     name = "ModifierSpawnTemplate",
-    module = "slai.slai"
+    module = "slai._slai"
 )]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyModifierSpawnTemplate {
@@ -131,13 +127,12 @@ pub struct PyModifierSpawnTemplate {
 }
 
 #[pyclass(
-    skip_from_py_object,
     eq,
     hash,
     frozen,
     get_all,
     name = "MonsterMoveTemplate",
-    module = "slai.slai"
+    module = "slai._slai"
 )]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyMonsterMoveTemplate {
@@ -149,13 +144,12 @@ pub struct PyMonsterMoveTemplate {
 }
 
 #[pyclass(
-    skip_from_py_object,
     eq,
     hash,
     frozen,
     get_all,
     name = "MonsterTemplate",
-    module = "slai.slai"
+    module = "slai._slai"
 )]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyMonsterTemplate {
@@ -168,13 +162,12 @@ pub struct PyMonsterTemplate {
 }
 
 #[pyclass(
-    skip_from_py_object,
     eq,
     hash,
     frozen,
     get_all,
     name = "EventOptionTemplate",
-    module = "slai.slai"
+    module = "slai._slai"
 )]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyEventOptionTemplate {

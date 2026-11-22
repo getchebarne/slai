@@ -1,8 +1,6 @@
 use pyo3::inspect::PyStaticExpr;
 use pyo3::prelude::*;
 use pyo3::sync::PyOnceLock;
-use pyo3::type_hint_union;
-use pyo3::type_object::PyTypeInfo;
 
 use super::macros::flat_variants;
 use super::macros::mirror_enum;
@@ -17,7 +15,7 @@ mirror_enum!(PyRoomKind from RoomKind, "RoomKind", {
     CombatMonster, CombatElite, CombatBoss, RestSite, Treasure, EventRoom, Shop, Unknown,
 });
 
-flat_variants!(PyLocation {
+flat_variants!(PyLocation as "Location" {
     Start => PyLocationStart as "LocationStart",
     Overworld => PyLocationOverworld as "LocationOverworld" { y: usize, x: usize },
     BossRoom => PyLocationBossRoom as "LocationBossRoom",
@@ -37,13 +35,7 @@ impl From<Location> for PyLocation {
     }
 }
 
-#[pyclass(
-    skip_from_py_object,
-    frozen,
-    get_all,
-    name = "Room",
-    module = "slai.slai"
-)]
+#[pyclass(frozen, get_all, name = "Room", module = "slai._slai")]
 #[derive(Debug)]
 pub struct PyRoom {
     pub id: usize,
@@ -56,7 +48,7 @@ pub struct PyRoom {
     pub x: usize,
 }
 
-#[pyclass(frozen, get_all, name = "Map", module = "slai.slai")]
+#[pyclass(frozen, get_all, name = "Map", module = "slai._slai")]
 pub struct PyMap {
     pub id_rooms: PyIdRooms,
     pub location: PyLocation,

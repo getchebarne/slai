@@ -10,7 +10,7 @@ use crate::action::Action;
     eq_int,
     frozen,
     name = "ActionType",
-    module = "slai.slai"
+    module = "slai._slai"
 )]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, strum::IntoStaticStr, strum::EnumIter)]
 pub enum PyActionType {
@@ -84,7 +84,7 @@ impl PyActionType {
     hash,
     frozen,
     name = "Action",
-    module = "slai.slai"
+    module = "slai._slai"
 )]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyAction {

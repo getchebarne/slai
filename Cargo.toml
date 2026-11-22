@@ -8,6 +8,6 @@ name = "slai"
 crate-type = ["cdylib"]
 
 [dependencies]
-pyo3 = { version = "0.28", features = ["experimental-inspect"] }
+pyo3 = { version = "0.30", features = ["experimental-inspect"] }
 rand = "0.9"
 strum = { version = "0.28", features = ["derive"] }

@@ -19,15 +19,7 @@ mirror_enum!(PyEventName from EventName, "EventName", {
     UpgradeShrine, Vampires, WeMeetAgain, WheelOfChange, WindingHalls, WingStatue, WorldOfGoop,
 });
 
-#[pyclass(
-    skip_from_py_object,
-    eq,
-    hash,
-    frozen,
-    get_all,
-    name = "EventOption",
-    module = "slai.slai"
-)]
+#[pyclass(eq, hash, frozen, get_all, name = "EventOption", module = "slai._slai")]
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct PyEventOption {
     pub id: usize,

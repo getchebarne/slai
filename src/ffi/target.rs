@@ -1,7 +1,4 @@
-use pyo3::inspect::PyStaticExpr;
 use pyo3::prelude::*;
-use pyo3::type_hint_union;
-use pyo3::type_object::PyTypeInfo;
 
 use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
@@ -21,7 +18,7 @@ mirror_enum!(PyCandidateFilter from CandidateFilter, "CandidateFilter", {
     NotBoundCurse, NotSource, NotSourceUnlessAlone, NotIntangible, NotMinion, Starter,
 });
 
-flat_variants!(PySelectionKind {
+flat_variants!(PySelectionKind as "SelectionKind" {
     All => PySelectionKindAll as "SelectionKindAll",
     Single => PySelectionKindSingle as "SelectionKindSingle",
     Random => PySelectionKindRandom as "SelectionKindRandom" { count: u8 },
@@ -43,15 +40,7 @@ impl From<SelectionKind> for PySelectionKind {
     }
 }
 
-#[pyclass(
-    skip_from_py_object,
-    eq,
-    hash,
-    frozen,
-    get_all,
-    name = "Target",
-    module = "slai.slai"
-)]
+#[pyclass(eq, hash, frozen, get_all, name = "Target", module = "slai._slai")]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyTarget {
     pub candidate_pool: PyCandidatePool,
