@@ -1,7 +1,4 @@
-use pyo3::inspect::PyStaticExpr;
 use pyo3::prelude::*;
-use pyo3::type_hint_union;
-use pyo3::type_object::PyTypeInfo;
 
 use crate::action::Action;
 use crate::entity::CardCostKind;
@@ -36,7 +33,7 @@ mirror_enum!(PyCardRarity from CardRarity, "CardRarity", {
     Basic, Common, Uncommon, Rare, Special, Curse,
 });
 
-flat_variants!(PyCardCostKind {
+flat_variants!(PyCardCostKind as "CardCostKind" {
     Fixed => PyCardCostKindFixed as "CardCostKindFixed",
     MinusDiscardsThisTurn => PyCardCostKindMinusDiscardsThisTurn as "CardCostKindMinusDiscardsThisTurn",
     GrowsOnDamageInstanceTaken => PyCardCostKindGrowsOnDamageInstanceTaken as "CardCostKindGrowsOnDamageInstanceTaken",

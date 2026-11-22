@@ -1,7 +1,4 @@
-use pyo3::inspect::PyStaticExpr;
 use pyo3::prelude::*;
-use pyo3::type_hint_union;
-use pyo3::type_object::PyTypeInfo;
 
 use crate::effect::Amount;
 use crate::effect::ReadAt;
@@ -23,7 +20,7 @@ mirror_enum!(PyRounding from Rounding, "Rounding", {
     Truncate, TruncateMinOne, HalfUp, Ceil,
 });
 
-flat_variants!(PyAmount {
+flat_variants!(PyAmount as "Amount" {
     Absolute => PyAmountAbsolute as "AmountAbsolute" { amount: u16 },
     Relative => PyAmountRelative as "AmountRelative" { numerator: u8, denominator: u8, rounding: PyRounding, read_at: PyReadAt },
     Range => PyAmountRange as "AmountRange" { min: u16, max: u16 },
@@ -50,7 +47,7 @@ impl From<Amount> for PyAmount {
 }
 
 // Health / MaxHealth deltas never carry Range; the narrower union keeps the stub truthful
-flat_variants!(@enum PyAmountScalar {
+flat_variants!(@enum PyAmountScalar as "AmountScalar" {
     Absolute => PyAmountAbsolute,
     Relative => PyAmountRelative
 });

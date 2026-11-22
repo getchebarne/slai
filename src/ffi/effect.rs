@@ -2,8 +2,6 @@ use std::convert::Infallible;
 
 use pyo3::inspect::PyStaticExpr;
 use pyo3::prelude::*;
-use pyo3::type_hint_union;
-use pyo3::type_object::PyTypeInfo;
 use strum::IntoEnumIterator;
 
 use crate::effect::CardPlay;
@@ -141,7 +139,7 @@ pub(crate) fn id_target_shown(state: &GameState, card_play: &CardPlay) -> Option
 }
 
 // Mirrors only EffectKind variants reachable from static Card/Monster defs or a halted selection; snapshot_effect panics on runtime-only variants
-flat_variants!(PyEffect {
+flat_variants!(PyEffect as "Effect" {
     DamagePhysical => PyEffectDamagePhysical as "EffectDamagePhysical" { amount: u16, instances: u16, lifesteal: bool, if_poisoned: bool, block_from_hit: bool, target: PyTarget },
     HeelHookProc => PyEffectHeelHookProc as "EffectHeelHookProc" { damage: u16, target: PyTarget },
     SkewerProc => PyEffectSkewerProc as "EffectSkewerProc" { damage: u16, target: PyTarget },
