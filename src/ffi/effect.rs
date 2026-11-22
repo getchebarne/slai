@@ -125,96 +125,96 @@ pub(crate) fn id_target_shown(state: &GameState, card_play: &CardPlay) -> Option
 
 // Mirrors only EffectKind variants reachable from static Card/Monster defs or a halted selection; snapshot_effect panics on runtime-only variants
 flat_variants!(PyEffect as "Effect" {
-    DamagePhysical => PyEffectDamagePhysical as "EffectDamagePhysical" { amount: u16, instances: u16, lifesteal: bool, if_poisoned: bool, block_from_hit: bool, target: PyTarget },
-    HeelHookProc => PyEffectHeelHookProc as "EffectHeelHookProc" { damage: u16, target: PyTarget },
-    SkewerProc => PyEffectSkewerProc as "EffectSkewerProc" { damage: u16, target: PyTarget },
-    EscapePlanCheck => PyEffectEscapePlanCheck as "EffectEscapePlanCheck" { block: u16, target: PyTarget },
-    GlassKnifeDecay => PyEffectGlassKnifeDecay as "EffectGlassKnifeDecay" { delta: i16, target: PyTarget },
-    CardSetupSelect => PyEffectCardSetupSelect as "EffectCardSetupSelect" { free: bool, bottom: bool, target: PyTarget },
-    CardNightmareSelect => PyEffectCardNightmareSelect as "EffectCardNightmareSelect" { target: PyTarget },
-    DistractionAdd => PyEffectDistractionAdd as "EffectDistractionAdd",
-    SetCostOverride => PyEffectSetCostOverride as "EffectSetCostOverride" { amount: u16, only_reduce: bool, random: bool, scope: PyCostScope, target: PyTarget },
-    DamageFinisher => PyEffectDamageFinisher as "EffectDamageFinisher" { damage: u16, target: PyTarget },
-    DamageFlechettes => PyEffectDamageFlechettes as "EffectDamageFlechettes" { damage: u16, target: PyTarget },
-    UnloadDiscard => PyEffectUnloadDiscard as "EffectUnloadDiscard",
-    StormOfSteelProc => PyEffectStormOfSteelProc as "EffectStormOfSteelProc" { upgraded: bool },
-    SneakyStrikeProc => PyEffectSneakyStrikeProc as "EffectSneakyStrikeProc" { energy: u8 },
-    BlockGain => PyEffectBlockGain as "EffectBlockGain" { amount: u16, target: PyTarget },
-    BombArm => PyEffectBombArm as "EffectBombArm" { turns: u8, damage: u16 },
-    LifestealHeal => PyEffectLifestealHeal as "EffectLifestealHeal" { target: PyTarget },
-    ModifierDelta => PyEffectModifierDelta as "EffectModifierDelta" { kind: PyModifierKind, stacks: i16, target: PyTarget },
-    ModifierMultiply => PyEffectModifierMultiply as "EffectModifierMultiply" { kind: PyModifierKind, factor: u8, target: PyTarget },
-    EnergyDelta => PyEffectEnergyDelta as "EffectEnergyDelta" { sign: PyDeltaSign, amount: u16 },
-    CardAdd => PyEffectCardAdd as "EffectCardAdd" { card_name: PyCardName, card_pile: PyCardPile, count: u16, upgraded: bool },
-    CardDraw => PyEffectCardDraw as "EffectCardDraw" { count: u16 },
-    CardDrawUpTo => PyEffectCardDrawUpTo as "EffectCardDrawUpTo" { amount: u8 },
-    CardDiscard => PyEffectCardDiscard as "EffectCardDiscard" { target: PyTarget },
-    CardRetain => PyEffectCardRetain as "EffectCardRetain" { target: PyTarget },
-    DamageMindBlast => PyEffectDamageMindBlast as "EffectDamageMindBlast" { damage: u16, target: PyTarget },
-    ShuffleCardPileDiscardIntoCardPileDraw => PyEffectShuffleCardPileDiscardIntoCardPileDraw as "EffectShuffleCardPileDiscardIntoCardPileDraw",
-    MaxHealthDelta => PyEffectMaxHealthDelta as "EffectMaxHealthDelta" { sign: PyDeltaSign, amount: PyAmountScalar, target: PyTarget },
-    HealthDelta => PyEffectHealthDelta as "EffectHealthDelta" { sign: PyDeltaSign, amount: PyAmountScalar, target: PyTarget },
-    PotionAddRandom => PyEffectPotionAddRandom as "EffectPotionAddRandom" { limited: bool, uniform: bool },
-    PotionDiscard => PyEffectPotionDiscard as "EffectPotionDiscard" { target: PyTarget },
-    RewardRollPotions => PyEffectRewardRollPotions as "EffectRewardRollPotions" { count: u8, trigger: PyRewardRollTrigger },
-    RewardRollGold => PyEffectRewardRollGold as "EffectRewardRollGold" { amount: PyAmount },
-    CardDiscoverRoll => PyEffectCardDiscoverRoll as "EffectCardDiscoverRoll" { kind: Option<PyCardKind>, color: PyCardColor, exclude: Vec<PyCardName>, count: u8 },
-    GoldDelta => PyEffectGoldDelta as "EffectGoldDelta" { sign: PyDeltaSign, amount: PyAmount },
-    RelicGrantRandom => PyEffectRelicGrantRandom as "EffectRelicGrantRandom" { tier: Option<PyRelicTier>, exclusion: PyRelicExclusion },
-    WheelSpin => PyEffectWheelSpin as "EffectWheelSpin",
-    BonfireOffer => PyEffectBonfireOffer as "EffectBonfireOffer" { target: PyTarget },
-    CardBottle => PyEffectCardBottle as "EffectCardBottle" { target: PyTarget },
-    MonsterSpawn => PyEffectMonsterSpawn as "EffectMonsterSpawn" { name: PyMonsterName },
-    CombatStart => PyEffectCombatStart as "EffectCombatStart",
-    AdventurerSearch => PyEffectAdventurerSearch as "EffectAdventurerSearch",
-    RelicGrantSpecific => PyEffectRelicGrantSpecific as "EffectRelicGrantSpecific" { name: PyRelicName },
-    EventAdvanceStage => PyEffectEventAdvanceStage as "EffectEventAdvanceStage" { delta: i8 },
-    ScrapOozeReach => PyEffectScrapOozeReach as "EffectScrapOozeReach" { chance: u8, advance_on_miss: bool },
-    EventConsume => PyEffectEventConsume as "EffectEventConsume",
-    EventClose => PyEffectEventClose as "EffectEventClose",
-    CardDiscoverSelect => PyEffectCardDiscoverSelect as "EffectCardDiscoverSelect" { cost_zero: Option<PyCostScope>, card_pile: PyCardPile, copies: u8, target: PyTarget },
-    CardAdopt => PyEffectCardAdopt as "EffectCardAdopt" { target: PyTarget },
-    CardPileEventRollClear => PyEffectCardPileEventRollClear as "EffectCardPileEventRollClear",
-    CardPurge => PyEffectCardPurge as "EffectCardPurge" { target: PyTarget },
-    CardUpgrade => PyEffectCardUpgrade as "EffectCardUpgrade" { target: PyTarget },
-    RestSmith => PyEffectRestSmith as "EffectRestSmith" { target: PyTarget },
-    RestToke => PyEffectRestToke as "EffectRestToke" { target: PyTarget },
-    CardDuplicate => PyEffectCardDuplicate as "EffectCardDuplicate" { card_pile: PyCardPile, target: PyTarget },
-    CardTransform => PyEffectCardTransform as "EffectCardTransform" { upgraded: bool, target: PyTarget },
-    CardAddRandom => PyEffectCardAddRandom as "EffectCardAddRandom" { color: PyCardColor, kind: Option<PyCardKind>, card_pile: PyCardPile, count: u16, cost_zero: Option<PyCostScope>, upgraded: bool, rarity: Option<PyCardRarity> },
-    CardDrawIfNoAttacks => PyEffectCardDrawIfNoAttacks as "EffectCardDrawIfNoAttacks" { count: u16 },
-    HandOfGreedProc => PyEffectHandOfGreedProc as "EffectHandOfGreedProc" { gold: u16, target: PyTarget },
-    RitualDaggerProc => PyEffectRitualDaggerProc as "EffectRitualDaggerProc" { bump: u16, target: PyTarget },
-    CardExhaust => PyEffectCardExhaust as "EffectCardExhaust" { target: PyTarget },
-    CardMove => PyEffectCardMove as "EffectCardMove" { card_pile: PyCardPile, cost_zero: Option<PyCostScope>, target: PyTarget },
-    CardPlayFromCardPileDrawTop => PyEffectCardPlayFromCardPileDrawTop as "EffectCardPlayFromCardPileDrawTop",
-    Gamble => PyEffectGamble as "EffectGamble" { choose_discards: bool },
-    CombatEnd => PyEffectCombatEnd as "EffectCombatEnd" { escaped_character: bool },
-    RelicLose => PyEffectRelicLose as "EffectRelicLose" { target: PyTarget },
-    StrengthLoseTemp => PyEffectStrengthLoseTemp as "EffectStrengthLoseTemp" { stacks: i16, target: PyTarget },
-    MausoleumOpen => PyEffectMausoleumOpen as "EffectMausoleumOpen",
-    KnowingSkullCostBump => PyEffectKnowingSkullCostBump as "EffectKnowingSkullCostBump",
-    JoustBet => PyEffectJoustBet as "EffectJoustBet" { on_owner: bool },
-    RelicGrantPool => PyEffectRelicGrantPool as "EffectRelicGrantPool" { pool: Vec<PyRelicName> },
-    DebuffsClear => PyEffectDebuffsClear as "EffectDebuffsClear" { target: PyTarget },
-    HexaghostBurnIncrease => PyEffectHexaghostBurnIncrease as "EffectHexaghostBurnIncrease" { count: u8 },
-    ModifierRemove => PyEffectModifierRemove as "EffectModifierRemove" { kind: PyModifierKind, target: PyTarget },
-    ModifierStrengthNegativeRemove => PyEffectModifierStrengthNegativeRemove as "EffectModifierStrengthNegativeRemove" { target: PyTarget },
-    MonsterEscape => PyEffectMonsterEscape as "EffectMonsterEscape" { target: PyTarget },
-    MonsterRemove => PyEffectMonsterRemove as "EffectMonsterRemove" { target: PyTarget },
-    MonsterSplit => PyEffectMonsterSplit as "EffectMonsterSplit" { name: PyMonsterName, target: PyTarget },
-    MonsterSummon => PyEffectMonsterSummon as "EffectMonsterSummon" { pool: Vec<PyMonsterName> },
-    CardStasisSteal => PyEffectCardStasisSteal as "EffectCardStasisSteal",
-    RewardRollCards => PyEffectRewardRollCards as "EffectRewardRollCards" { bundles: u8, trigger: PyRewardRollTrigger },
-    NeowCardsRoll => PyEffectNeowCardsRoll as "EffectNeowCardsRoll" { colorless: bool, rare_only: bool },
-    RewardRollRelic => PyEffectRewardRollRelic as "EffectRewardRollRelic" { pool: Vec<PyRelicName> },
-    DamageDeal => PyEffectDamageDeal as "EffectDamageDeal" { amount: u16, lifesteal: bool, target: PyTarget },
-    MatchFlipSeen => PyEffectMatchFlipSeen as "EffectMatchFlipSeen" { target: PyTarget },
-    MatchFlipUnseen => PyEffectMatchFlipUnseen as "EffectMatchFlipUnseen",
-    HalfDeadRebirth => PyEffectHalfDeadRebirth as "EffectHalfDeadRebirth" { target: PyTarget },
-    HealthSet => PyEffectHealthSet as "EffectHealthSet" { amount: PyAmountScalar, target: PyTarget },
-    RoomEnter => PyEffectRoomEnter as "EffectRoomEnter",
-    PhilosopherStoneProc => PyEffectPhilosopherStoneProc as "EffectPhilosopherStoneProc" { target: PyTarget },
+    DamagePhysical => PyEffectDamagePhysical as "EffectDamagePhysical" { amount: u16, instances: u16, lifesteal: bool, if_poisoned: bool, block_from_hit: bool, target: Option<PyTarget> },
+    HeelHookProc => PyEffectHeelHookProc as "EffectHeelHookProc" { damage: u16, target: Option<PyTarget> },
+    SkewerProc => PyEffectSkewerProc as "EffectSkewerProc" { damage: u16, target: Option<PyTarget> },
+    EscapePlanCheck => PyEffectEscapePlanCheck as "EffectEscapePlanCheck" { block: u16, target: Option<PyTarget> },
+    GlassKnifeDecay => PyEffectGlassKnifeDecay as "EffectGlassKnifeDecay" { delta: i16, target: Option<PyTarget> },
+    CardSetupSelect => PyEffectCardSetupSelect as "EffectCardSetupSelect" { free: bool, bottom: bool, target: Option<PyTarget> },
+    CardNightmareSelect => PyEffectCardNightmareSelect as "EffectCardNightmareSelect" { target: Option<PyTarget> },
+    DistractionAdd => PyEffectDistractionAdd as "EffectDistractionAdd" { target: Option<PyTarget> },
+    SetCostOverride => PyEffectSetCostOverride as "EffectSetCostOverride" { amount: u16, only_reduce: bool, random: bool, scope: PyCostScope, target: Option<PyTarget> },
+    DamageFinisher => PyEffectDamageFinisher as "EffectDamageFinisher" { damage: u16, target: Option<PyTarget> },
+    DamageFlechettes => PyEffectDamageFlechettes as "EffectDamageFlechettes" { damage: u16, target: Option<PyTarget> },
+    UnloadDiscard => PyEffectUnloadDiscard as "EffectUnloadDiscard" { target: Option<PyTarget> },
+    StormOfSteelProc => PyEffectStormOfSteelProc as "EffectStormOfSteelProc" { upgraded: bool, target: Option<PyTarget> },
+    SneakyStrikeProc => PyEffectSneakyStrikeProc as "EffectSneakyStrikeProc" { energy: u8, target: Option<PyTarget> },
+    BlockGain => PyEffectBlockGain as "EffectBlockGain" { amount: u16, target: Option<PyTarget> },
+    BombArm => PyEffectBombArm as "EffectBombArm" { turns: u8, damage: u16, target: Option<PyTarget> },
+    LifestealHeal => PyEffectLifestealHeal as "EffectLifestealHeal" { target: Option<PyTarget> },
+    ModifierDelta => PyEffectModifierDelta as "EffectModifierDelta" { kind: PyModifierKind, stacks: i16, target: Option<PyTarget> },
+    ModifierMultiply => PyEffectModifierMultiply as "EffectModifierMultiply" { kind: PyModifierKind, factor: u8, target: Option<PyTarget> },
+    EnergyDelta => PyEffectEnergyDelta as "EffectEnergyDelta" { sign: PyDeltaSign, amount: u16, target: Option<PyTarget> },
+    CardAdd => PyEffectCardAdd as "EffectCardAdd" { card_name: PyCardName, card_pile: PyCardPile, count: u16, upgraded: bool, target: Option<PyTarget> },
+    CardDraw => PyEffectCardDraw as "EffectCardDraw" { count: u16, target: Option<PyTarget> },
+    CardDrawUpTo => PyEffectCardDrawUpTo as "EffectCardDrawUpTo" { amount: u8, target: Option<PyTarget> },
+    CardDiscard => PyEffectCardDiscard as "EffectCardDiscard" { target: Option<PyTarget> },
+    CardRetain => PyEffectCardRetain as "EffectCardRetain" { target: Option<PyTarget> },
+    DamageMindBlast => PyEffectDamageMindBlast as "EffectDamageMindBlast" { damage: u16, target: Option<PyTarget> },
+    ShuffleCardPileDiscardIntoCardPileDraw => PyEffectShuffleCardPileDiscardIntoCardPileDraw as "EffectShuffleCardPileDiscardIntoCardPileDraw" { target: Option<PyTarget> },
+    MaxHealthDelta => PyEffectMaxHealthDelta as "EffectMaxHealthDelta" { sign: PyDeltaSign, amount: PyAmountScalar, target: Option<PyTarget> },
+    HealthDelta => PyEffectHealthDelta as "EffectHealthDelta" { sign: PyDeltaSign, amount: PyAmountScalar, target: Option<PyTarget> },
+    PotionAddRandom => PyEffectPotionAddRandom as "EffectPotionAddRandom" { limited: bool, uniform: bool, target: Option<PyTarget> },
+    PotionDiscard => PyEffectPotionDiscard as "EffectPotionDiscard" { target: Option<PyTarget> },
+    RewardRollPotions => PyEffectRewardRollPotions as "EffectRewardRollPotions" { count: u8, trigger: PyRewardRollTrigger, target: Option<PyTarget> },
+    RewardRollGold => PyEffectRewardRollGold as "EffectRewardRollGold" { amount: PyAmount, target: Option<PyTarget> },
+    CardDiscoverRoll => PyEffectCardDiscoverRoll as "EffectCardDiscoverRoll" { kind: Option<PyCardKind>, color: PyCardColor, exclude: Vec<PyCardName>, count: u8, target: Option<PyTarget> },
+    GoldDelta => PyEffectGoldDelta as "EffectGoldDelta" { sign: PyDeltaSign, amount: PyAmount, target: Option<PyTarget> },
+    RelicGrantRandom => PyEffectRelicGrantRandom as "EffectRelicGrantRandom" { tier: Option<PyRelicTier>, exclusion: PyRelicExclusion, target: Option<PyTarget> },
+    WheelSpin => PyEffectWheelSpin as "EffectWheelSpin" { target: Option<PyTarget> },
+    BonfireOffer => PyEffectBonfireOffer as "EffectBonfireOffer" { target: Option<PyTarget> },
+    CardBottle => PyEffectCardBottle as "EffectCardBottle" { target: Option<PyTarget> },
+    MonsterSpawn => PyEffectMonsterSpawn as "EffectMonsterSpawn" { name: PyMonsterName, target: Option<PyTarget> },
+    CombatStart => PyEffectCombatStart as "EffectCombatStart" { target: Option<PyTarget> },
+    AdventurerSearch => PyEffectAdventurerSearch as "EffectAdventurerSearch" { target: Option<PyTarget> },
+    RelicGrantSpecific => PyEffectRelicGrantSpecific as "EffectRelicGrantSpecific" { name: PyRelicName, target: Option<PyTarget> },
+    EventAdvanceStage => PyEffectEventAdvanceStage as "EffectEventAdvanceStage" { delta: i8, target: Option<PyTarget> },
+    ScrapOozeReach => PyEffectScrapOozeReach as "EffectScrapOozeReach" { chance: u8, advance_on_miss: bool, target: Option<PyTarget> },
+    EventConsume => PyEffectEventConsume as "EffectEventConsume" { target: Option<PyTarget> },
+    EventClose => PyEffectEventClose as "EffectEventClose" { target: Option<PyTarget> },
+    CardDiscoverSelect => PyEffectCardDiscoverSelect as "EffectCardDiscoverSelect" { cost_zero: Option<PyCostScope>, card_pile: PyCardPile, copies: u8, target: Option<PyTarget> },
+    CardAdopt => PyEffectCardAdopt as "EffectCardAdopt" { target: Option<PyTarget> },
+    CardPileEventRollClear => PyEffectCardPileEventRollClear as "EffectCardPileEventRollClear" { target: Option<PyTarget> },
+    CardPurge => PyEffectCardPurge as "EffectCardPurge" { target: Option<PyTarget> },
+    CardUpgrade => PyEffectCardUpgrade as "EffectCardUpgrade" { target: Option<PyTarget> },
+    RestSmith => PyEffectRestSmith as "EffectRestSmith" { target: Option<PyTarget> },
+    RestToke => PyEffectRestToke as "EffectRestToke" { target: Option<PyTarget> },
+    CardDuplicate => PyEffectCardDuplicate as "EffectCardDuplicate" { card_pile: PyCardPile, target: Option<PyTarget> },
+    CardTransform => PyEffectCardTransform as "EffectCardTransform" { upgraded: bool, target: Option<PyTarget> },
+    CardAddRandom => PyEffectCardAddRandom as "EffectCardAddRandom" { color: PyCardColor, kind: Option<PyCardKind>, card_pile: PyCardPile, count: u16, cost_zero: Option<PyCostScope>, upgraded: bool, rarity: Option<PyCardRarity>, target: Option<PyTarget> },
+    CardDrawIfNoAttacks => PyEffectCardDrawIfNoAttacks as "EffectCardDrawIfNoAttacks" { count: u16, target: Option<PyTarget> },
+    HandOfGreedProc => PyEffectHandOfGreedProc as "EffectHandOfGreedProc" { gold: u16, target: Option<PyTarget> },
+    RitualDaggerProc => PyEffectRitualDaggerProc as "EffectRitualDaggerProc" { bump: u16, target: Option<PyTarget> },
+    CardExhaust => PyEffectCardExhaust as "EffectCardExhaust" { target: Option<PyTarget> },
+    CardMove => PyEffectCardMove as "EffectCardMove" { card_pile: PyCardPile, cost_zero: Option<PyCostScope>, target: Option<PyTarget> },
+    CardPlayFromCardPileDrawTop => PyEffectCardPlayFromCardPileDrawTop as "EffectCardPlayFromCardPileDrawTop" { target: Option<PyTarget> },
+    Gamble => PyEffectGamble as "EffectGamble" { choose_discards: bool, target: Option<PyTarget> },
+    CombatEnd => PyEffectCombatEnd as "EffectCombatEnd" { escaped_character: bool, target: Option<PyTarget> },
+    RelicLose => PyEffectRelicLose as "EffectRelicLose" { target: Option<PyTarget> },
+    StrengthLoseTemp => PyEffectStrengthLoseTemp as "EffectStrengthLoseTemp" { stacks: i16, target: Option<PyTarget> },
+    MausoleumOpen => PyEffectMausoleumOpen as "EffectMausoleumOpen" { target: Option<PyTarget> },
+    KnowingSkullCostBump => PyEffectKnowingSkullCostBump as "EffectKnowingSkullCostBump" { target: Option<PyTarget> },
+    JoustBet => PyEffectJoustBet as "EffectJoustBet" { on_owner: bool, target: Option<PyTarget> },
+    RelicGrantPool => PyEffectRelicGrantPool as "EffectRelicGrantPool" { pool: Vec<PyRelicName>, target: Option<PyTarget> },
+    DebuffsClear => PyEffectDebuffsClear as "EffectDebuffsClear" { target: Option<PyTarget> },
+    HexaghostBurnIncrease => PyEffectHexaghostBurnIncrease as "EffectHexaghostBurnIncrease" { count: u8, target: Option<PyTarget> },
+    ModifierRemove => PyEffectModifierRemove as "EffectModifierRemove" { kind: PyModifierKind, target: Option<PyTarget> },
+    ModifierStrengthNegativeRemove => PyEffectModifierStrengthNegativeRemove as "EffectModifierStrengthNegativeRemove" { target: Option<PyTarget> },
+    MonsterEscape => PyEffectMonsterEscape as "EffectMonsterEscape" { target: Option<PyTarget> },
+    MonsterRemove => PyEffectMonsterRemove as "EffectMonsterRemove" { target: Option<PyTarget> },
+    MonsterSplit => PyEffectMonsterSplit as "EffectMonsterSplit" { name: PyMonsterName, target: Option<PyTarget> },
+    MonsterSummon => PyEffectMonsterSummon as "EffectMonsterSummon" { pool: Vec<PyMonsterName>, target: Option<PyTarget> },
+    CardStasisSteal => PyEffectCardStasisSteal as "EffectCardStasisSteal" { target: Option<PyTarget> },
+    RewardRollCards => PyEffectRewardRollCards as "EffectRewardRollCards" { bundles: u8, trigger: PyRewardRollTrigger, target: Option<PyTarget> },
+    NeowCardsRoll => PyEffectNeowCardsRoll as "EffectNeowCardsRoll" { colorless: bool, rare_only: bool, target: Option<PyTarget> },
+    RewardRollRelic => PyEffectRewardRollRelic as "EffectRewardRollRelic" { pool: Vec<PyRelicName>, target: Option<PyTarget> },
+    DamageDeal => PyEffectDamageDeal as "EffectDamageDeal" { amount: u16, lifesteal: bool, target: Option<PyTarget> },
+    MatchFlipSeen => PyEffectMatchFlipSeen as "EffectMatchFlipSeen" { target: Option<PyTarget> },
+    MatchFlipUnseen => PyEffectMatchFlipUnseen as "EffectMatchFlipUnseen" { target: Option<PyTarget> },
+    HalfDeadRebirth => PyEffectHalfDeadRebirth as "EffectHalfDeadRebirth" { target: Option<PyTarget> },
+    HealthSet => PyEffectHealthSet as "EffectHealthSet" { amount: PyAmountScalar, target: Option<PyTarget> },
+    RoomEnter => PyEffectRoomEnter as "EffectRoomEnter" { target: Option<PyTarget> },
+    PhilosopherStoneProc => PyEffectPhilosopherStoneProc as "EffectPhilosopherStoneProc" { target: Option<PyTarget> },
 });
 
 // The pending effect as its Python object, built once per snapshot; typed as PyEffect's union
@@ -366,62 +366,7 @@ pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
     snapshot_effect_rows(effect, target)
 }
 
-fn require_target(target: Option<PyTarget>) -> PyTarget {
-    target.expect("row requires a resolved target")
-}
-
 fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
-    if target.is_some() {
-        assert!(
-            !matches!(
-                effect.kind,
-                EffectKind::AdventurerSearch
-                    | EffectKind::BombArm { .. }
-                    | EffectKind::CardAdd { .. }
-                    | EffectKind::CardAddRandom { .. }
-                    | EffectKind::CardDiscoverRoll { .. }
-                    | EffectKind::CardDraw { .. }
-                    | EffectKind::CardDrawIfNoAttacks { .. }
-                    | EffectKind::CardDrawUpTo { .. }
-                    | EffectKind::CardPileEventRollClear
-                    | EffectKind::CardPlayFromCardPileDrawTop
-                    | EffectKind::CardStasisSteal
-                    | EffectKind::CombatEnd { .. }
-                    | EffectKind::CombatStart { .. }
-                    | EffectKind::DistractionAdd
-                    | EffectKind::EnergyDelta { .. }
-                    | EffectKind::EventAdvanceStage { .. }
-                    | EffectKind::EventClose
-                    | EffectKind::EventConsume
-                    | EffectKind::Gamble { .. }
-                    | EffectKind::GoldDelta { .. }
-                    | EffectKind::HexaghostBurnIncrease { .. }
-                    | EffectKind::JoustBet { .. }
-                    | EffectKind::KnowingSkullCostBump
-                    | EffectKind::MausoleumOpen
-                    | EffectKind::MonsterSpawn { .. }
-                    | EffectKind::MonsterSummon { .. }
-                    | EffectKind::NeowCardsRoll { .. }
-                    | EffectKind::PotionAddRandom { .. }
-                    | EffectKind::RelicGrantPool { .. }
-                    | EffectKind::RelicGrantRandom { .. }
-                    | EffectKind::RelicGrantSpecific { .. }
-                    | EffectKind::RewardRollCards { .. }
-                    | EffectKind::RewardRollGold { .. }
-                    | EffectKind::RewardRollPotions { .. }
-                    | EffectKind::RewardRollRelic { .. }
-                    | EffectKind::RoomEnter { .. }
-                    | EffectKind::ScrapOozeReach { .. }
-                    | EffectKind::ShuffleCardPileDiscardIntoCardPileDraw
-                    | EffectKind::SneakyStrikeProc { .. }
-                    | EffectKind::StormOfSteelProc { .. }
-                    | EffectKind::UnloadDiscard
-                    | EffectKind::WheelSpin
-            ),
-            "effect kind {:?} resolved a target but its FFI row has no target field",
-            effect.kind
-        );
-    }
     match effect.kind {
         // A hit scaled as its play started is pushed at runtime only
         EffectKind::DamagePhysical {
@@ -437,41 +382,31 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
             lifesteal,
             if_poisoned,
             block_from_hit,
-            target: require_target(target),
+            target,
         }),
-        EffectKind::HeelHookProc { damage } => PyEffect::HeelHookProc(PyEffectHeelHookProc {
-            damage,
-            target: require_target(target),
-        }),
-        EffectKind::SkewerProc { damage } => PyEffect::SkewerProc(PyEffectSkewerProc {
-            damage,
-            target: require_target(target),
-        }),
+        EffectKind::HeelHookProc { damage } => {
+            PyEffect::HeelHookProc(PyEffectHeelHookProc { damage, target })
+        }
+        EffectKind::SkewerProc { damage } => {
+            PyEffect::SkewerProc(PyEffectSkewerProc { damage, target })
+        }
         EffectKind::EscapePlanCheck { block } => {
-            PyEffect::EscapePlanCheck(PyEffectEscapePlanCheck {
-                block,
-                target: require_target(target),
-            })
+            PyEffect::EscapePlanCheck(PyEffectEscapePlanCheck { block, target })
         }
         EffectKind::GlassKnifeDecay { delta } => {
-            PyEffect::GlassKnifeDecay(PyEffectGlassKnifeDecay {
-                delta,
-                target: require_target(target),
-            })
+            PyEffect::GlassKnifeDecay(PyEffectGlassKnifeDecay { delta, target })
         }
         EffectKind::CardSetupSelect { free, bottom } => {
             PyEffect::CardSetupSelect(PyEffectCardSetupSelect {
                 free,
                 bottom,
-                target: require_target(target),
+                target,
             })
         }
         EffectKind::CardNightmareSelect => {
-            PyEffect::CardNightmareSelect(PyEffectCardNightmareSelect {
-                target: require_target(target),
-            })
+            PyEffect::CardNightmareSelect(PyEffectCardNightmareSelect { target })
         }
-        EffectKind::DistractionAdd => PyEffect::DistractionAdd(PyEffectDistractionAdd),
+        EffectKind::DistractionAdd => PyEffect::DistractionAdd(PyEffectDistractionAdd { target }),
         EffectKind::SetCostOverride {
             amount,
             only_reduce,
@@ -482,52 +417,48 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
             only_reduce,
             random,
             scope: scope.into(),
-            target: require_target(target),
+            target,
         }),
-        EffectKind::DamageFinisher { damage } => PyEffect::DamageFinisher(PyEffectDamageFinisher {
-            damage,
-            target: require_target(target),
-        }),
-        EffectKind::DamageFlechettes { damage } => {
-            PyEffect::DamageFlechettes(PyEffectDamageFlechettes {
-                damage,
-                target: require_target(target),
-            })
+        EffectKind::DamageFinisher { damage } => {
+            PyEffect::DamageFinisher(PyEffectDamageFinisher { damage, target })
         }
-        EffectKind::UnloadDiscard => PyEffect::UnloadDiscard(PyEffectUnloadDiscard),
+        EffectKind::DamageFlechettes { damage } => {
+            PyEffect::DamageFlechettes(PyEffectDamageFlechettes { damage, target })
+        }
+        EffectKind::UnloadDiscard => PyEffect::UnloadDiscard(PyEffectUnloadDiscard { target }),
         EffectKind::StormOfSteelProc { upgraded } => {
-            PyEffect::StormOfSteelProc(PyEffectStormOfSteelProc { upgraded })
+            PyEffect::StormOfSteelProc(PyEffectStormOfSteelProc { upgraded, target })
         }
         EffectKind::SneakyStrikeProc { energy } => {
-            PyEffect::SneakyStrikeProc(PyEffectSneakyStrikeProc { energy })
+            PyEffect::SneakyStrikeProc(PyEffectSneakyStrikeProc { energy, target })
         }
-        EffectKind::BombArm { turns, damage } => {
-            PyEffect::BombArm(PyEffectBombArm { turns, damage })
+        EffectKind::BombArm { turns, damage } => PyEffect::BombArm(PyEffectBombArm {
+            turns,
+            damage,
+            target,
+        }),
+        EffectKind::LifestealHeal => PyEffect::LifestealHeal(PyEffectLifestealHeal { target }),
+        EffectKind::BlockGain { amount } => {
+            PyEffect::BlockGain(PyEffectBlockGain { amount, target })
         }
-        EffectKind::LifestealHeal => PyEffect::LifestealHeal(PyEffectLifestealHeal {
-            target: require_target(target),
-        }),
-        EffectKind::BlockGain { amount } => PyEffect::BlockGain(PyEffectBlockGain {
-            amount,
-            target: require_target(target),
-        }),
         EffectKind::ModifierDelta { kind, stacks } => {
             PyEffect::ModifierDelta(PyEffectModifierDelta {
                 kind: kind.into(),
                 stacks,
-                target: require_target(target),
+                target,
             })
         }
         EffectKind::ModifierMultiply { kind, factor } => {
             PyEffect::ModifierMultiply(PyEffectModifierMultiply {
                 kind: kind.into(),
                 factor,
-                target: require_target(target),
+                target,
             })
         }
         EffectKind::EnergyDelta { sign, amount } => PyEffect::EnergyDelta(PyEffectEnergyDelta {
             sign: sign.into(),
             amount,
+            target,
         }),
         EffectKind::CardAdd {
             card_name,
@@ -539,80 +470,77 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
             card_pile: card_pile.into(),
             count,
             upgraded,
+            target,
         }),
-        EffectKind::CardDraw { count } => PyEffect::CardDraw(PyEffectCardDraw { count }),
+        EffectKind::CardDraw { count } => PyEffect::CardDraw(PyEffectCardDraw { count, target }),
         EffectKind::CardDrawUpTo { amount } => {
-            PyEffect::CardDrawUpTo(PyEffectCardDrawUpTo { amount })
+            PyEffect::CardDrawUpTo(PyEffectCardDrawUpTo { amount, target })
         }
-        EffectKind::CardDiscard { source: _ } => PyEffect::CardDiscard(PyEffectCardDiscard {
-            target: require_target(target),
-        }),
-        EffectKind::CardRetain => PyEffect::CardRetain(PyEffectCardRetain {
-            target: require_target(target),
-        }),
+        EffectKind::CardDiscard { source: _ } => {
+            PyEffect::CardDiscard(PyEffectCardDiscard { target })
+        }
+        EffectKind::CardRetain => PyEffect::CardRetain(PyEffectCardRetain { target }),
         // The draw pile sets the damage in combat; the Card's own base is 0
-        EffectKind::DamageMindBlast => PyEffect::DamageMindBlast(PyEffectDamageMindBlast {
-            damage: 0,
-            target: require_target(target),
-        }),
+        EffectKind::DamageMindBlast => {
+            PyEffect::DamageMindBlast(PyEffectDamageMindBlast { damage: 0, target })
+        }
         EffectKind::ShuffleCardPileDiscardIntoCardPileDraw => {
             PyEffect::ShuffleCardPileDiscardIntoCardPileDraw(
-                PyEffectShuffleCardPileDiscardIntoCardPileDraw,
+                PyEffectShuffleCardPileDiscardIntoCardPileDraw { target },
             )
         }
         EffectKind::GoldDelta { sign, amount } => PyEffect::GoldDelta(PyEffectGoldDelta {
             sign: sign.into(),
             amount: amount.into(),
+            target,
         }),
         EffectKind::HealthDelta { sign, amount } => PyEffect::HealthDelta(PyEffectHealthDelta {
             sign: sign.into(),
             amount: amount.into(),
-            target: require_target(target),
+            target,
         }),
         EffectKind::MaxHealthDelta { sign, amount } => {
             PyEffect::MaxHealthDelta(PyEffectMaxHealthDelta {
                 sign: sign.into(),
                 amount: amount.into(),
-                target: require_target(target),
+                target,
             })
         }
-        EffectKind::CardPurge => PyEffect::CardPurge(PyEffectCardPurge {
-            target: require_target(target),
-        }),
+        EffectKind::CardPurge => PyEffect::CardPurge(PyEffectCardPurge { target }),
         EffectKind::CardDuplicate { card_pile } => PyEffect::CardDuplicate(PyEffectCardDuplicate {
             card_pile: card_pile.into(),
-            target: require_target(target),
+            target,
         }),
-        EffectKind::CardTransform { upgraded } => PyEffect::CardTransform(PyEffectCardTransform {
-            upgraded,
-            target: require_target(target),
-        }),
+        EffectKind::CardTransform { upgraded } => {
+            PyEffect::CardTransform(PyEffectCardTransform { upgraded, target })
+        }
         EffectKind::RelicGrantRandom { tier, exclusion } => {
             PyEffect::RelicGrantRandom(PyEffectRelicGrantRandom {
                 tier: tier.map(Into::into),
                 exclusion: exclusion.into(),
+                target,
             })
         }
-        EffectKind::RelicLose => PyEffect::RelicLose(PyEffectRelicLose {
-            target: require_target(target),
+        EffectKind::RelicLose => PyEffect::RelicLose(PyEffectRelicLose { target }),
+        EffectKind::WheelSpin => PyEffect::WheelSpin(PyEffectWheelSpin { target }),
+        EffectKind::BonfireOffer => PyEffect::BonfireOffer(PyEffectBonfireOffer { target }),
+        EffectKind::CardBottle => PyEffect::CardBottle(PyEffectCardBottle { target }),
+        EffectKind::MonsterSpawn { name, .. } => PyEffect::MonsterSpawn(PyEffectMonsterSpawn {
+            name: name.into(),
+            target,
         }),
-        EffectKind::WheelSpin => PyEffect::WheelSpin(PyEffectWheelSpin),
-        EffectKind::BonfireOffer => PyEffect::BonfireOffer(PyEffectBonfireOffer {
-            target: require_target(target),
-        }),
-        EffectKind::CardBottle => PyEffect::CardBottle(PyEffectCardBottle {
-            target: require_target(target),
-        }),
-        EffectKind::MonsterSpawn { name, .. } => {
-            PyEffect::MonsterSpawn(PyEffectMonsterSpawn { name: name.into() })
+        EffectKind::CombatStart { .. } => PyEffect::CombatStart(PyEffectCombatStart { target }),
+        EffectKind::AdventurerSearch => {
+            PyEffect::AdventurerSearch(PyEffectAdventurerSearch { target })
         }
-        EffectKind::CombatStart { .. } => PyEffect::CombatStart(PyEffectCombatStart),
-        EffectKind::AdventurerSearch => PyEffect::AdventurerSearch(PyEffectAdventurerSearch),
         EffectKind::RelicGrantSpecific { name } => {
-            PyEffect::RelicGrantSpecific(PyEffectRelicGrantSpecific { name: name.into() })
+            PyEffect::RelicGrantSpecific(PyEffectRelicGrantSpecific {
+                name: name.into(),
+                target,
+            })
         }
         EffectKind::EventAdvanceStage { delta } => {
-            PyEffect::EventAdvanceStage(PyEffectEventAdvanceStage { delta })
+            PyEffect::EventAdvanceStage(PyEffectEventAdvanceStage { delta, target })
         }
         EffectKind::ScrapOozeReach {
             chance,
@@ -620,23 +548,28 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
         } => PyEffect::ScrapOozeReach(PyEffectScrapOozeReach {
             chance,
             advance_on_miss,
+            target,
         }),
-        EffectKind::EventConsume => PyEffect::EventConsume(PyEffectEventConsume),
-        EffectKind::EventClose => PyEffect::EventClose(PyEffectEventClose),
+        EffectKind::EventConsume => PyEffect::EventConsume(PyEffectEventConsume { target }),
+        EffectKind::EventClose => PyEffect::EventClose(PyEffectEventClose { target }),
         EffectKind::PotionAddRandom { limited, uniform } => {
-            PyEffect::PotionAddRandom(PyEffectPotionAddRandom { limited, uniform })
+            PyEffect::PotionAddRandom(PyEffectPotionAddRandom {
+                limited,
+                uniform,
+                target,
+            })
         }
-        EffectKind::PotionDiscard => PyEffect::PotionDiscard(PyEffectPotionDiscard {
-            target: require_target(target),
-        }),
+        EffectKind::PotionDiscard => PyEffect::PotionDiscard(PyEffectPotionDiscard { target }),
         EffectKind::RewardRollPotions { count, trigger } => {
             PyEffect::RewardRollPotions(PyEffectRewardRollPotions {
                 count,
                 trigger: trigger.into(),
+                target,
             })
         }
         EffectKind::RewardRollGold { amount } => PyEffect::RewardRollGold(PyEffectRewardRollGold {
             amount: amount.into(),
+            target,
         }),
         EffectKind::CardDiscoverRoll {
             kind,
@@ -648,16 +581,11 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
             color: color.into(),
             exclude: exclude.iter().map(|&card_name| card_name.into()).collect(),
             count,
+            target,
         }),
-        EffectKind::CardUpgrade => PyEffect::CardUpgrade(PyEffectCardUpgrade {
-            target: require_target(target),
-        }),
-        EffectKind::RestSmith => PyEffect::RestSmith(PyEffectRestSmith {
-            target: require_target(target),
-        }),
-        EffectKind::RestToke => PyEffect::RestToke(PyEffectRestToke {
-            target: require_target(target),
-        }),
+        EffectKind::CardUpgrade => PyEffect::CardUpgrade(PyEffectCardUpgrade { target }),
+        EffectKind::RestSmith => PyEffect::RestSmith(PyEffectRestSmith { target }),
+        EffectKind::RestToke => PyEffect::RestToke(PyEffectRestToke { target }),
         EffectKind::CardDiscoverSelect {
             cost_zero,
             card_pile,
@@ -666,14 +594,14 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
             card_pile: card_pile.into(),
             copies,
             cost_zero: cost_zero.map(|cost_scope| cost_scope.into()),
-            target: require_target(target),
+            target,
         }),
         // Rows and halted selections hold only the first pass; the landing pass is queued at runtime
-        EffectKind::CardAdopt { landing: false } => PyEffect::CardAdopt(PyEffectCardAdopt {
-            target: require_target(target),
-        }),
+        EffectKind::CardAdopt { landing: false } => {
+            PyEffect::CardAdopt(PyEffectCardAdopt { target })
+        }
         EffectKind::CardPileEventRollClear => {
-            PyEffect::CardPileEventRollClear(PyEffectCardPileEventRollClear)
+            PyEffect::CardPileEventRollClear(PyEffectCardPileEventRollClear { target })
         }
         EffectKind::CardAddRandom {
             color,
@@ -691,80 +619,69 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
             cost_zero: cost_zero.map(|cost_scope| cost_scope.into()),
             upgraded,
             rarity: rarity.map(Into::into),
+            target,
         }),
         EffectKind::CardDrawIfNoAttacks { count } => {
-            PyEffect::CardDrawIfNoAttacks(PyEffectCardDrawIfNoAttacks { count })
+            PyEffect::CardDrawIfNoAttacks(PyEffectCardDrawIfNoAttacks { count, target })
         }
         EffectKind::HandOfGreedProc { gold } => {
-            PyEffect::HandOfGreedProc(PyEffectHandOfGreedProc {
-                gold,
-                target: require_target(target),
-            })
+            PyEffect::HandOfGreedProc(PyEffectHandOfGreedProc { gold, target })
         }
         EffectKind::RitualDaggerProc { bump } => {
-            PyEffect::RitualDaggerProc(PyEffectRitualDaggerProc {
-                bump,
-                target: require_target(target),
-            })
+            PyEffect::RitualDaggerProc(PyEffectRitualDaggerProc { bump, target })
         }
-        EffectKind::CardExhaust => PyEffect::CardExhaust(PyEffectCardExhaust {
-            target: require_target(target),
-        }),
+        EffectKind::CardExhaust => PyEffect::CardExhaust(PyEffectCardExhaust { target }),
         EffectKind::CardMove {
             card_pile,
             cost_zero,
         } => PyEffect::CardMove(PyEffectCardMove {
             card_pile: card_pile.into(),
             cost_zero: cost_zero.map(|cost_scope| cost_scope.into()),
-            target: require_target(target),
+            target,
         }),
         EffectKind::CardPlayFromCardPileDrawTop => {
-            PyEffect::CardPlayFromCardPileDrawTop(PyEffectCardPlayFromCardPileDrawTop)
+            PyEffect::CardPlayFromCardPileDrawTop(PyEffectCardPlayFromCardPileDrawTop { target })
         }
-        EffectKind::Gamble { choose_discards } => {
-            PyEffect::Gamble(PyEffectGamble { choose_discards })
-        }
-        EffectKind::CombatEnd { escaped_character } => {
-            PyEffect::CombatEnd(PyEffectCombatEnd { escaped_character })
-        }
+        EffectKind::Gamble { choose_discards } => PyEffect::Gamble(PyEffectGamble {
+            choose_discards,
+            target,
+        }),
+        EffectKind::CombatEnd { escaped_character } => PyEffect::CombatEnd(PyEffectCombatEnd {
+            escaped_character,
+            target,
+        }),
         EffectKind::StrengthLoseTemp { stacks } => {
-            PyEffect::StrengthLoseTemp(PyEffectStrengthLoseTemp {
-                stacks,
-                target: require_target(target),
-            })
+            PyEffect::StrengthLoseTemp(PyEffectStrengthLoseTemp { stacks, target })
         }
-        EffectKind::MausoleumOpen => PyEffect::MausoleumOpen(PyEffectMausoleumOpen),
+        EffectKind::MausoleumOpen => PyEffect::MausoleumOpen(PyEffectMausoleumOpen { target }),
         EffectKind::KnowingSkullCostBump => {
-            PyEffect::KnowingSkullCostBump(PyEffectKnowingSkullCostBump)
+            PyEffect::KnowingSkullCostBump(PyEffectKnowingSkullCostBump { target })
         }
-        EffectKind::JoustBet { on_owner } => PyEffect::JoustBet(PyEffectJoustBet { on_owner }),
+        EffectKind::JoustBet { on_owner } => {
+            PyEffect::JoustBet(PyEffectJoustBet { on_owner, target })
+        }
         EffectKind::RelicGrantPool { pool } => PyEffect::RelicGrantPool(PyEffectRelicGrantPool {
             pool: pool.iter().map(|&relic_name| relic_name.into()).collect(),
+            target,
         }),
-        EffectKind::DebuffsClear => PyEffect::DebuffsClear(PyEffectDebuffsClear {
-            target: require_target(target),
-        }),
+        EffectKind::DebuffsClear => PyEffect::DebuffsClear(PyEffectDebuffsClear { target }),
         EffectKind::HexaghostBurnIncrease { count } => {
-            PyEffect::HexaghostBurnIncrease(PyEffectHexaghostBurnIncrease { count })
+            PyEffect::HexaghostBurnIncrease(PyEffectHexaghostBurnIncrease { count, target })
         }
         EffectKind::ModifierRemove { kind } => PyEffect::ModifierRemove(PyEffectModifierRemove {
             kind: kind.into(),
-            target: require_target(target),
+            target,
         }),
         EffectKind::ModifierStrengthNegativeRemove => {
             PyEffect::ModifierStrengthNegativeRemove(PyEffectModifierStrengthNegativeRemove {
-                target: require_target(target),
+                target,
             })
         }
-        EffectKind::MonsterEscape => PyEffect::MonsterEscape(PyEffectMonsterEscape {
-            target: require_target(target),
-        }),
-        EffectKind::MonsterRemove => PyEffect::MonsterRemove(PyEffectMonsterRemove {
-            target: require_target(target),
-        }),
+        EffectKind::MonsterEscape => PyEffect::MonsterEscape(PyEffectMonsterEscape { target }),
+        EffectKind::MonsterRemove => PyEffect::MonsterRemove(PyEffectMonsterRemove { target }),
         EffectKind::MonsterSplit { name, .. } => PyEffect::MonsterSplit(PyEffectMonsterSplit {
             name: name.into(),
-            target: require_target(target),
+            target,
         }),
         EffectKind::MonsterSummon { summon } => PyEffect::MonsterSummon(PyEffectMonsterSummon {
             pool: summon
@@ -772,12 +689,16 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
                 .iter()
                 .map(|&monster_name| monster_name.into())
                 .collect(),
+            target,
         }),
-        EffectKind::CardStasisSteal => PyEffect::CardStasisSteal(PyEffectCardStasisSteal),
+        EffectKind::CardStasisSteal => {
+            PyEffect::CardStasisSteal(PyEffectCardStasisSteal { target })
+        }
         EffectKind::RewardRollCards { bundles, trigger } => {
             PyEffect::RewardRollCards(PyEffectRewardRollCards {
                 bundles,
                 trigger: trigger.into(),
+                target,
             })
         }
         EffectKind::NeowCardsRoll {
@@ -786,6 +707,7 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
         } => PyEffect::NeowCardsRoll(PyEffectNeowCardsRoll {
             colorless,
             rare_only,
+            target,
         }),
         // Static defs stage only pool rolls (Cursed Tome's book)
         EffectKind::RewardRollRelic {
@@ -793,31 +715,30 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
             ..
         } => PyEffect::RewardRollRelic(PyEffectRewardRollRelic {
             pool: pool.iter().map(|&relic_name| relic_name.into()).collect(),
+            target,
         }),
         EffectKind::DamageDeal { amount, lifesteal } => PyEffect::DamageDeal(PyEffectDamageDeal {
             amount,
             lifesteal,
-            target: require_target(target),
+            target,
         }),
-        EffectKind::MatchFlipSeen => PyEffect::MatchFlipSeen(PyEffectMatchFlipSeen {
-            target: require_target(target),
-        }),
-        EffectKind::MatchFlipUnseen => PyEffect::MatchFlipUnseen(PyEffectMatchFlipUnseen),
-        EffectKind::HalfDeadRebirth => PyEffect::HalfDeadRebirth(PyEffectHalfDeadRebirth {
-            target: require_target(target),
-        }),
+        EffectKind::MatchFlipSeen => PyEffect::MatchFlipSeen(PyEffectMatchFlipSeen { target }),
+        EffectKind::MatchFlipUnseen => {
+            PyEffect::MatchFlipUnseen(PyEffectMatchFlipUnseen { target })
+        }
+        EffectKind::HalfDeadRebirth => {
+            PyEffect::HalfDeadRebirth(PyEffectHalfDeadRebirth { target })
+        }
         EffectKind::HealthSet { amount } => PyEffect::HealthSet(PyEffectHealthSet {
             amount: amount.into(),
-            target: require_target(target),
+            target,
         }),
         EffectKind::RoomEnter {
             location: Location::BossRoom,
             landing: false,
-        } => PyEffect::RoomEnter(PyEffectRoomEnter),
+        } => PyEffect::RoomEnter(PyEffectRoomEnter { target }),
         EffectKind::PhilosopherStoneProc => {
-            PyEffect::PhilosopherStoneProc(PyEffectPhilosopherStoneProc {
-                target: require_target(target),
-            })
+            PyEffect::PhilosopherStoneProc(PyEffectPhilosopherStoneProc { target })
         }
         other => unreachable!(
             "snapshot_effect: unexpected EffectKind on static Card effect: {:?}",
