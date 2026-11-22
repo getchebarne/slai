@@ -234,29 +234,7 @@ flat_variants!(PyEffect {
     PhilosopherStoneProc => PyEffectPhilosopherStoneProc as "EffectPhilosopherStoneProc" { target: PyTarget },
 });
 
-// The kinds that can park in `state.effect_pending`
-flat_variants!(@enum PyEffectPending {
-    BonfireOffer => PyEffectBonfireOffer,
-    CardAdopt => PyEffectCardAdopt,
-    CardBottle => PyEffectCardBottle,
-    CardDiscard => PyEffectCardDiscard,
-    CardDiscoverSelect => PyEffectCardDiscoverSelect,
-    CardDuplicate => PyEffectCardDuplicate,
-    CardExhaust => PyEffectCardExhaust,
-    CardMove => PyEffectCardMove,
-    CardNightmareSelect => PyEffectCardNightmareSelect,
-    CardPurge => PyEffectCardPurge,
-    CardRetain => PyEffectCardRetain,
-    CardSetupSelect => PyEffectCardSetupSelect,
-    CardTransform => PyEffectCardTransform,
-    CardUpgrade => PyEffectCardUpgrade,
-    MatchFlipSeen => PyEffectMatchFlipSeen,
-    RelicLose => PyEffectRelicLose,
-    RestSmith => PyEffectRestSmith,
-    RestToke => PyEffectRestToke
-});
-
-// The pending effect as its Python object, built once per snapshot; typed as PyEffectPending's union
+// The pending effect as its Python object, built once per snapshot; typed as PyEffect's union
 #[derive(Debug)]
 pub struct PyEffectPendingObject(Py<PyAny>);
 
@@ -264,7 +242,7 @@ impl<'py> IntoPyObject<'py> for PyEffectPendingObject {
     type Target = PyAny;
     type Output = Bound<'py, PyAny>;
     type Error = Infallible;
-    const OUTPUT_TYPE: PyStaticExpr = <PyEffectPending as IntoPyObject<'py>>::OUTPUT_TYPE;
+    const OUTPUT_TYPE: PyStaticExpr = <PyEffect as IntoPyObject<'py>>::OUTPUT_TYPE;
 
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
         Ok(self.0.into_bound(py))
@@ -275,7 +253,7 @@ impl<'a, 'py> IntoPyObject<'py> for &'a PyEffectPendingObject {
     type Target = PyAny;
     type Output = Borrowed<'a, 'py, PyAny>;
     type Error = Infallible;
-    const OUTPUT_TYPE: PyStaticExpr = <PyEffectPending as IntoPyObject<'py>>::OUTPUT_TYPE;
+    const OUTPUT_TYPE: PyStaticExpr = <PyEffect as IntoPyObject<'py>>::OUTPUT_TYPE;
 
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
         Ok(self.0.bind_borrowed(py))
@@ -286,29 +264,8 @@ pub(crate) fn snapshot_effect_pending(
     py: Python<'_>,
     effect: &Effect,
 ) -> PyResult<PyEffectPendingObject> {
-    let effect_pending = match snapshot_effect(effect) {
-        PyEffect::BonfireOffer(v) => PyEffectPending::BonfireOffer(v),
-        PyEffect::CardAdopt(v) => PyEffectPending::CardAdopt(v),
-        PyEffect::CardBottle(v) => PyEffectPending::CardBottle(v),
-        PyEffect::CardDiscard(v) => PyEffectPending::CardDiscard(v),
-        PyEffect::CardDiscoverSelect(v) => PyEffectPending::CardDiscoverSelect(v),
-        PyEffect::CardDuplicate(v) => PyEffectPending::CardDuplicate(v),
-        PyEffect::CardExhaust(v) => PyEffectPending::CardExhaust(v),
-        PyEffect::CardMove(v) => PyEffectPending::CardMove(v),
-        PyEffect::CardNightmareSelect(v) => PyEffectPending::CardNightmareSelect(v),
-        PyEffect::CardPurge(v) => PyEffectPending::CardPurge(v),
-        PyEffect::CardRetain(v) => PyEffectPending::CardRetain(v),
-        PyEffect::CardSetupSelect(v) => PyEffectPending::CardSetupSelect(v),
-        PyEffect::CardTransform(v) => PyEffectPending::CardTransform(v),
-        PyEffect::CardUpgrade(v) => PyEffectPending::CardUpgrade(v),
-        PyEffect::MatchFlipSeen(v) => PyEffectPending::MatchFlipSeen(v),
-        PyEffect::RelicLose(v) => PyEffectPending::RelicLose(v),
-        PyEffect::RestSmith(v) => PyEffectPending::RestSmith(v),
-        PyEffect::RestToke(v) => PyEffectPending::RestToke(v),
-        other => unreachable!("effect kind cannot halt: {:?}", other),
-    };
     Ok(PyEffectPendingObject(
-        effect_pending.into_pyobject(py)?.unbind(),
+        snapshot_effect(effect).into_pyobject(py)?.unbind(),
     ))
 }
 

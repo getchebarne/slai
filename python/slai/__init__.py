@@ -374,30 +374,6 @@ Effect = (
     | EffectPhilosopherStoneProc
 )
 
-# The kinds that can park in GameState.effect_pending. A halt only happens on a
-# Target::Resolve carrying Input/InputUpTo, so this is a strict subset of Effect
-# — mirrored from ffi/effect.rs's PyPendingEffect, which is what `pending`
-# actually returns.
-PendingEffect = (
-    EffectBonfireOffer
-    | EffectCardAdopt
-    | EffectCardBottle
-    | EffectCardDiscard
-    | EffectCardDiscoverSelect
-    | EffectCardDuplicate
-    | EffectCardExhaust
-    | EffectCardMove
-    | EffectCardNightmareSelect
-    | EffectCardPurge
-    | EffectCardRetain
-    | EffectCardSetupSelect
-    | EffectCardTransform
-    | EffectCardUpgrade
-    | EffectMatchFlipSeen
-    | EffectRelicLose
-    | EffectRestSmith
-    | EffectRestToke
-)
 CandidatePool = _rs.CandidatePool
 SelectionKindAll = _rs.SelectionKindAll
 SelectionKindSingle = _rs.SelectionKindSingle
@@ -526,7 +502,6 @@ __all__ = [
     "LocationVictory",
     "Target",
     "Effect",
-    "PendingEffect",
     "EffectDamagePhysical",
     "EffectHeelHookProc",
     "EffectSkewerProc",
