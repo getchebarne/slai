@@ -48,9 +48,9 @@ impl GameEnv {
     #[classattr]
     const TIME_WARP_PLAYS: i16 = consts::TIME_WARP_PLAYS;
     #[classattr]
-    const NORMALITY_PLAYS_MAX: u16 = consts::NORMALITY_PLAYS_MAX;
+    const MAX_NORMALITY_PLAYS: u16 = consts::NORMALITY_PLAYS_MAX;
     #[classattr]
-    const VELVET_CHOKER_PLAYS_MAX: i16 = consts::VELVET_CHOKER_PLAYS_MAX;
+    const MAX_VELVET_CHOKER_PLAYS: i16 = consts::VELVET_CHOKER_PLAYS_MAX;
     #[classattr]
     const MAX_MONSTERS: usize = consts::MAX_MONSTERS;
     #[classattr]
@@ -60,11 +60,9 @@ impl GameEnv {
     #[classattr]
     const MAX_REWARD_CARD_BUNDLES: usize = consts::MAX_REWARD_CARD_BUNDLES;
     #[classattr]
-    const ORRERY_BUNDLE_COUNT: usize = consts::ORRERY_BUNDLE_COUNT;
-    #[classattr]
     const MAX_CARD_REWARD_ROLL: usize = consts::MAX_CARD_REWARD_ROLL;
     #[classattr]
-    const CAULDRON_POTION_COUNT: usize = consts::CAULDRON_POTION_COUNT;
+    const NUM_CAULDRON_POTIONS: usize = consts::CAULDRON_POTION_COUNT;
     #[classattr]
     const MAX_SIZE_CARD_PILE_EVENT_ROLL: usize = consts::MAX_SIZE_CARD_PILE_EVENT_ROLL;
     #[classattr]
@@ -72,9 +70,9 @@ impl GameEnv {
     #[classattr]
     const MAX_SIZE_POTION_EVENT_ROLL: usize = consts::MAX_SIZE_POTION_EVENT_ROLL;
     #[classattr]
-    const POTION_SLOTS_MAX: usize = consts::POTION_SLOTS_MAX;
+    const MAX_POTION_SLOTS: usize = consts::POTION_SLOTS_MAX;
     #[classattr]
-    const BOSS_RELIC_REWARD_COUNT: usize = consts::BOSS_RELIC_REWARD_COUNT;
+    const NUM_BOSS_RELIC_REWARDS: usize = consts::BOSS_RELIC_REWARD_COUNT;
     #[classattr]
     const SHOP_SLOTS_CARD_TOTAL: usize = consts::SHOP_SLOTS_CARD_TOTAL;
     #[classattr]
@@ -82,9 +80,7 @@ impl GameEnv {
     #[classattr]
     const SHOP_SLOTS_POTION: usize = consts::SHOP_SLOTS_POTION;
     #[classattr]
-    const DISCOVER_ROLL_COUNT: u8 = consts::DISCOVER_ROLL_COUNT;
-    #[classattr]
-    const REWARD_GOLD_MAX: u16 = consts::REWARD_GOLD_MAX;
+    const NUM_DISCOVER_ROLLS: u8 = consts::DISCOVER_ROLL_COUNT;
     #[classattr]
     const BOMB_FUSE_TURNS: u8 = consts::BOMB_FUSE_TURNS;
     #[classattr]
@@ -94,12 +90,6 @@ impl GameEnv {
     #[classattr]
     const HEXAGHOST_DIVIDER_DIVISOR: u16 = consts::HEXAGHOST_DIVIDER_DIVISOR;
     #[classattr]
-    const CARDS_DRAWN_PER_TURN: u16 = consts::CARDS_DRAWN_PER_TURN;
-    #[classattr]
-    const NIGHTMARE_COPIES: u8 = consts::NIGHTMARE_COPIES;
-    #[classattr]
-    const MAX_BLOCK: u16 = consts::MAX_BLOCK;
-    #[classattr]
     const MAP_HEIGHT: usize = consts::MAP_HEIGHT;
     #[classattr]
     const ACT_FINAL: u8 = consts::ACT_FINAL;
@@ -108,7 +98,7 @@ impl GameEnv {
     #[classattr]
     const CARD_REWARD_ROLL_OFFSET_BASE: i8 = consts::CARD_REWARD_ROLL_OFFSET_BASE;
     #[classattr]
-    const CARD_REWARD_ROLL_OFFSET_MIN: i8 = consts::CARD_REWARD_ROLL_OFFSET_MIN;
+    const MIN_CARD_REWARD_ROLL_OFFSET: i8 = consts::CARD_REWARD_ROLL_OFFSET_MIN;
     #[classattr]
     const POTION_DROP_CHANCE_BASE: i32 = consts::POTION_DROP_CHANCE_BASE;
     #[classattr]
@@ -498,107 +488,9 @@ mod slai {
 
     // Constants surface: load-bearing tunables + derived shop ceilings
     #[pymodule_export]
-    const STARTING_GOLD: u16 = super::consts::STARTING_GOLD;
+    const MAX_SHOP_PRICE_CARD: u16 = super::consts::SHOP_PRICE_CARD_MAX;
     #[pymodule_export]
-    const MAX_GOLD: u16 = super::consts::MAX_GOLD;
+    const MAX_SHOP_PRICE_RELIC: u16 = super::consts::SHOP_PRICE_RELIC_MAX;
     #[pymodule_export]
-    const GOLD_MONSTER_MIN: u16 = super::consts::GOLD_MONSTER_MIN;
-    #[pymodule_export]
-    const GOLD_MONSTER_MAX: u16 = super::consts::GOLD_MONSTER_MAX;
-    #[pymodule_export]
-    const GOLD_ELITE_MIN: u16 = super::consts::GOLD_ELITE_MIN;
-    #[pymodule_export]
-    const GOLD_ELITE_MAX: u16 = super::consts::GOLD_ELITE_MAX;
-    #[pymodule_export]
-    const GOLD_BOSS_MIN: u16 = super::consts::GOLD_BOSS_MIN;
-    #[pymodule_export]
-    const GOLD_BOSS_MAX: u16 = super::consts::GOLD_BOSS_MAX;
-    #[pymodule_export]
-    const CHEST_SMALL_GOLD_CHANCE: u8 = super::consts::CHEST_SMALL_GOLD_CHANCE;
-    #[pymodule_export]
-    const CHEST_SMALL_GOLD_BASE: u16 = super::consts::CHEST_SMALL_GOLD_BASE;
-    #[pymodule_export]
-    const CHEST_MEDIUM_GOLD_CHANCE: u8 = super::consts::CHEST_MEDIUM_GOLD_CHANCE;
-    #[pymodule_export]
-    const CHEST_MEDIUM_GOLD_BASE: u16 = super::consts::CHEST_MEDIUM_GOLD_BASE;
-    #[pymodule_export]
-    const CHEST_LARGE_GOLD_CHANCE: u8 = super::consts::CHEST_LARGE_GOLD_CHANCE;
-    #[pymodule_export]
-    const CHEST_LARGE_GOLD_BASE: u16 = super::consts::CHEST_LARGE_GOLD_BASE;
-    #[pymodule_export]
-    const CHEST_GOLD_VARIANCE_MIN: f32 = super::consts::CHEST_GOLD_VARIANCE_MIN;
-    #[pymodule_export]
-    const CHEST_GOLD_VARIANCE_MAX: f32 = super::consts::CHEST_GOLD_VARIANCE_MAX;
-    #[pymodule_export]
-    const SHOP_PRICE_CARD_COMMON: u16 = super::consts::SHOP_PRICE_CARD_COMMON;
-    #[pymodule_export]
-    const SHOP_PRICE_CARD_UNCOMMON: u16 = super::consts::SHOP_PRICE_CARD_UNCOMMON;
-    #[pymodule_export]
-    const SHOP_PRICE_CARD_RARE: u16 = super::consts::SHOP_PRICE_CARD_RARE;
-    #[pymodule_export]
-    const SHOP_PRICE_COLORLESS_NUMER: u16 = super::consts::SHOP_PRICE_COLORLESS_NUMER;
-    #[pymodule_export]
-    const SHOP_PRICE_COLORLESS_DENOM: u16 = super::consts::SHOP_PRICE_COLORLESS_DENOM;
-    #[pymodule_export]
-    const SHOP_PRICE_CARD_VARIANCE_MIN: f32 = super::consts::SHOP_PRICE_CARD_VARIANCE_MIN;
-    #[pymodule_export]
-    const SHOP_PRICE_CARD_VARIANCE_MAX: f32 = super::consts::SHOP_PRICE_CARD_VARIANCE_MAX;
-    #[pymodule_export]
-    const SHOP_PRICE_POTION_COMMON: u16 = super::consts::SHOP_PRICE_POTION_COMMON;
-    #[pymodule_export]
-    const SHOP_PRICE_POTION_UNCOMMON: u16 = super::consts::SHOP_PRICE_POTION_UNCOMMON;
-    #[pymodule_export]
-    const SHOP_PRICE_POTION_RARE: u16 = super::consts::SHOP_PRICE_POTION_RARE;
-    #[pymodule_export]
-    const SHOP_PRICE_RELIC_COMMON: u16 = super::consts::SHOP_PRICE_RELIC_COMMON;
-    #[pymodule_export]
-    const SHOP_PRICE_RELIC_UNCOMMON: u16 = super::consts::SHOP_PRICE_RELIC_UNCOMMON;
-    #[pymodule_export]
-    const SHOP_PRICE_RELIC_RARE: u16 = super::consts::SHOP_PRICE_RELIC_RARE;
-    #[pymodule_export]
-    const SHOP_PRICE_RELIC_SHOP: u16 = super::consts::SHOP_PRICE_RELIC_SHOP;
-    #[pymodule_export]
-    const SHOP_PRICE_RELIC_POTION_VARIANCE_MIN: f32 =
-        super::consts::SHOP_PRICE_RELIC_POTION_VARIANCE_MIN;
-    #[pymodule_export]
-    const SHOP_PRICE_RELIC_POTION_VARIANCE_MAX: f32 =
-        super::consts::SHOP_PRICE_RELIC_POTION_VARIANCE_MAX;
-    #[pymodule_export]
-    const SHOP_SALE_DIVISOR: u16 = super::consts::SHOP_SALE_DIVISOR;
-    #[pymodule_export]
-    const SHOP_PURGE_COST_BASE: u16 = super::consts::SHOP_PURGE_COST_BASE;
-    #[pymodule_export]
-    const SHOP_PURGE_COST_INCREMENT: u16 = super::consts::SHOP_PURGE_COST_INCREMENT;
-    #[pymodule_export]
-    const ASCENSION_SHOP_PRICE_BUMP_LEVEL: u8 = super::consts::ASCENSION_SHOP_PRICE_BUMP_LEVEL;
-    #[pymodule_export]
-    const ASCENSION_SHOP_PRICE_BUMP_NUMER: u16 = super::consts::ASCENSION_SHOP_PRICE_BUMP_NUMER;
-    #[pymodule_export]
-    const ASCENSION_SHOP_PRICE_BUMP_DENOM: u16 = super::consts::ASCENSION_SHOP_PRICE_BUMP_DENOM;
-    #[pymodule_export]
-    const SHOP_PRICE_CARD_MAX: u16 = super::consts::SHOP_PRICE_CARD_MAX;
-    #[pymodule_export]
-    const SHOP_PRICE_RELIC_MAX: u16 = super::consts::SHOP_PRICE_RELIC_MAX;
-    #[pymodule_export]
-    const SHOP_PRICE_POTION_MAX: u16 = super::consts::SHOP_PRICE_POTION_MAX;
-    #[pymodule_export]
-    const WE_MEET_AGAIN_GOLD_ASK_MIN: u16 = super::consts::WE_MEET_AGAIN_GOLD_ASK_MIN;
-    #[pymodule_export]
-    const WE_MEET_AGAIN_GOLD_ASK_MAX: u16 = super::consts::WE_MEET_AGAIN_GOLD_ASK_MAX;
-    #[pymodule_export]
-    const NEOW_GOLD_SMALL: u16 = super::consts::NEOW_GOLD_SMALL;
-    #[pymodule_export]
-    const NEOW_GOLD_LARGE: u16 = super::consts::NEOW_GOLD_LARGE;
-    #[pymodule_export]
-    const NEOW_CARD_COUNT: usize = super::consts::NEOW_CARD_COUNT;
-    #[pymodule_export]
-    const NEOW_POTION_COUNT: u8 = super::consts::NEOW_POTION_COUNT;
-    #[pymodule_export]
-    const SILENT_HP_MAX_BASE: u16 = super::consts::SILENT_HP_MAX_BASE;
-    #[pymodule_export]
-    const SILENT_HP_MAX_A14_DELTA: u16 = super::consts::SILENT_HP_MAX_A14_DELTA;
-    #[pymodule_export]
-    const HEALTH_START_A6_NUMER: u16 = super::consts::HEALTH_START_A6_NUMER;
-    #[pymodule_export]
-    const HEALTH_START_A6_DENOM: u16 = super::consts::HEALTH_START_A6_DENOM;
+    const MAX_SHOP_PRICE_POTION: u16 = super::consts::SHOP_PRICE_POTION_MAX;
 }
