@@ -49,6 +49,8 @@ impl GameEnv {
     #[classattr]
     const MAX_VELVET_CHOKER_PLAYS: i16 = consts::VELVET_CHOKER_PLAYS_MAX;
     #[classattr]
+    const NUM_CHEMICAL_X_REPEATS: usize = consts::CHEMICAL_X_REPEATS;
+    #[classattr]
     const MAX_MONSTERS: usize = consts::MAX_MONSTERS;
     #[classattr]
     const MAX_SIZE_CARD_PILE_HAND: usize = consts::MAX_SIZE_CARD_PILE_HAND;

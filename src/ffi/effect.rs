@@ -4,6 +4,7 @@ use pyo3::inspect::PyStaticExpr;
 use pyo3::prelude::*;
 use strum::IntoEnumIterator;
 
+use crate::consts::MAX_MONSTERS;
 use crate::effect::CardPlay;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
@@ -14,11 +15,13 @@ use crate::effect::Target;
 use crate::entity::Entity;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
+use crate::modifier::Modifiers;
 use crate::modifier::has_modifier;
 use crate::modifier::modifier_stacks;
 use crate::types::Location;
 use crate::types::RelicName;
 use crate::utils::entity_requires_target;
+use crate::utils::get_card_effective_cost;
 use crate::utils::has_relic;
 use crate::utils::scale_attack_damage;
 use crate::utils::scale_block_gain;
@@ -281,11 +284,11 @@ pub(crate) fn snapshot_effects(
                     | PyEffect::HeelHookProc(PyEffectHeelHookProc { damage, .. })
                     | PyEffect::SkewerProc(PyEffectSkewerProc { damage, .. }),
                     Some((card, cost, _)),
-                ) => *damage = adjusted_damage(state, card, cost, *damage),
+                ) => *damage = adjusted_damage(state, card, cost, *damage, None),
                 (
                     PyEffect::DamageMindBlast(PyEffectDamageMindBlast { damage, .. }),
                     Some((card, cost, draw_pile_size)),
-                ) => *damage = adjusted_damage(state, card, cost, draw_pile_size),
+                ) => *damage = adjusted_damage(state, card, cost, draw_pile_size, None),
                 (
                     PyEffect::BlockGain(PyEffectBlockGain { amount: block, .. })
                     | PyEffect::EscapePlanCheck(PyEffectEscapePlanCheck { block, .. }),
@@ -308,7 +311,13 @@ pub(crate) fn snapshot_effects(
 }
 
 // A Combat Card's scaled hit, the same for all its hits; Paper Krane never applies to it
-fn adjusted_damage(state: &GameState, card: &Entity, cost: u16, base: u16) -> u16 {
+fn adjusted_damage(
+    state: &GameState,
+    card: &Entity,
+    cost: u16,
+    base: u16,
+    mods_target: Option<&Modifiers>, // The Monster it hits, when known; Odd Mushroom never applies
+) -> u16 {
     let mods_char = &state.entities[state.id_character].modifiers;
 
     // Strike Dummy and Wrist Blade join the base damage before scaling
@@ -324,16 +333,65 @@ fn adjusted_damage(state: &GameState, card: &Entity, cost: u16, base: u16) -> u1
     } else {
         0
     };
-    scale_attack_damage(
+
+    // The target's Slow stacks, Vulnerable, Flight and Intangible; a targetless hit reads none
+    let (slow_stacks, is_vulnerable, flight, is_intangible) = match mods_target {
+        Some(mods) => (
+            modifier_stacks(mods, ModifierKind::Slow),
+            has_modifier(mods, ModifierKind::Vulnerable),
+            has_modifier(mods, ModifierKind::Flight),
+            has_modifier(mods, ModifierKind::Intangible),
+        ),
+        None => (0, false, false, false),
+    };
+    let damage = scale_attack_damage(
         base.saturating_add(bonus).saturating_add(vigor),
         str_stacks,
         has_modifier(mods_char, ModifierKind::DoubleDamage),
         has_modifier(mods_char, ModifierKind::PenNib),
         weak_factor(has_modifier(mods_char, ModifierKind::Weak), false),
-        slow_factor(0),
-        vuln_factor(false, false),
-        false,
-    ) as u16
+        slow_factor(slow_stacks),
+        vuln_factor(is_vulnerable, false),
+        flight,
+    ) as u16;
+
+    // Intangible (target): clamps down, so a computed 0 stays 0
+    if is_intangible && damage > 1 {
+        1
+    } else {
+        damage
+    }
+}
+
+// The hit the game shows with the Card hovered over each slot's Monster, None where it shows none
+pub(crate) fn snapshot_damage_card(
+    state: &GameState,
+    id_card: usize,
+) -> [Option<u16>; MAX_MONSTERS] {
+    let combat = &state.combat;
+    let card = &state.entities[id_card];
+    let cost = get_card_effective_cost(card, combat.energy.energy_current);
+
+    // The raw hit `snapshot_effects` scales, which every attack Effect of a Card shares
+    let base = card.card_effects_play[..card.card_effects_play_len as usize]
+        .iter()
+        .find_map(|effect| match effect.kind {
+            EffectKind::DamagePhysical { amount, .. } => Some(amount),
+            EffectKind::DamageFinisher { damage }
+            | EffectKind::DamageFlechettes { damage }
+            | EffectKind::HeelHookProc { damage }
+            | EffectKind::SkewerProc { damage } => Some(damage),
+            EffectKind::DamageMindBlast => Some(combat.id_card_pile_draw.len() as u16),
+            _ => None,
+        });
+
+    combat.id_monsters.map(|id_monster| {
+        let monster = &state.entities[id_monster?];
+        if monster.monster_half_dead {
+            return None;
+        }
+        base.map(|base| adjusted_damage(state, card, cost, base, Some(&monster.modifiers)))
+    })
 }
 
 fn adjusted_block(state: &GameState, base: u16) -> u16 {

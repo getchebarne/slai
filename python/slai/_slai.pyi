@@ -713,6 +713,8 @@ class Combat:
     @property
     def boss_fight(self, /) -> bool: ...
     @property
+    def damage_card_pile_hand(self, /) -> list[list[int | None]]: ...
+    @property
     def energy(self, /) -> Energy: ...
     @property
     def gold_stolen(self, /) -> int: ...
@@ -1841,6 +1843,7 @@ class GameEnv:
     MIN_CARD_REWARD_ROLL_OFFSET: Final[int]
     NUM_BOSS_RELIC_REWARDS: Final[int]
     NUM_CAULDRON_POTIONS: Final[int]
+    NUM_CHEMICAL_X_REPEATS: Final[int]
     NUM_DISCOVER_ROLLS: Final[int]
     NUM_ENCOUNTERS_EASY_ACT1: Final[int]
     POTION_DROP_CHANCE_BASE: Final[int]
