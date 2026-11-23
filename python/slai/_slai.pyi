@@ -3,9 +3,6 @@ from slai import Amount, AmountScalar, CardCostKind, Effect, Location, Selection
 from typing import Final, SupportsIndex, final
 
 __all__ = [
-    "MAX_SHOP_PRICE_CARD",
-    "MAX_SHOP_PRICE_POTION",
-    "MAX_SHOP_PRICE_RELIC",
     "Action",
     "ActionType",
     "AmountAbsolute",
@@ -176,10 +173,6 @@ __all__ = [
     "get_potion_templates",
     "get_relic_templates",
 ]
-
-MAX_SHOP_PRICE_CARD: Final[int]
-MAX_SHOP_PRICE_POTION: Final[int]
-MAX_SHOP_PRICE_RELIC: Final[int]
 
 @final
 class Action:

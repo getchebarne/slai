@@ -266,32 +266,6 @@ pub const fn bump_price_a16(price: u16) -> u16 {
         / ASCENSION_SHOP_PRICE_BUMP_DENOM as u32) as u16
 }
 
-// Largest price the half-open variance roll in engine/shop.rs can produce
-const fn price_sup(base: u16, variance_max: f32) -> u16 {
-    let max = base as f32 * variance_max;
-    let truncated = max as u16;
-    if truncated as f32 == max {
-        truncated - 1
-    } else {
-        truncated
-    }
-}
-
-// Derived stock-price ceilings, post-A16 markup, pre-discount (discounts only lower)
-pub const SHOP_PRICE_CARD_MAX: u16 = bump_price_a16(price_sup(
-    SHOP_PRICE_CARD_RARE * SHOP_PRICE_COLORLESS_NUMER / SHOP_PRICE_COLORLESS_DENOM,
-    SHOP_PRICE_CARD_VARIANCE_MAX,
-));
-// Circlet's Special price stays out: it reaches a shelf only once the Rare pool is spent
-pub const SHOP_PRICE_RELIC_MAX: u16 = bump_price_a16(price_sup(
-    SHOP_PRICE_RELIC_RARE,
-    SHOP_PRICE_RELIC_POTION_VARIANCE_MAX,
-));
-pub const SHOP_PRICE_POTION_MAX: u16 = bump_price_a16(price_sup(
-    SHOP_PRICE_POTION_RARE,
-    SHOP_PRICE_RELIC_POTION_VARIANCE_MAX,
-));
-
 // Shop inventory composition
 pub const SHOP_SLOTS_CARD_COLORED: usize = 5;
 const SHOP_SLOTS_CARD_COLORLESS: usize = 2;
