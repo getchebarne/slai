@@ -429,9 +429,29 @@ mod _slai {
     #[pymodule_export]
     const TIME_WARP_PLAYS: i16 = consts::TIME_WARP_PLAYS;
     #[pymodule_export]
+    const PANACHE_PLAYS: u8 = consts::PANACHE_PLAYS;
+    #[pymodule_export]
     const MAX_NORMALITY_PLAYS: u16 = consts::NORMALITY_PLAYS_MAX;
     #[pymodule_export]
     const MAX_VELVET_CHOKER_PLAYS: i16 = consts::VELVET_CHOKER_PLAYS_MAX;
+    #[pymodule_export]
+    const MAX_POCKETWATCH_PLAYS: i16 = consts::POCKETWATCH_PLAYS_MAX;
+    #[pymodule_export]
+    const ORICHALCUM_BLOCK: u16 = consts::ORICHALCUM_BLOCK;
+    #[pymodule_export]
+    const MIN_TORII_DAMAGE: u16 = consts::TORII_DAMAGE_MIN;
+    #[pymodule_export]
+    const MAX_TORII_DAMAGE: u16 = consts::TORII_DAMAGE_MAX;
+    #[pymodule_export]
+    const TORII_DAMAGE_LANDED: u16 = consts::TORII_DAMAGE_LANDED;
+    #[pymodule_export]
+    const BURN_DAMAGE: u16 = consts::BURN_DAMAGE;
+    #[pymodule_export]
+    const BURN_DAMAGE_UPGRADED: u16 = consts::BURN_DAMAGE_UPGRADED;
+    #[pymodule_export]
+    const DECAY_DAMAGE: u16 = consts::DECAY_DAMAGE;
+    #[pymodule_export]
+    const EXPLOSIVE_DAMAGE: u16 = consts::EXPLOSIVE_DAMAGE;
     #[pymodule_export]
     const NUM_CHEMICAL_X_REPEATS: usize = consts::CHEMICAL_X_REPEATS;
     #[pymodule_export]
@@ -486,8 +506,14 @@ mod _slai {
     #[pymodule_export]
     const ACT_FINAL: u8 = 4;
 
+    // The top Ascension
+    #[pymodule_export]
+    const MAX_ASCENSION: u8 = 20;
+
     #[pymodule_export]
     const MAP_WIDTH: usize = consts::MAP_WIDTH;
+    #[pymodule_export]
+    const MAP_ROW_TREASURE: usize = consts::MAP_ROW_TREASURE;
     #[pymodule_export]
     const CARD_REWARD_ROLL_OFFSET_BASE: i8 = consts::CARD_REWARD_ROLL_OFFSET_BASE;
     #[pymodule_export]
@@ -496,6 +522,9 @@ mod _slai {
     const POTION_DROP_CHANCE_BASE: i32 = consts::POTION_DROP_CHANCE_BASE;
     #[pymodule_export]
     const MATCH_AND_KEEP_ATTEMPTS: u8 = consts::MATCH_AND_KEEP_ATTEMPTS;
+    #[pymodule_export]
+    const NUM_MATCH_AND_KEEP_CARDS: usize =
+        consts::MATCH_AND_KEEP_NAME_COUNT * consts::MATCH_AND_KEEP_COPIES;
 
     // Derived stock-price ceilings, post-A16 markup, pre-discount (discounts only lower)
     #[pymodule_export]

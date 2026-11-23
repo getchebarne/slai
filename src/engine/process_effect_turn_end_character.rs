@@ -1,3 +1,4 @@
+use crate::consts::ORICHALCUM_BLOCK;
 use crate::effect::Amount;
 use crate::effect::CandidatePool;
 use crate::effect::CardPlay;
@@ -63,7 +64,9 @@ pub fn process_effect_turn_end_character(state: &mut GameState, stage: TurnEndCh
                 && has_relic(&state.id_relics, RelicName::Orichalcum)
             {
                 state.effect_buf.push(Effect {
-                    kind: EffectKind::BlockGain { amount: 6 },
+                    kind: EffectKind::BlockGain {
+                        amount: ORICHALCUM_BLOCK,
+                    },
                     id_source: None,
                     target: Target::Direct(Some(state.id_character)),
                 });
