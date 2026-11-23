@@ -482,4 +482,12 @@ mod _slai {
     use super::ffi::template::get_potion_templates;
     #[pymodule_export]
     use super::ffi::template::get_relic_templates;
+
+    // Constants surface: load-bearing tunables + derived shop ceilings
+    #[pymodule_export]
+    const MAX_SHOP_PRICE_CARD: u16 = super::consts::SHOP_PRICE_CARD_MAX;
+    #[pymodule_export]
+    const MAX_SHOP_PRICE_RELIC: u16 = super::consts::SHOP_PRICE_RELIC_MAX;
+    #[pymodule_export]
+    const MAX_SHOP_PRICE_POTION: u16 = super::consts::SHOP_PRICE_POTION_MAX;
 }
