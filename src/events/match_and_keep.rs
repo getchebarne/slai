@@ -8,6 +8,8 @@ use crate::cards::POOL_UNCOMMON_GREEN_CARD;
 use crate::cards::get_card;
 use crate::cards::get_card_template;
 use crate::consts::MATCH_AND_KEEP_ATTEMPTS;
+use crate::consts::MATCH_AND_KEEP_COPIES;
+use crate::consts::MATCH_AND_KEEP_NAME_COUNT;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
@@ -55,7 +57,7 @@ pub fn spawn(state: &mut GameState) -> Vec<usize> {
     let rng = &mut state.rng;
 
     // A Rare, an Uncommon and a Common Silent Card, a colorless Uncommon, a Curse and Neutralize
-    let names = [
+    let names: [CardName; MATCH_AND_KEEP_NAME_COUNT] = [
         POOL_RARE_GREEN_CARD[rng.random_range(0..POOL_RARE_GREEN_CARD.len())],
         POOL_UNCOMMON_GREEN_CARD[rng.random_range(0..POOL_UNCOMMON_GREEN_CARD.len())],
         POOL_COMMON_GREEN_CARD[rng.random_range(0..POOL_COMMON_GREEN_CARD.len())],
@@ -72,7 +74,7 @@ pub fn spawn(state: &mut GameState) -> Vec<usize> {
     // Each Card is dealt twice, with the eggs' upgrades on show
     for name in names {
         let upgraded = egg_upgrades_kind(get_card_template(name, false).kind, &state.id_relics);
-        for _ in 0..2 {
+        for _ in 0..MATCH_AND_KEEP_COPIES {
             let id_card = push_entity(&mut state.entities, get_card(name, upgraded));
             state.event.id_card_match_unseen.push(id_card);
         }

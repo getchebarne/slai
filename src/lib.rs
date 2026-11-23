@@ -45,9 +45,27 @@ impl GameEnv {
     #[classattr]
     const TIME_WARP_PLAYS: i16 = consts::TIME_WARP_PLAYS;
     #[classattr]
+    const PANACHE_PLAYS: u8 = consts::PANACHE_PLAYS;
+    #[classattr]
     const MAX_NORMALITY_PLAYS: u16 = consts::NORMALITY_PLAYS_MAX;
     #[classattr]
     const MAX_VELVET_CHOKER_PLAYS: i16 = consts::VELVET_CHOKER_PLAYS_MAX;
+    #[classattr]
+    const MAX_POCKETWATCH_PLAYS: i16 = consts::POCKETWATCH_PLAYS_MAX;
+    #[classattr]
+    const ORICHALCUM_BLOCK: u16 = consts::ORICHALCUM_BLOCK;
+    #[classattr]
+    const MIN_TORII_DAMAGE: u16 = consts::TORII_DAMAGE_MIN;
+    #[classattr]
+    const MAX_TORII_DAMAGE: u16 = consts::TORII_DAMAGE_MAX;
+    #[classattr]
+    const BURN_DAMAGE: u16 = consts::BURN_DAMAGE;
+    #[classattr]
+    const BURN_DAMAGE_UPGRADED: u16 = consts::BURN_DAMAGE_UPGRADED;
+    #[classattr]
+    const DECAY_DAMAGE: u16 = consts::DECAY_DAMAGE;
+    #[classattr]
+    const EXPLOSIVE_DAMAGE: u16 = consts::EXPLOSIVE_DAMAGE;
     #[classattr]
     const MAX_MONSTERS: usize = consts::MAX_MONSTERS;
     #[classattr]
@@ -91,7 +109,11 @@ impl GameEnv {
     #[classattr]
     const ACT_FINAL: u8 = consts::ACT_FINAL;
     #[classattr]
+    const MAX_ASCENSION: u8 = consts::ASCENSION_MAX;
+    #[classattr]
     const MAP_WIDTH: usize = consts::MAP_WIDTH;
+    #[classattr]
+    const MAP_ROW_TREASURE: usize = consts::MAP_ROW_TREASURE;
     #[classattr]
     const CARD_REWARD_ROLL_OFFSET_BASE: i8 = consts::CARD_REWARD_ROLL_OFFSET_BASE;
     #[classattr]
@@ -100,6 +122,8 @@ impl GameEnv {
     const POTION_DROP_CHANCE_BASE: i32 = consts::POTION_DROP_CHANCE_BASE;
     #[classattr]
     const MATCH_AND_KEEP_ATTEMPTS: u8 = consts::MATCH_AND_KEEP_ATTEMPTS;
+    #[classattr]
+    const NUM_MATCH_AND_KEEP_CARDS: usize = consts::MATCH_AND_KEEP_CARD_COUNT;
 
     #[new]
     #[pyo3(signature = (ascension=0, fast_mode=false, neow=false))]

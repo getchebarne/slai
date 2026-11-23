@@ -92,6 +92,24 @@ pub const TIME_WARP_STRENGTH: i16 = 2;
 pub const NORMALITY_PLAYS_MAX: u16 = 3;
 pub const VELVET_CHOKER_PLAYS_MAX: i16 = 6;
 
+// Pocketwatch draws 3 at the turn start after a turn of 3 Cards played or fewer
+pub const POCKETWATCH_PLAYS_MAX: i16 = 3;
+
+// Orichalcum's block at the turn end, when the Character has none
+pub const ORICHALCUM_BLOCK: u16 = 6;
+
+// Torii: Monster hits leaving a 2-5 remainder on the Character land 1 instead
+pub const TORII_DAMAGE_MIN: u16 = 2;
+pub const TORII_DAMAGE_MAX: u16 = 5;
+
+// Burn and Decay hit the Character as they play themselves out of hand at the turn end
+pub const BURN_DAMAGE: u16 = 2;
+pub const BURN_DAMAGE_UPGRADED: u16 = 4;
+pub const DECAY_DAMAGE: u16 = 2;
+
+// Explosive's blast as its owner dies on its last stack
+pub const EXPLOSIVE_DAMAGE: u16 = 30;
+
 // Event roll-pool stakes: the widest offer any event places in `id_roll_*`
 pub const MAX_SIZE_CARD_PILE_EVENT_ROLL: usize = 2 * MATCH_AND_KEEP_ATTEMPTS as usize; // Match and Keep!
 pub const MAX_SIZE_RELIC_EVENT_ROLL: usize = 2; // N'loth's two owned relics
@@ -132,6 +150,9 @@ pub const ACT_LAST_BOSS_CHEST: u8 = 2;
 
 // A20+: Act 3's first boss fight is followed by a second, against one of the other two bosses
 pub const ASCENSION_DOUBLE_BOSS_LEVEL: u8 = 20;
+
+// The top Ascension
+pub const ASCENSION_MAX: u8 = 20;
 
 // Map
 pub const MAP_HEIGHT: usize = 15;
@@ -226,6 +247,11 @@ pub const WE_MEET_AGAIN_GOLD_ASK_MAX: u16 = 150;
 
 // Match and Keep!: attempts of two flips each
 pub const MATCH_AND_KEEP_ATTEMPTS: u8 = 5;
+
+// Match and Keep!'s board: six Card names, each dealt twice
+pub const MATCH_AND_KEEP_NAME_COUNT: usize = 6;
+pub const MATCH_AND_KEEP_COPIES: usize = 2;
+pub const MATCH_AND_KEEP_CARD_COUNT: usize = MATCH_AND_KEEP_NAME_COUNT * MATCH_AND_KEEP_COPIES;
 
 // Shop pricing — Cards: base x U[0.9, 1.1], colorless x 1.2
 pub const SHOP_PRICE_CARD_COMMON: u16 = 50;

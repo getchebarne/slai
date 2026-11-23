@@ -1,5 +1,8 @@
 use rand::Rng;
 
+use crate::consts::BURN_DAMAGE;
+use crate::consts::BURN_DAMAGE_UPGRADED;
+use crate::consts::DECAY_DAMAGE;
 use crate::consts::MAX_SIZE_CARD_PILE_HAND;
 use crate::consts::PANACHE_PLAYS;
 use crate::effect::Amount;
@@ -56,11 +59,15 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
         let card = &state.entities[id_card];
         let kind = match card.card_name {
             CardName::Burn => EffectKind::DamageDeal {
-                amount: if card.card_upgraded { 4 } else { 2 },
+                amount: if card.card_upgraded {
+                    BURN_DAMAGE_UPGRADED
+                } else {
+                    BURN_DAMAGE
+                },
                 lifesteal: false,
             },
             CardName::Decay => EffectKind::DamageDeal {
-                amount: 2,
+                amount: DECAY_DAMAGE,
                 lifesteal: false,
             },
             CardName::Regret => EffectKind::HealthDelta {

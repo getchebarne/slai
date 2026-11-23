@@ -1,3 +1,4 @@
+use crate::consts::EXPLOSIVE_DAMAGE;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
@@ -94,7 +95,7 @@ pub fn process_effect_move_execute(id_target: Option<usize>, state: &mut GameSta
             if kind == ModifierKind::Explosive {
                 state.effect_buf.push(Effect {
                     kind: EffectKind::DamageDeal {
-                        amount: 30,
+                        amount: EXPLOSIVE_DAMAGE,
                         lifesteal: false,
                     },
                     id_source: None,
