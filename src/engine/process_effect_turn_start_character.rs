@@ -108,7 +108,7 @@ pub fn process_effect_turn_start_character(state: &mut GameState) {
     }
 
     let first_turn = *turn == 0;
-    *turn += 1;
+    *turn = turn.saturating_add(1);
     let modifiers = state.entities[state.id_character].modifiers;
 
     // Last turn's plays decide Art of War and Pocketwatch; this turn counts from zero
@@ -511,7 +511,7 @@ fn push_relics_turn_start(
             }
 
             // Stone Calendar: counts the combat's turns; it fires at the turn end
-            RelicName::StoneCalendar => relic.relic_counter += 1,
+            RelicName::StoneCalendar => relic.relic_counter = relic.relic_counter.saturating_add(1),
 
             // Horn Cleat and Captain's Wheel count to their turn, fire once, then hold the count
             RelicName::HornCleat | RelicName::CaptainsWheel => {
