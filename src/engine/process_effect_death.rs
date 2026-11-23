@@ -70,8 +70,9 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState, wit
             return;
         }
 
-        // Mark Character as dead, set `game_over` flag, and clear the queued work: effects, waiting Card plays, turn phases
+        // Mark Character as dead, zero its block, set `game_over` flag, and clear the queued work: effects, waiting Card plays, turn phases
         state.entities[state.id_character].dead = true;
+        state.entities[state.id_character].vitals.block = 0;
         state.game_over = true;
         state.effect_queue.clear();
         state.card_play_queue.clear();
@@ -177,7 +178,7 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState, wit
             state.card_play_queue.clear();
         }
 
-        // The last kill ends the combat: no turn phase starts, and only the queued heals, block and damage resolve, Hand of Greed, Ritual Dagger and Beat of Death with them
+        // The last kill ends the combat: no turn phase starts, and only the queued heals, block and damage resolve, Hand of Greed, Ritual Dagger and Beat of Death with them, and every queued routing still puts its Card in its pile
         state.phase_queue.clear();
         state.effect_queue.retain(|e| {
             matches!(
@@ -193,6 +194,7 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState, wit
                     | EffectKind::HandOfGreedProc { .. }
                     | EffectKind::RitualDaggerProc { .. }
                     | EffectKind::BeatOfDeathProc
+                    | EffectKind::CardPlayRelocate
             )
         });
 
