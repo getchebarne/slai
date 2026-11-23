@@ -145,7 +145,7 @@ pub struct GameState {
     // Cached legal-action set; recomputed at every settle point, source of truth for action validity
     pub legal_actions: Vec<Action>,
 
-    // When set, step auto-applies any forced move (exactly one legal action) until a real choice appears
+    // When set, step auto-applies any forced move (exactly one legal action) until a real choice appears or the forced-move cap is reached
     pub fast_mode: bool,
 
     // When set, the run opens on Neow's blessing before the first Room selection
@@ -383,26 +383,21 @@ pub fn step(state: &mut GameState, action: Action) -> Result<(), String> {
     // Recompute legal actions
     recompute_legal_actions(state);
 
-    // If fast frame is enabled, auto advance the game until there's more than one legal action
+    // If fast mode is enabled, auto advance the game until there's more than one legal action or the forced-move cap is reached
     if state.fast_mode {
         auto_advance(state);
     }
     Ok(())
 }
 
-// Skip forced moves: while exactly one lexgal action exists, apply it
+// Skip forced moves: while exactly one legal action exists, apply it, handing back to the caller at the cap
 fn auto_advance(state: &mut GameState) {
     let mut guard = 0;
-    while !state.game_over && state.legal_actions.len() == 1 {
+    while !state.game_over && state.legal_actions.len() == 1 && guard < 99 {
         guard += 1;
-        assert!(
-            guard < 99,
-            "fast_mode auto-advance exceeded 99 forced moves"
-        );
         // Get single legal action
         let action = state.legal_actions[0].clone();
 
-        // Keep processing the queue until there's more than one legal action to take
         handle_action(state, action).expect("Cached single legal action must be valid");
         process_effect_queue(state);
         recompute_legal_actions(state);
