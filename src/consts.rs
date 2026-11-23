@@ -44,8 +44,6 @@ pub const CARDS_DRAWN_PER_TURN: u16 = 5;
 pub const ENERGY_MAX_BASE: u16 = 3;
 pub const ENERGY_CAP: u16 = 999;
 
-// Capacity: base 3 plus Question Card's +1; the roll base is CARD_REWARD_BASE_COUNT
-pub const MAX_COMBAT_CARD_REWARD: usize = 4;
 pub const CARD_REWARD_BASE_COUNT: usize = 3;
 
 // Most bundles a Reward context can hold: Orrery's five
@@ -53,8 +51,6 @@ pub const ORRERY_BUNDLE_COUNT: usize = 5;
 
 // Cauldron's brew, staged as Potion rewards
 pub const CAULDRON_POTION_COUNT: usize = 5;
-pub const MAX_REWARD_CARD_BUNDLES: usize = ORRERY_BUNDLE_COUNT;
-const _: () = assert!(CARD_REWARD_BASE_COUNT + 1 <= MAX_COMBAT_CARD_REWARD);
 pub const FACTOR_BACK_ATTACK: f32 = 1.5;
 pub const FACTOR_WEAK: f32 = 0.75;
 pub const FACTOR_WEAK_PAPER_KRANE: f32 = 0.60;
@@ -95,11 +91,6 @@ pub const VELVET_CHOKER_PLAYS_MAX: i16 = 6;
 // Chemical X repeats an X-cost Card's effects 2 more times than X
 pub const CHEMICAL_X_REPEATS: usize = 2;
 
-// Event roll-pool stakes: the widest offer any event places in `id_roll_*`
-pub const MAX_SIZE_CARD_PILE_EVENT_ROLL: usize = 2 * MATCH_AND_KEEP_ATTEMPTS as usize; // Match and Keep!
-pub const MAX_SIZE_RELIC_EVENT_ROLL: usize = 2; // N'loth's two owned relics
-pub const MAX_SIZE_POTION_EVENT_ROLL: usize = 1; // We Meet Again
-
 // Card rewards
 pub const CARD_REWARD_ROLL_OFFSET_BASE: i8 = 5;
 pub const CARD_REWARD_ROLL_OFFSET_MIN: i8 = -40;
@@ -126,9 +117,6 @@ pub const COLORLESS_RARE_CHANCE: f32 = 0.3;
 
 // Wheel of Change pays 100 per act
 pub const WHEEL_GOLD_PER_ACT: u16 = 100;
-
-// The last act a run can reach; without all three keys the run ends at Act 3's last boss
-pub const ACT_FINAL: u8 = 4;
 
 // Acts 1 and 2 end in a boss Reward and the boss chest; every later Boss Room fight pays nothing
 pub const ACT_LAST_BOSS_CHEST: u8 = 2;
@@ -268,32 +256,6 @@ pub const fn bump_price_a16(price: u16) -> u16 {
         + ASCENSION_SHOP_PRICE_BUMP_DENOM as u32 / 2)
         / ASCENSION_SHOP_PRICE_BUMP_DENOM as u32) as u16
 }
-
-// Largest price the half-open variance roll in engine/shop.rs can produce
-const fn price_sup(base: u16, variance_max: f32) -> u16 {
-    let max = base as f32 * variance_max;
-    let truncated = max as u16;
-    if truncated as f32 == max {
-        truncated - 1
-    } else {
-        truncated
-    }
-}
-
-// Derived stock-price ceilings, post-A16 markup, pre-discount (discounts only lower)
-pub const SHOP_PRICE_CARD_MAX: u16 = bump_price_a16(price_sup(
-    SHOP_PRICE_CARD_RARE * SHOP_PRICE_COLORLESS_NUMER / SHOP_PRICE_COLORLESS_DENOM,
-    SHOP_PRICE_CARD_VARIANCE_MAX,
-));
-// Circlet's Special price stays out: it reaches a shelf only once the Rare pool is spent
-pub const SHOP_PRICE_RELIC_MAX: u16 = bump_price_a16(price_sup(
-    SHOP_PRICE_RELIC_RARE,
-    SHOP_PRICE_RELIC_POTION_VARIANCE_MAX,
-));
-pub const SHOP_PRICE_POTION_MAX: u16 = bump_price_a16(price_sup(
-    SHOP_PRICE_POTION_RARE,
-    SHOP_PRICE_RELIC_POTION_VARIANCE_MAX,
-));
 
 // Shop inventory composition
 pub const SHOP_SLOTS_CARD_COLORED: usize = 5;

@@ -3,9 +3,42 @@ from slai import Amount, AmountScalar, CardCostKind, Effect, Location, Selection
 from typing import Final, SupportsIndex, final
 
 __all__ = [
+    "ACT_FINAL",
+    "BOMB_FUSE_TURNS",
+    "CARD_REWARD_ROLL_OFFSET_BASE",
+    "ENERGY_MAX_BASE",
+    "FACTOR_VULN",
+    "HEXAGHOST_DIVIDER_DIVISOR",
+    "HEXAGHOST_DIVIDER_HITS",
+    "MAP_HEIGHT",
+    "MAP_WIDTH",
+    "MATCH_AND_KEEP_ATTEMPTS",
+    "MAX_CARD_REWARD_ROLL",
+    "MAX_COMBAT_CARD_REWARD",
+    "MAX_MONSTERS",
+    "MAX_MOVE_HISTORY",
+    "MAX_NORMALITY_PLAYS",
+    "MAX_POTION_SLOTS",
+    "MAX_REWARD_CARD_BUNDLES",
     "MAX_SHOP_PRICE_CARD",
     "MAX_SHOP_PRICE_POTION",
     "MAX_SHOP_PRICE_RELIC",
+    "MAX_SIZE_CARD_PILE_EVENT_ROLL",
+    "MAX_SIZE_CARD_PILE_HAND",
+    "MAX_SIZE_POTION_EVENT_ROLL",
+    "MAX_SIZE_RELIC_EVENT_ROLL",
+    "MAX_VELVET_CHOKER_PLAYS",
+    "MIN_CARD_REWARD_ROLL_OFFSET",
+    "NUM_BOSS_RELIC_REWARDS",
+    "NUM_CAULDRON_POTIONS",
+    "NUM_CHEMICAL_X_REPEATS",
+    "NUM_DISCOVER_ROLLS",
+    "NUM_ENCOUNTERS_EASY_ACT1",
+    "POTION_DROP_CHANCE_BASE",
+    "SHOP_SLOTS_CARD_TOTAL",
+    "SHOP_SLOTS_POTION",
+    "SHOP_SLOTS_RELIC",
+    "TIME_WARP_PLAYS",
     "Action",
     "ActionType",
     "AmountAbsolute",
@@ -177,9 +210,42 @@ __all__ = [
     "get_relic_templates",
 ]
 
+ACT_FINAL: Final = 4
+BOMB_FUSE_TURNS: Final[int]
+CARD_REWARD_ROLL_OFFSET_BASE: Final[int]
+ENERGY_MAX_BASE: Final[int]
+FACTOR_VULN: Final[float]
+HEXAGHOST_DIVIDER_DIVISOR: Final[int]
+HEXAGHOST_DIVIDER_HITS: Final[int]
+MAP_HEIGHT: Final[int]
+MAP_WIDTH: Final[int]
+MATCH_AND_KEEP_ATTEMPTS: Final[int]
+MAX_CARD_REWARD_ROLL: Final[int]
+MAX_COMBAT_CARD_REWARD: Final = 4
+MAX_MONSTERS: Final[int]
+MAX_MOVE_HISTORY: Final[int]
+MAX_NORMALITY_PLAYS: Final[int]
+MAX_POTION_SLOTS: Final[int]
+MAX_REWARD_CARD_BUNDLES: Final[int]
 MAX_SHOP_PRICE_CARD: Final[int]
 MAX_SHOP_PRICE_POTION: Final[int]
 MAX_SHOP_PRICE_RELIC: Final[int]
+MAX_SIZE_CARD_PILE_EVENT_ROLL: Final[int]
+MAX_SIZE_CARD_PILE_HAND: Final[int]
+MAX_SIZE_POTION_EVENT_ROLL: Final = 1
+MAX_SIZE_RELIC_EVENT_ROLL: Final = 2
+MAX_VELVET_CHOKER_PLAYS: Final[int]
+MIN_CARD_REWARD_ROLL_OFFSET: Final[int]
+NUM_BOSS_RELIC_REWARDS: Final[int]
+NUM_CAULDRON_POTIONS: Final[int]
+NUM_CHEMICAL_X_REPEATS: Final[int]
+NUM_DISCOVER_ROLLS: Final[int]
+NUM_ENCOUNTERS_EASY_ACT1: Final[int]
+POTION_DROP_CHANCE_BASE: Final[int]
+SHOP_SLOTS_CARD_TOTAL: Final[int]
+SHOP_SLOTS_POTION: Final[int]
+SHOP_SLOTS_RELIC: Final[int]
+TIME_WARP_PLAYS: Final[int]
 
 @final
 class Action:
@@ -1825,39 +1891,6 @@ class EventOptionTemplate:
 
 @final
 class GameEnv:
-    ACT_FINAL: Final[int]
-    BOMB_FUSE_TURNS: Final[int]
-    CARD_REWARD_ROLL_OFFSET_BASE: Final[int]
-    ENERGY_MAX_BASE: Final[int]
-    FACTOR_VULN: Final[float]
-    HEXAGHOST_DIVIDER_DIVISOR: Final[int]
-    HEXAGHOST_DIVIDER_HITS: Final[int]
-    MAP_HEIGHT: Final[int]
-    MAP_WIDTH: Final[int]
-    MATCH_AND_KEEP_ATTEMPTS: Final[int]
-    MAX_CARD_REWARD_ROLL: Final[int]
-    MAX_COMBAT_CARD_REWARD: Final[int]
-    MAX_MONSTERS: Final[int]
-    MAX_MOVE_HISTORY: Final[int]
-    MAX_NORMALITY_PLAYS: Final[int]
-    MAX_POTION_SLOTS: Final[int]
-    MAX_REWARD_CARD_BUNDLES: Final[int]
-    MAX_SIZE_CARD_PILE_EVENT_ROLL: Final[int]
-    MAX_SIZE_CARD_PILE_HAND: Final[int]
-    MAX_SIZE_POTION_EVENT_ROLL: Final[int]
-    MAX_SIZE_RELIC_EVENT_ROLL: Final[int]
-    MAX_VELVET_CHOKER_PLAYS: Final[int]
-    MIN_CARD_REWARD_ROLL_OFFSET: Final[int]
-    NUM_BOSS_RELIC_REWARDS: Final[int]
-    NUM_CAULDRON_POTIONS: Final[int]
-    NUM_CHEMICAL_X_REPEATS: Final[int]
-    NUM_DISCOVER_ROLLS: Final[int]
-    NUM_ENCOUNTERS_EASY_ACT1: Final[int]
-    POTION_DROP_CHANCE_BASE: Final[int]
-    SHOP_SLOTS_CARD_TOTAL: Final[int]
-    SHOP_SLOTS_POTION: Final[int]
-    SHOP_SLOTS_RELIC: Final[int]
-    TIME_WARP_PLAYS: Final[int]
     def __new__(
         cls, /, ascension: SupportsIndex = 0, fast_mode: bool = False, neow: bool = False
     ) -> GameEnv: ...
