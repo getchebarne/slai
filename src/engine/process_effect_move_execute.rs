@@ -34,7 +34,7 @@ pub fn process_effect_move_execute(id_target: Option<usize>, state: &mut GameSta
     let entity = &mut state.entities[id_monster];
     entity.monster_move_history_exec[entity.monster_move_history_len as usize - 1] = true;
 
-    // Use counts tally executed moves only, so a re-rolled pick never counts, and they never drop a move
+    // Use counts tally executed moves only, so a re-rolled pick never counts
     let idx_move = entity.monster_move_current.unwrap();
     entity.monster_move_uses[idx_move] = entity.monster_move_uses[idx_move].saturating_add(1);
 
