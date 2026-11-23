@@ -433,13 +433,6 @@ ReadAt = _rs.ReadAt
 Rounding = _rs.Rounding
 
 
-# Constants surface: load-bearing engine tunables (the engine's own roll/formula
-# sites read these same values) plus derived shop price ceilings
-MAX_SHOP_PRICE_CARD = _rs.MAX_SHOP_PRICE_CARD
-MAX_SHOP_PRICE_RELIC = _rs.MAX_SHOP_PRICE_RELIC
-MAX_SHOP_PRICE_POTION = _rs.MAX_SHOP_PRICE_POTION
-
-
 __all__ = [
     # Environment + action
     "GameEnv",
@@ -627,8 +620,4 @@ __all__ = [
     "get_potion_templates",
     "get_monster_templates",
     "get_event_option_templates",
-    # Constants surface
-    "MAX_SHOP_PRICE_CARD",
-    "MAX_SHOP_PRICE_RELIC",
-    "MAX_SHOP_PRICE_POTION",
 ]
