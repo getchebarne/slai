@@ -666,12 +666,8 @@ pub fn get_next_move(
             ascension_level,
             rng,
         ),
-        MonsterName::SpireShield => {
-            spire_shield::get_next_move_spire_shield(history, &entity.monster_move_uses, rng)
-        }
-        MonsterName::SpireSpear => {
-            spire_spear::get_next_move_spire_spear(history, &entity.monster_move_uses, rng)
-        }
+        MonsterName::SpireShield => spire_shield::get_next_move_spire_shield(history, rng),
+        MonsterName::SpireSpear => spire_spear::get_next_move_spire_spear(history, rng),
         MonsterName::CorruptHeart => corrupt_heart::get_next_move_corrupt_heart(
             entity.monster_move_current,
             history,

@@ -1,4 +1,3 @@
-use crate::consts::MAX_MONSTER_MOVES;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::ScaledAt;
@@ -121,18 +120,18 @@ pub static SPIRE_SHIELD: MonsterTemplate = MonsterTemplate {
 };
 
 // A three-move cycle: a coin picks Fortify or Bash, the next move is the other one, then Smash
-pub fn get_next_move_spire_shield(
-    move_history: &[u8],
-    move_uses: &[u8; MAX_MONSTER_MOVES],
-    rng: &mut impl Rng,
-) -> usize {
-    // The cycle's position counts executed moves, which outlast the history's 64-entry window
-    let moves_used: usize = move_uses.iter().map(|&uses| usize::from(uses)).sum();
+pub fn get_next_move_spire_shield(move_history: &[u8], rng: &mut impl Rng) -> usize {
+    // The moves since the last Smash place the pick in its cycle
+    let moves_in_cycle = move_history
+        .iter()
+        .rev()
+        .take_while(|&&idx_move| idx_move as usize != IDX_MOVE_SMASH)
+        .count();
     let move_last = move_history
         .last()
         .copied()
         .map(|idx_move| idx_move as usize);
-    match moves_used % 3 {
+    match moves_in_cycle {
         0 => {
             if rng.random_bool(0.5) {
                 IDX_MOVE_FORTIFY
