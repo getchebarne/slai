@@ -6,6 +6,7 @@ use crate::types::ChestKind;
 use crate::types::Combat;
 use crate::types::EventName;
 
+use super::effect::snapshot_damage_card;
 use super::event::PyEventName;
 use super::macros::mirror_enum;
 use super::monster::PyMonsterEncounter;
@@ -31,6 +32,9 @@ pub struct PyCombat {
     pub id_card_pile_discover: Vec<usize>,
     pub id_card_pile_stasis: [Option<usize>; MAX_MONSTERS], // Slot-parallel to `id_monsters`
     pub id_monsters: [Option<usize>; MAX_MONSTERS],         // The roster's slots, None where empty
+
+    // Aligned with `id_card_pile_hand`, slot-parallel to `id_monsters`: each Card's hit as hovered
+    pub damage_card_pile_hand: Vec<[Option<u16>; MAX_MONSTERS]>,
 
     // Live Bombs: (turns left, damage, seq)
     pub bombs: Vec<(u8, u16, u32)>,
@@ -159,6 +163,12 @@ pub(crate) fn snapshot_combat(state: &GameState) -> PyCombat {
         id_card_pile_discover: combat.id_card_pile_discover.clone(),
         id_card_pile_stasis: combat.id_card_pile_stasis,
         id_monsters: combat.id_monsters,
+
+        damage_card_pile_hand: combat
+            .id_card_pile_hand
+            .iter()
+            .map(|&id_card| snapshot_damage_card(state, id_card))
+            .collect(),
 
         bombs: combat.bombs.clone(),
 

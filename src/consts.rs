@@ -92,6 +92,9 @@ pub const TIME_WARP_STRENGTH: i16 = 2;
 pub const NORMALITY_PLAYS_MAX: u16 = 3;
 pub const VELVET_CHOKER_PLAYS_MAX: i16 = 6;
 
+// Chemical X repeats an X-cost Card's effects 2 more times than X
+pub const CHEMICAL_X_REPEATS: usize = 2;
+
 // Event roll-pool stakes: the widest offer any event places in `id_roll_*`
 pub const MAX_SIZE_CARD_PILE_EVENT_ROLL: usize = 2 * MATCH_AND_KEEP_ATTEMPTS as usize; // Match and Keep!
 pub const MAX_SIZE_RELIC_EVENT_ROLL: usize = 2; // N'loth's two owned relics

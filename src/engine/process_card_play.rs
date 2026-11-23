@@ -1,5 +1,6 @@
 use rand::Rng;
 
+use crate::consts::CHEMICAL_X_REPEATS;
 use crate::consts::MAX_SIZE_CARD_PILE_HAND;
 use crate::consts::PANACHE_PLAYS;
 use crate::effect::Amount;
@@ -328,7 +329,7 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
 
             // Chemical X: X+2 on effect reps; energy paid is unchanged
             if has_relic(&state.id_relics, RelicName::ChemicalX) {
-                x + 2
+                x + CHEMICAL_X_REPEATS
             } else {
                 x
             }
