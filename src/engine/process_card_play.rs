@@ -369,6 +369,7 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
     let bonus_wrist_blade = wrist_blade_bonus(&card, cost_effective, &state.id_relics);
 
     // X-cost repeats the effects inside the one play
+    let mut effects_x_cost = Vec::new();
     for effect in card.card_effects_play[..card.card_effects_play_len as usize].iter() {
         if matches!(effect.kind, EffectKind::CardSetupSelect { .. }) && !hand_nonempty_at_start {
             continue;
@@ -426,14 +427,23 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
             _ => {}
         }
 
+        // An X-cost Card's Modifier changes and created Cards wait for the end of the buffer
+        let buf = match (card.card_cost_kind, effect.kind) {
+            (
+                CardCostKind::XCost { .. },
+                EffectKind::ModifierDelta { .. } | EffectKind::CardAddRandom { .. },
+            ) => &mut effects_x_cost,
+            _ => &mut state.effect_buf,
+        };
+
         // `EffectKind::ModifierDelta` scales its stacks into a single application whatever X is (e.g., Malaise)
         if let EffectKind::ModifierDelta { stacks, .. } = &mut effect.kind {
             *stacks *= mul as i16;
-            state.effect_buf.push(effect);
+            buf.push(effect);
             continue;
         }
         for _ in 0..mul {
-            state.effect_buf.push(effect);
+            buf.push(effect);
         }
     }
 
@@ -466,7 +476,7 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
         }
     }
 
-    // A spent DuplicateNextCardPlay stays at 0 stacks until the Card's effects have resolved
+    // A spent DuplicateNextCardPlay stays at 0 stacks until the Card's effects have resolved, `effects_x_cost` excepted
     if duplication && stacks_duplication == 1 {
         state.effect_buf.push(Effect {
             kind: EffectKind::ModifierRemove {
@@ -615,7 +625,7 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
         }
     }
 
-    // Choke (enemy): lands behind the played Card's effects, ahead of Skewer's hits
+    // Choke (enemy): lands behind the played Card's effects, ahead of Skewer's hits and `effects_x_cost`
     for id_monster in id_monsters.iter().flatten().copied() {
         let mods_monster = &state.entities[id_monster].modifiers;
         if has_modifier(mods_monster, ModifierKind::Choke) {
@@ -713,6 +723,8 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
         });
     }
 
+    // An X-cost Card's Modifier changes and created Cards land behind the play's routing and Thousand Cuts' sweep, ahead of what its hooks queue at the back
+    state.effect_buf.extend(effects_x_cost);
     flush_effects_from_buf_to_queue_front(state);
 }
 
