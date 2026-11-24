@@ -1,5 +1,8 @@
 use std::collections::VecDeque;
 
+use crate::consts::TORII_DAMAGE_LANDED;
+use crate::consts::TORII_DAMAGE_MAX;
+use crate::consts::TORII_DAMAGE_MIN;
 use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
@@ -71,11 +74,11 @@ pub fn process_effect_damage_deal(
     let id_character = state.id_character;
     if from_monster
         && id_target == id_character
-        && 2 <= damage_over_block
-        && damage_over_block <= 5
+        && TORII_DAMAGE_MIN <= damage_over_block
+        && damage_over_block <= TORII_DAMAGE_MAX
         && has_relic(&state.id_relics, RelicName::Torii)
     {
-        damage_over_block = 1;
+        damage_over_block = TORII_DAMAGE_LANDED;
     }
 
     // Invincible: its holder loses no more than the cap has left, so every reaction below is sized by that
