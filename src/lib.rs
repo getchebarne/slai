@@ -35,74 +35,6 @@ struct GameEnv {
 
 #[pymethods]
 impl GameEnv {
-    // Game-shape constants — mirror of `crate::consts` for encoders/wrappers
-    #[classattr]
-    const ENERGY_MAX_BASE: u16 = consts::ENERGY_MAX_BASE;
-    #[classattr]
-    const MAX_MOVE_HISTORY: usize = consts::MAX_MOVE_HISTORY;
-    #[classattr]
-    const NUM_ENCOUNTERS_EASY_ACT1: usize = consts::NUM_ENCOUNTERS_EASY_ACT1;
-    #[classattr]
-    const TIME_WARP_PLAYS: i16 = consts::TIME_WARP_PLAYS;
-    #[classattr]
-    const MAX_NORMALITY_PLAYS: u16 = consts::NORMALITY_PLAYS_MAX;
-    #[classattr]
-    const MAX_VELVET_CHOKER_PLAYS: i16 = consts::VELVET_CHOKER_PLAYS_MAX;
-    #[classattr]
-    const NUM_CHEMICAL_X_REPEATS: usize = consts::CHEMICAL_X_REPEATS;
-    #[classattr]
-    const MAX_MONSTERS: usize = consts::MAX_MONSTERS;
-    #[classattr]
-    const MAX_SIZE_CARD_PILE_HAND: usize = consts::MAX_SIZE_CARD_PILE_HAND;
-    #[classattr]
-    const MAX_COMBAT_CARD_REWARD: usize = consts::MAX_COMBAT_CARD_REWARD;
-    #[classattr]
-    const MAX_REWARD_CARD_BUNDLES: usize = consts::MAX_REWARD_CARD_BUNDLES;
-    #[classattr]
-    const MAX_CARD_REWARD_ROLL: usize = consts::MAX_CARD_REWARD_ROLL;
-    #[classattr]
-    const NUM_CAULDRON_POTIONS: usize = consts::CAULDRON_POTION_COUNT;
-    #[classattr]
-    const MAX_SIZE_CARD_PILE_EVENT_ROLL: usize = consts::MAX_SIZE_CARD_PILE_EVENT_ROLL;
-    #[classattr]
-    const MAX_SIZE_RELIC_EVENT_ROLL: usize = consts::MAX_SIZE_RELIC_EVENT_ROLL;
-    #[classattr]
-    const MAX_SIZE_POTION_EVENT_ROLL: usize = consts::MAX_SIZE_POTION_EVENT_ROLL;
-    #[classattr]
-    const MAX_POTION_SLOTS: usize = consts::POTION_SLOTS_MAX;
-    #[classattr]
-    const NUM_BOSS_RELIC_REWARDS: usize = consts::BOSS_RELIC_REWARD_COUNT;
-    #[classattr]
-    const SHOP_SLOTS_CARD_TOTAL: usize = consts::SHOP_SLOTS_CARD_TOTAL;
-    #[classattr]
-    const SHOP_SLOTS_RELIC: usize = consts::SHOP_SLOTS_RELIC;
-    #[classattr]
-    const SHOP_SLOTS_POTION: usize = consts::SHOP_SLOTS_POTION;
-    #[classattr]
-    const NUM_DISCOVER_ROLLS: u8 = consts::DISCOVER_ROLL_COUNT;
-    #[classattr]
-    const BOMB_FUSE_TURNS: u8 = consts::BOMB_FUSE_TURNS;
-    #[classattr]
-    const FACTOR_VULN: f32 = consts::FACTOR_VULN;
-    #[classattr]
-    const HEXAGHOST_DIVIDER_HITS: u8 = consts::HEXAGHOST_DIVIDER_HITS;
-    #[classattr]
-    const HEXAGHOST_DIVIDER_DIVISOR: u16 = consts::HEXAGHOST_DIVIDER_DIVISOR;
-    #[classattr]
-    const MAP_HEIGHT: usize = consts::MAP_HEIGHT;
-    #[classattr]
-    const ACT_FINAL: u8 = consts::ACT_FINAL;
-    #[classattr]
-    const MAP_WIDTH: usize = consts::MAP_WIDTH;
-    #[classattr]
-    const CARD_REWARD_ROLL_OFFSET_BASE: i8 = consts::CARD_REWARD_ROLL_OFFSET_BASE;
-    #[classattr]
-    const MIN_CARD_REWARD_ROLL_OFFSET: i8 = consts::CARD_REWARD_ROLL_OFFSET_MIN;
-    #[classattr]
-    const POTION_DROP_CHANCE_BASE: i32 = consts::POTION_DROP_CHANCE_BASE;
-    #[classattr]
-    const MATCH_AND_KEEP_ATTEMPTS: u8 = consts::MATCH_AND_KEEP_ATTEMPTS;
-
     #[new]
     #[pyo3(signature = (ascension=0, fast_mode=false, neow=false))]
     fn new(ascension: u8, fast_mode: bool, neow: bool) -> Self {
@@ -141,6 +73,8 @@ impl GameEnv {
 
 #[pymodule]
 mod _slai {
+    use super::consts;
+
     #[pymodule_export]
     use super::GameEnv;
     // Action layer
@@ -485,11 +419,142 @@ mod _slai {
     #[pymodule_export]
     use super::ffi::template::get_relic_templates;
 
-    // Constants surface: load-bearing tunables + derived shop ceilings
+    // Constants surface
     #[pymodule_export]
-    const MAX_SHOP_PRICE_CARD: u16 = super::consts::SHOP_PRICE_CARD_MAX;
+    const ENERGY_MAX_BASE: u16 = consts::ENERGY_MAX_BASE;
     #[pymodule_export]
-    const MAX_SHOP_PRICE_RELIC: u16 = super::consts::SHOP_PRICE_RELIC_MAX;
+    const MAX_MOVE_HISTORY: usize = consts::MAX_MOVE_HISTORY;
     #[pymodule_export]
-    const MAX_SHOP_PRICE_POTION: u16 = super::consts::SHOP_PRICE_POTION_MAX;
+    const NUM_ENCOUNTERS_EASY_ACT1: usize = consts::NUM_ENCOUNTERS_EASY_ACT1;
+    #[pymodule_export]
+    const TIME_WARP_PLAYS: i16 = consts::TIME_WARP_PLAYS;
+    #[pymodule_export]
+    const PANACHE_PLAYS: u8 = consts::PANACHE_PLAYS;
+    #[pymodule_export]
+    const MAX_NORMALITY_PLAYS: u16 = consts::NORMALITY_PLAYS_MAX;
+    #[pymodule_export]
+    const MAX_VELVET_CHOKER_PLAYS: i16 = consts::VELVET_CHOKER_PLAYS_MAX;
+    #[pymodule_export]
+    const MAX_POCKETWATCH_PLAYS: i16 = consts::POCKETWATCH_PLAYS_MAX;
+    #[pymodule_export]
+    const ORICHALCUM_BLOCK: u16 = consts::ORICHALCUM_BLOCK;
+    #[pymodule_export]
+    const MIN_TORII_DAMAGE: u16 = consts::TORII_DAMAGE_MIN;
+    #[pymodule_export]
+    const MAX_TORII_DAMAGE: u16 = consts::TORII_DAMAGE_MAX;
+    #[pymodule_export]
+    const TORII_DAMAGE_LANDED: u16 = consts::TORII_DAMAGE_LANDED;
+    #[pymodule_export]
+    const BURN_DAMAGE: u16 = consts::BURN_DAMAGE;
+    #[pymodule_export]
+    const BURN_DAMAGE_UPGRADED: u16 = consts::BURN_DAMAGE_UPGRADED;
+    #[pymodule_export]
+    const DECAY_DAMAGE: u16 = consts::DECAY_DAMAGE;
+    #[pymodule_export]
+    const EXPLOSIVE_DAMAGE: u16 = consts::EXPLOSIVE_DAMAGE;
+    #[pymodule_export]
+    const NUM_CHEMICAL_X_REPEATS: usize = consts::CHEMICAL_X_REPEATS;
+    #[pymodule_export]
+    const MAX_MONSTERS: usize = consts::MAX_MONSTERS;
+    #[pymodule_export]
+    const MAX_SIZE_CARD_PILE_HAND: usize = consts::MAX_SIZE_CARD_PILE_HAND;
+
+    // Capacity: base 3 plus Question Card's +1; the roll base is CARD_REWARD_BASE_COUNT
+    #[pymodule_export]
+    const MAX_COMBAT_CARD_REWARD: usize = 4;
+    const _: () = assert!(consts::CARD_REWARD_BASE_COUNT + 1 <= MAX_COMBAT_CARD_REWARD);
+
+    #[pymodule_export]
+    const MAX_REWARD_CARD_BUNDLES: usize = consts::ORRERY_BUNDLE_COUNT;
+    #[pymodule_export]
+    const MAX_CARD_REWARD_ROLL: usize = consts::MAX_CARD_REWARD_ROLL;
+    #[pymodule_export]
+    const NUM_CAULDRON_POTIONS: usize = consts::CAULDRON_POTION_COUNT;
+
+    // Event roll-pool stakes: the widest offer any event places in `id_roll_*`
+    #[pymodule_export]
+    const MAX_SIZE_CARD_PILE_EVENT_ROLL: usize = 2 * consts::MATCH_AND_KEEP_ATTEMPTS as usize;
+    #[pymodule_export]
+    const MAX_SIZE_RELIC_EVENT_ROLL: usize = 2; // N'loth's two owned relics
+    #[pymodule_export]
+    const MAX_SIZE_POTION_EVENT_ROLL: usize = 1; // We Meet Again
+
+    #[pymodule_export]
+    const MAX_POTION_SLOTS: usize = consts::POTION_SLOTS_MAX;
+    #[pymodule_export]
+    const NUM_BOSS_RELIC_REWARDS: usize = consts::BOSS_RELIC_REWARD_COUNT;
+    #[pymodule_export]
+    const SHOP_SLOTS_CARD_TOTAL: usize = consts::SHOP_SLOTS_CARD_TOTAL;
+    #[pymodule_export]
+    const SHOP_SLOTS_RELIC: usize = consts::SHOP_SLOTS_RELIC;
+    #[pymodule_export]
+    const SHOP_SLOTS_POTION: usize = consts::SHOP_SLOTS_POTION;
+    #[pymodule_export]
+    const NUM_DISCOVER_ROLLS: u8 = consts::DISCOVER_ROLL_COUNT;
+    #[pymodule_export]
+    const BOMB_FUSE_TURNS: u8 = consts::BOMB_FUSE_TURNS;
+    #[pymodule_export]
+    const FACTOR_VULN: f32 = consts::FACTOR_VULN;
+    #[pymodule_export]
+    const HEXAGHOST_DIVIDER_HITS: u8 = consts::HEXAGHOST_DIVIDER_HITS;
+    #[pymodule_export]
+    const HEXAGHOST_DIVIDER_DIVISOR: u16 = consts::HEXAGHOST_DIVIDER_DIVISOR;
+    #[pymodule_export]
+    const MAP_HEIGHT: usize = consts::MAP_HEIGHT;
+
+    // The last act a run can reach; without all three keys the run ends at Act 3's last boss
+    #[pymodule_export]
+    const ACT_FINAL: u8 = 4;
+
+    // The top Ascension
+    #[pymodule_export]
+    const MAX_ASCENSION: u8 = 20;
+
+    #[pymodule_export]
+    const MAP_WIDTH: usize = consts::MAP_WIDTH;
+    #[pymodule_export]
+    const MAP_ROW_TREASURE: usize = consts::MAP_ROW_TREASURE;
+    #[pymodule_export]
+    const CARD_REWARD_ROLL_OFFSET_BASE: i8 = consts::CARD_REWARD_ROLL_OFFSET_BASE;
+    #[pymodule_export]
+    const MIN_CARD_REWARD_ROLL_OFFSET: i8 = consts::CARD_REWARD_ROLL_OFFSET_MIN;
+    #[pymodule_export]
+    const POTION_DROP_CHANCE_BASE: i32 = consts::POTION_DROP_CHANCE_BASE;
+    #[pymodule_export]
+    const MATCH_AND_KEEP_ATTEMPTS: u8 = consts::MATCH_AND_KEEP_ATTEMPTS;
+    #[pymodule_export]
+    const NUM_MATCH_AND_KEEP_CARDS: usize =
+        consts::MATCH_AND_KEEP_NAME_COUNT * consts::MATCH_AND_KEEP_COPIES;
+
+    // Derived stock-price ceilings, post-A16 markup, pre-discount (discounts only lower)
+    #[pymodule_export]
+    const MAX_SHOP_PRICE_CARD: u16 = consts::bump_price_a16(price_sup(
+        consts::SHOP_PRICE_CARD_RARE * consts::SHOP_PRICE_COLORLESS_NUMER
+            / consts::SHOP_PRICE_COLORLESS_DENOM,
+        consts::SHOP_PRICE_CARD_VARIANCE_MAX,
+    ));
+
+    // Circlet's Special price stays out: it reaches a shelf only once the Rare pool is spent
+    #[pymodule_export]
+    const MAX_SHOP_PRICE_RELIC: u16 = consts::bump_price_a16(price_sup(
+        consts::SHOP_PRICE_RELIC_RARE,
+        consts::SHOP_PRICE_RELIC_POTION_VARIANCE_MAX,
+    ));
+    #[pymodule_export]
+    const MAX_SHOP_PRICE_POTION: u16 = consts::bump_price_a16(price_sup(
+        consts::SHOP_PRICE_POTION_RARE,
+        consts::SHOP_PRICE_RELIC_POTION_VARIANCE_MAX,
+    ));
+
+    // Largest price the half-open variance roll in engine/shop.rs can produce
+    const fn price_sup(base: u16, variance_max: f32) -> u16 {
+        let max = base as f32 * variance_max;
+        let truncated = max as u16;
+
+        if truncated as f32 == max {
+            truncated - 1
+        } else {
+            truncated
+        }
+    }
 }

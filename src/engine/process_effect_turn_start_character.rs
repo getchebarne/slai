@@ -1,6 +1,7 @@
 use crate::consts::CARDS_DRAWN_PER_TURN;
 use crate::consts::ENERGY_CAP;
 use crate::consts::PANACHE_PLAYS;
+use crate::consts::POCKETWATCH_PLAYS_MAX;
 use crate::effect::CandidatePool;
 use crate::effect::DiscardSource;
 use crate::effect::Effect;
@@ -117,7 +118,7 @@ pub fn process_effect_turn_start_character(state: &mut GameState) {
             .is_some_and(|id| state.entities[id].relic_counter == 0);
     let pocketwatch_draw = !first_turn
         && state.id_relics[RelicName::Pocketwatch as usize]
-            .is_some_and(|id| state.entities[id].relic_counter <= 3);
+            .is_some_and(|id| state.entities[id].relic_counter <= POCKETWATCH_PLAYS_MAX);
     *this_turn_attacks = 0;
     *this_turn_cards_played = 0;
     *this_turn_discards = 0;
