@@ -422,8 +422,15 @@ mod _slai {
     // Constants surface
     #[pymodule_export]
     const ENERGY_MAX_BASE: u16 = consts::ENERGY_MAX_BASE;
+
+    // Neow's boss swap and one boss Relic per boss chest each give at most +1 energy
+    #[pymodule_export]
+    const MAX_ENERGY_MAX: u16 = consts::ENERGY_MAX_BASE + 1 + consts::ACT_LAST_BOSS_CHEST as u16;
+
     #[pymodule_export]
     const MAX_MOVE_HISTORY: usize = consts::MAX_MOVE_HISTORY;
+    #[pymodule_export]
+    const MAX_MONSTER_MOVES: usize = consts::MAX_MONSTER_MOVES;
     #[pymodule_export]
     const NUM_ENCOUNTERS_EASY_ACT1: usize = consts::NUM_ENCOUNTERS_EASY_ACT1;
     #[pymodule_export]
