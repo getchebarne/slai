@@ -74,6 +74,7 @@ pub mod process_effect_key_obtain;
 pub mod process_effect_key_sapphire_link;
 pub mod process_effect_knowing_skull_cost_bump;
 pub mod process_effect_lagavulin_wake;
+pub mod process_effect_library_cards_roll;
 pub mod process_effect_lifesteal_heal;
 pub mod process_effect_match_flip_seen;
 pub mod process_effect_match_flip_unseen;
@@ -217,6 +218,7 @@ use self::process_effect_key_obtain::process_effect_key_obtain;
 use self::process_effect_key_sapphire_link::process_effect_key_sapphire_link;
 use self::process_effect_knowing_skull_cost_bump::process_effect_knowing_skull_cost_bump;
 use self::process_effect_lagavulin_wake::process_effect_lagavulin_wake;
+use self::process_effect_library_cards_roll::process_effect_library_cards_roll;
 use self::process_effect_lifesteal_heal::process_effect_lifesteal_heal;
 use self::process_effect_match_flip_seen::process_effect_match_flip_seen;
 use self::process_effect_match_flip_unseen::process_effect_match_flip_unseen;
@@ -1021,6 +1023,7 @@ fn dispatch_by_kind(
             )
         }
         EffectKind::CardPileEventRollClear => process_effect_card_pile_event_roll_clear(state),
+        EffectKind::LibraryCardsRoll => process_effect_library_cards_roll(state),
         EffectKind::NeowCardsRoll {
             colorless,
             rare_only,

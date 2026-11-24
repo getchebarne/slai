@@ -272,6 +272,7 @@ EffectMonsterSplit = _rs.EffectMonsterSplit
 EffectMonsterSummon = _rs.EffectMonsterSummon
 EffectCardStasisSteal = _rs.EffectCardStasisSteal
 EffectRewardRollCards = _rs.EffectRewardRollCards
+EffectLibraryCardsRoll = _rs.EffectLibraryCardsRoll
 EffectNeowCardsRoll = _rs.EffectNeowCardsRoll
 EffectRewardRollRelic = _rs.EffectRewardRollRelic
 EffectDamageDeal = _rs.EffectDamageDeal
@@ -364,6 +365,7 @@ Effect: TypeAlias = (
     | EffectMonsterSummon
     | EffectCardStasisSteal
     | EffectRewardRollCards
+    | EffectLibraryCardsRoll
     | EffectNeowCardsRoll
     | EffectRewardRollRelic
     | EffectDamageDeal
@@ -457,7 +459,6 @@ MAX_MONSTERS = _rs.MAX_MONSTERS
 MAX_SIZE_CARD_PILE_HAND = _rs.MAX_SIZE_CARD_PILE_HAND
 MAX_COMBAT_CARD_REWARD = _rs.MAX_COMBAT_CARD_REWARD
 MAX_REWARD_CARD_BUNDLES = _rs.MAX_REWARD_CARD_BUNDLES
-MAX_CARD_REWARD_ROLL = _rs.MAX_CARD_REWARD_ROLL
 NUM_CAULDRON_POTIONS = _rs.NUM_CAULDRON_POTIONS
 MAX_SIZE_CARD_PILE_EVENT_ROLL = _rs.MAX_SIZE_CARD_PILE_EVENT_ROLL
 MAX_SIZE_RELIC_EVENT_ROLL = _rs.MAX_SIZE_RELIC_EVENT_ROLL
@@ -632,6 +633,7 @@ __all__ = [
     "EffectMonsterSummon",
     "EffectCardStasisSteal",
     "EffectRewardRollCards",
+    "EffectLibraryCardsRoll",
     "EffectNeowCardsRoll",
     "EffectRewardRollRelic",
     "EffectDamageDeal",
@@ -698,7 +700,6 @@ __all__ = [
     "MAX_SIZE_CARD_PILE_HAND",
     "MAX_COMBAT_CARD_REWARD",
     "MAX_REWARD_CARD_BUNDLES",
-    "MAX_CARD_REWARD_ROLL",
     "NUM_CAULDRON_POTIONS",
     "MAX_SIZE_CARD_PILE_EVENT_ROLL",
     "MAX_SIZE_RELIC_EVENT_ROLL",

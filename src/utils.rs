@@ -31,7 +31,6 @@ use crate::consts::FACTOR_WEAK;
 use crate::consts::FACTOR_WEAK_PAPER_KRANE;
 use crate::consts::GOLD_BOSS_MAX;
 use crate::consts::GOLD_BOSS_MIN;
-use crate::consts::MAX_CARD_REWARD_ROLL;
 use crate::consts::MAX_MONSTERS;
 use crate::consts::MAX_SIZE_CARD_PILE_HAND;
 use crate::consts::NORMALITY_PLAYS_MAX;
@@ -823,14 +822,27 @@ pub const SHOP_STOCK_POLICY: RollPolicy = RollPolicy {
     cuts: Some((SHOP_CARD_CUT_RARE, SHOP_CARD_CUT_UNCOMMON)), // Own bands
     alternation: false,
     read_pity: true,
-    write_pity: false,
     colorless: false,
-    dupe_rerolls_rarity: true, // make_card_colored's loop re-rolls rarity and Card together
     upgrade_roll: false,
     staged: true, // Kept, on offer as stock
 };
 
-// The one rarity roll, shared by Card rewards and Shop stock
+const CUTS_MONSTER: Option<(i32, i32)> = Some((
+    CARD_REWARD_ROLL_CHANCE_RARE,
+    CARD_REWARD_ROLL_CHANCE_UNCOMMON,
+));
+
+// The Library's grid is not a reward either; the pity shifts its rarity roll but never moves
+pub const LIBRARY_ROLL_POLICY: RollPolicy = RollPolicy {
+    cuts: CUTS_MONSTER,
+    alternation: true,
+    read_pity: true,
+    colorless: false,
+    upgrade_roll: false,
+    staged: true, // Kept, on offer in the event's roll
+};
+
+// The one rarity roll, shared by Card rewards, Shop stock and the Library's grid
 pub fn roll_card_rarity(
     rng: &mut impl Rng,
     offset: i8,
@@ -864,27 +876,19 @@ pub struct RollPolicy {
     pub cuts: Option<(i32, i32)>,
     pub alternation: bool,
     pub read_pity: bool, // The pity offset shifts the rarity roll
-    pub write_pity: bool,
     pub colorless: bool, // The Cards come from the colorless pools, which hold no Common
-    pub dupe_rerolls_rarity: bool,
     pub upgrade_roll: bool,
     pub staged: bool, // The rolled Cards are kept; a discarded roll only moves the pity offset
 }
 
-// The one place a consumer's roll rules live
+// The one place a reward trigger's roll rules live
 pub const fn roll_policy(trigger: RewardRollTrigger) -> RollPolicy {
-    const CUTS_MONSTER: Option<(i32, i32)> = Some((
-        CARD_REWARD_ROLL_CHANCE_RARE,
-        CARD_REWARD_ROLL_CHANCE_UNCOMMON,
-    ));
     match trigger {
         RewardRollTrigger::CombatMonster | RewardRollTrigger::EventFight => RollPolicy {
             cuts: CUTS_MONSTER,
             alternation: true,
             read_pity: true,
-            write_pity: true,
             colorless: false,
-            dupe_rerolls_rarity: false,
             upgrade_roll: true,
             staged: true,
         },
@@ -895,9 +899,7 @@ pub const fn roll_policy(trigger: RewardRollTrigger) -> RollPolicy {
             )),
             alternation: true,
             read_pity: true,
-            write_pity: true,
             colorless: false,
-            dupe_rerolls_rarity: false,
             upgrade_roll: true,
             staged: true,
         },
@@ -905,9 +907,7 @@ pub const fn roll_policy(trigger: RewardRollTrigger) -> RollPolicy {
             cuts: None,
             alternation: false,
             read_pity: true,
-            write_pity: true,
             colorless: false,
-            dupe_rerolls_rarity: false,
             upgrade_roll: true,
             staged: true,
         },
@@ -916,9 +916,7 @@ pub const fn roll_policy(trigger: RewardRollTrigger) -> RollPolicy {
             cuts: CUTS_MONSTER,
             alternation: false,
             read_pity: true,
-            write_pity: true,
             colorless: false,
-            dupe_rerolls_rarity: false,
             upgrade_roll: true,
             staged: true,
         },
@@ -927,20 +925,8 @@ pub const fn roll_policy(trigger: RewardRollTrigger) -> RollPolicy {
             cuts: Some((SHOP_CARD_CUT_RARE, SHOP_CARD_CUT_UNCOMMON)),
             alternation: false,
             read_pity: true,
-            write_pity: true,
             colorless: false,
-            dupe_rerolls_rarity: false,
             upgrade_roll: true,
-            staged: true,
-        },
-        RewardRollTrigger::Library => RollPolicy {
-            cuts: CUTS_MONSTER,
-            alternation: true,
-            read_pity: true,
-            write_pity: false,
-            colorless: false,
-            dupe_rerolls_rarity: true,
-            upgrade_roll: false,
             staged: true,
         },
         // The reward screens of Neow's Potions and Calling Bell roll a Card reward and discard it
@@ -948,9 +934,7 @@ pub const fn roll_policy(trigger: RewardRollTrigger) -> RollPolicy {
             cuts: CUTS_MONSTER,
             alternation: true,
             read_pity: true,
-            write_pity: true,
             colorless: false,
-            dupe_rerolls_rarity: false,
             upgrade_roll: true,
             staged: false,
         },
@@ -959,9 +943,7 @@ pub const fn roll_policy(trigger: RewardRollTrigger) -> RollPolicy {
             cuts: Some((SHOP_CARD_CUT_RARE, SHOP_CARD_CUT_UNCOMMON)),
             alternation: false,
             read_pity: true,
-            write_pity: true,
             colorless: false,
-            dupe_rerolls_rarity: false,
             upgrade_roll: true,
             staged: false,
         },
@@ -970,9 +952,7 @@ pub const fn roll_policy(trigger: RewardRollTrigger) -> RollPolicy {
             cuts: Some(((COLORLESS_RARE_CHANCE * 100.0) as i32, 100)),
             alternation: false,
             read_pity: false,
-            write_pity: true,
             colorless: true,
-            dupe_rerolls_rarity: false,
             upgrade_roll: false,
             staged: true,
         },
@@ -1021,7 +1001,6 @@ pub const fn potion_roll_policy(trigger: RewardRollTrigger) -> PotionRollPolicy 
         },
         RewardRollTrigger::DreamCatcher
         | RewardRollTrigger::Orrery
-        | RewardRollTrigger::Library
         | RewardRollTrigger::CallingBell
         | RewardRollTrigger::SensoryStone => panic!("no Potion roll for this trigger"),
     }
@@ -1054,8 +1033,7 @@ pub fn roll_card_rewards(
 ) {
     let policy = roll_policy(trigger);
     let mut character_reward_roll_offset = entities[id_character].character_reward_roll_offset;
-    let mut card_names_rolled: [CardName; MAX_CARD_REWARD_ROLL] =
-        [CardName::Strike; MAX_CARD_REWARD_ROLL];
+    let mut card_names_rolled: Vec<CardName> = Vec::with_capacity(count);
 
     out.clear();
     for _ in 0..count {
@@ -1065,32 +1043,24 @@ pub fn roll_card_rewards(
         } else {
             roll_card_rarity(rng, character_reward_roll_offset, &policy, id_relics)
         };
-        let mut pool = card_pool(rarity, policy.colorless);
+        let pool = card_pool(rarity, policy.colorless);
 
         // Pity: reset offset on Rare hit; decrement on Common (toward more rares)
-        if policy.write_pity {
-            match rarity {
-                CardRarity::Rare => character_reward_roll_offset = CARD_REWARD_ROLL_OFFSET_BASE,
-                CardRarity::Common => {
-                    character_reward_roll_offset =
-                        (character_reward_roll_offset - 1).max(CARD_REWARD_ROLL_OFFSET_MIN);
-                }
-                _ => {}
+        match rarity {
+            CardRarity::Rare => character_reward_roll_offset = CARD_REWARD_ROLL_OFFSET_BASE,
+            CardRarity::Common => {
+                character_reward_roll_offset =
+                    (character_reward_roll_offset - 1).max(CARD_REWARD_ROLL_OFFSET_MIN);
             }
+            _ => {}
         }
 
         // Roll Cards. Loop until it's unique
         let mut name = pool[rng.random_range(0..pool.len())];
-        while card_names_rolled[..out.len()].contains(&name) {
-            if policy.dupe_rerolls_rarity {
-                pool = card_pool(
-                    roll_card_rarity(rng, character_reward_roll_offset, &policy, id_relics),
-                    policy.colorless,
-                );
-            }
+        while card_names_rolled.contains(&name) {
             name = pool[rng.random_range(0..pool.len())];
         }
-        card_names_rolled[out.len()] = name;
+        card_names_rolled.push(name);
 
         // Push the rolled Card
         let card = get_card(

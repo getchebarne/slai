@@ -202,6 +202,7 @@ pub enum EffectKind {
     KeySapphireLink,
     KnowingSkullCostBump,
     LagavulinWake,
+    LibraryCardsRoll, // The Library's offer: 20 Cards into the event's roll, for its selection
     MatchFlipSeen,
     MatchFlipUnseen,
     MausoleumOpen,
@@ -386,7 +387,6 @@ pub enum RewardRollTrigger {
     EventFight,
     EventFightUnpaid,
     Lab,
-    Library,
     NeowPotions,
     Orrery,
     SensoryStone,

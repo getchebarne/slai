@@ -310,7 +310,6 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
             gold: None,
             gold_stolen: None,
             relics_exclusive: false,
-            cards_forced: false,
             closes_on_selection: false,
         },
         event: Event {

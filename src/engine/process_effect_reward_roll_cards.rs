@@ -1,4 +1,3 @@
-use crate::consts::LIBRARY_CARD_COUNT;
 use crate::effect::RewardRollTrigger;
 use crate::game::GameState;
 use crate::types::reward_ensure;
@@ -6,17 +5,13 @@ use crate::utils::card_reward_count;
 use crate::utils::roll_card_rewards;
 use crate::utils::roll_policy;
 
-// Roll `bundles` Card bundles; the trigger sets the rules, the size, whether they are kept and whether the selection is forced or closes the Reward
+// Roll `bundles` Card bundles; the trigger sets the rules, whether they are kept and whether the selection closes the Reward
 pub fn process_effect_reward_roll_cards(
     state: &mut GameState,
     bundles: u8,
     trigger: RewardRollTrigger,
 ) {
-    // Busted Crown and Question Card resize every offer but the Library's
-    let cards_per_bundle = match trigger {
-        RewardRollTrigger::Library => LIBRARY_CARD_COUNT,
-        _ => card_reward_count(&state.id_relics),
-    };
+    let cards_per_bundle = card_reward_count(&state.id_relics);
     let mut id_card_bundles: Vec<Vec<usize>> = Vec::with_capacity(bundles as usize);
     for _ in 0..bundles {
         let mut id_cards: Vec<usize> = Vec::with_capacity(cards_per_bundle);
@@ -41,16 +36,8 @@ pub fn process_effect_reward_roll_cards(
     reward_ensure(&mut state.reward);
     state.reward.id_cards.extend(id_card_bundles);
 
-    // The Library's offer can't be skipped
-    if trigger == RewardRollTrigger::Library {
-        state.reward.cards_forced = true;
-    }
-
-    // Dream Catcher's and the Library's offers are selection screens of their own
-    if matches!(
-        trigger,
-        RewardRollTrigger::DreamCatcher | RewardRollTrigger::Library
-    ) {
+    // Dream Catcher's offer is a selection screen of its own
+    if trigger == RewardRollTrigger::DreamCatcher {
         state.reward.closes_on_selection = true;
     }
 }

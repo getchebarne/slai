@@ -52,7 +52,7 @@ use crate::effect::RewardRollTrigger;
 
 mirror_enum!(PyRewardRollTrigger from RewardRollTrigger, "RewardRollTrigger", {
     CallingBell, Cauldron, CombatBoss, CombatElite, CombatMonster, DreamCatcher, EventFight,
-    EventFightUnpaid, Lab, Library, NeowPotions, Orrery, SensoryStone, SmokeBomb, TinyHouse,
+    EventFightUnpaid, Lab, NeowPotions, Orrery, SensoryStone, SmokeBomb, TinyHouse,
     WomanInBlue,
 });
 
@@ -209,6 +209,7 @@ flat_variants!(PyEffect as "Effect" {
     MonsterSummon => PyEffectMonsterSummon as "EffectMonsterSummon" { pool: Vec<PyMonsterName>, target: Option<PyTarget> },
     CardStasisSteal => PyEffectCardStasisSteal as "EffectCardStasisSteal" { target: Option<PyTarget> },
     RewardRollCards => PyEffectRewardRollCards as "EffectRewardRollCards" { bundles: u8, trigger: PyRewardRollTrigger, target: Option<PyTarget> },
+    LibraryCardsRoll => PyEffectLibraryCardsRoll as "EffectLibraryCardsRoll" { target: Option<PyTarget> },
     NeowCardsRoll => PyEffectNeowCardsRoll as "EffectNeowCardsRoll" { colorless: bool, rare_only: bool, target: Option<PyTarget> },
     RewardRollRelic => PyEffectRewardRollRelic as "EffectRewardRollRelic" { pool: Vec<PyRelicName>, target: Option<PyTarget> },
     DamageDeal => PyEffectDamageDeal as "EffectDamageDeal" { amount: u16, lifesteal: bool, target: Option<PyTarget> },
@@ -758,6 +759,9 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
                 trigger: trigger.into(),
                 target,
             })
+        }
+        EffectKind::LibraryCardsRoll => {
+            PyEffect::LibraryCardsRoll(PyEffectLibraryCardsRoll { target })
         }
         EffectKind::NeowCardsRoll {
             colorless,
