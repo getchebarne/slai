@@ -120,8 +120,7 @@ pub struct Reward {
     pub gold: Option<u16>,
     pub gold_stolen: Option<u16>, // The thieves' purse, claimed apart from the room's gold
     pub relics_exclusive: bool,   // The boss chest's select-one offer
-    pub cards_forced: bool,       // The Library's grid: one selection, no skip and no Singing Bowl
-    pub closes_on_selection: bool, // A take or Singing Bowl closes it (boss chest, Dream Catcher, the Library)
+    pub closes_on_selection: bool, // A take or Singing Bowl closes it (boss chest, Dream Catcher)
 }
 
 pub fn reward_reset(reward: &mut Reward) {
@@ -132,7 +131,6 @@ pub fn reward_reset(reward: &mut Reward) {
     reward.gold = None;
     reward.gold_stolen = None;
     reward.relics_exclusive = false;
-    reward.cards_forced = false;
     reward.closes_on_selection = false;
 }
 

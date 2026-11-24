@@ -729,7 +729,7 @@ fn fill_legal_actions_reward(state: &mut GameState) {
         for &id_card in bundle {
             state.legal_actions.push(Action::RewardTakeCard { id_card });
         }
-        if singing_bowl && !bundle.is_empty() && !state.reward.cards_forced {
+        if singing_bowl && !bundle.is_empty() {
             state
                 .legal_actions
                 .push(Action::RewardSingingBowl { id_card: bundle[0] });
@@ -763,10 +763,7 @@ fn fill_legal_actions_reward(state: &mut GameState) {
         state.legal_actions.push(Action::RewardTakeGoldStolen);
     }
 
-    // The Library's grid has no cancel button
-    if !state.reward.cards_forced {
-        state.legal_actions.push(Action::RoomExit);
-    }
+    state.legal_actions.push(Action::RoomExit);
     push_potion_actions(state);
 }
 

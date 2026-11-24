@@ -19,7 +19,6 @@ __all__ = [
     "MAP_WIDTH",
     "MATCH_AND_KEEP_ATTEMPTS",
     "MAX_ASCENSION",
-    "MAX_CARD_REWARD_ROLL",
     "MAX_COMBAT_CARD_REWARD",
     "MAX_ENERGY_MAX",
     "MAX_MONSTERS",
@@ -130,6 +129,7 @@ __all__ = [
     "EffectHexaghostBurnIncrease",
     "EffectJoustBet",
     "EffectKnowingSkullCostBump",
+    "EffectLibraryCardsRoll",
     "EffectLifestealHeal",
     "EffectMatchFlipSeen",
     "EffectMatchFlipUnseen",
@@ -241,7 +241,6 @@ MAP_ROW_TREASURE: Final[int]
 MAP_WIDTH: Final[int]
 MATCH_AND_KEEP_ATTEMPTS: Final[int]
 MAX_ASCENSION: Final = 20
-MAX_CARD_REWARD_ROLL: Final[int]
 MAX_COMBAT_CARD_REWARD: Final = 4
 MAX_ENERGY_MAX: Final[int]
 MAX_MONSTERS: Final[int]
@@ -1400,6 +1399,14 @@ class EffectJoustBet:
 
 @final
 class EffectKnowingSkullCostBump:
+    def __eq__(self, value: object, /) -> bool: ...
+    def __hash__(self, /) -> int: ...
+    def __ne__(self, value: object, /) -> bool: ...
+    @property
+    def target(self, /) -> Target | None: ...
+
+@final
+class EffectLibraryCardsRoll:
     def __eq__(self, value: object, /) -> bool: ...
     def __hash__(self, /) -> int: ...
     def __ne__(self, value: object, /) -> bool: ...
@@ -2828,8 +2835,6 @@ class Reward:
     def __hash__(self, /) -> int: ...
     def __ne__(self, value: object, /) -> bool: ...
     @property
-    def cards_forced(self, /) -> bool: ...
-    @property
     def gold(self, /) -> int | None: ...
     @property
     def gold_stolen(self, /) -> int | None: ...
@@ -2855,7 +2860,6 @@ class RewardRollTrigger:
     EventFight: Final[RewardRollTrigger]
     EventFightUnpaid: Final[RewardRollTrigger]
     Lab: Final[RewardRollTrigger]
-    Library: Final[RewardRollTrigger]
     NeowPotions: Final[RewardRollTrigger]
     Orrery: Final[RewardRollTrigger]
     SensoryStone: Final[RewardRollTrigger]

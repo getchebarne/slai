@@ -32,10 +32,6 @@ pub const GOLD_BOSS_MAX: u16 = 105;
 pub const BOSS_RELIC_REWARD_COUNT: usize = 3;
 pub const LIBRARY_CARD_COUNT: usize = 20;
 
-// Largest single Card-reward roll (The Library's 20)
-pub const MAX_CARD_REWARD_ROLL: usize = 20;
-const _: () = assert!(LIBRARY_CARD_COUNT <= MAX_CARD_REWARD_ROLL);
-
 // Combat
 pub const MAX_SIZE_CARD_PILE_HAND: usize = 10;
 pub const MAX_SIZE_DECK: usize = 99;

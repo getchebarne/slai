@@ -125,6 +125,13 @@ pub const EFFECT_EVENT_CONSUME: Effect = Effect {
     target: Target::Direct(None),
 };
 
+// The offer's Cards leave the event's roll once the selection is made or skipped
+pub const EFFECT_CARD_PILE_EVENT_ROLL_CLEAR: Effect = Effect {
+    kind: EffectKind::CardPileEventRollClear,
+    id_source: None,
+    target: Target::Direct(None),
+};
+
 pub const EFFECT_EVENT_CLOSE: Effect = Effect {
     kind: EffectKind::EventClose,
     id_source: None,

@@ -90,9 +90,6 @@ pub struct PyReward {
 
     // A Boss chest's Relic picks are mutually exclusive
     pub relics_exclusive: bool,
-
-    // Wether the Cards can be skipped (The Library)
-    pub cards_forced: bool,
 }
 
 #[pyclass(eq, hash, frozen, get_all, name = "Shop", module = "slai._slai")]
@@ -222,8 +219,6 @@ pub(crate) fn snapshot_reward(state: &GameState) -> PyReward {
         gold_stolen: reward.gold_stolen,
 
         relics_exclusive: reward.relics_exclusive,
-
-        cards_forced: reward.cards_forced,
     }
 }
 

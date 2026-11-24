@@ -284,6 +284,8 @@ mod _slai {
     #[pymodule_export]
     use super::ffi::PyEffectKnowingSkullCostBump;
     #[pymodule_export]
+    use super::ffi::PyEffectLibraryCardsRoll;
+    #[pymodule_export]
     use super::ffi::PyEffectLifestealHeal;
     #[pymodule_export]
     use super::ffi::PyEffectMatchFlipSeen;
@@ -474,13 +476,13 @@ mod _slai {
     #[pymodule_export]
     const MAX_REWARD_CARD_BUNDLES: usize = consts::ORRERY_BUNDLE_COUNT;
     #[pymodule_export]
-    const MAX_CARD_REWARD_ROLL: usize = consts::MAX_CARD_REWARD_ROLL;
-    #[pymodule_export]
     const NUM_CAULDRON_POTIONS: usize = consts::CAULDRON_POTION_COUNT;
 
     // Event roll-pool stakes: the widest offer any event places in `id_roll_*`
     #[pymodule_export]
-    const MAX_SIZE_CARD_PILE_EVENT_ROLL: usize = 2 * consts::MATCH_AND_KEEP_ATTEMPTS as usize;
+    const MAX_SIZE_CARD_PILE_EVENT_ROLL: usize = consts::LIBRARY_CARD_COUNT; // The Library
+    const _: () =
+        assert!(2 * consts::MATCH_AND_KEEP_ATTEMPTS as usize <= MAX_SIZE_CARD_PILE_EVENT_ROLL);
     #[pymodule_export]
     const MAX_SIZE_RELIC_EVENT_ROLL: usize = 2; // N'loth's two owned relics
     #[pymodule_export]

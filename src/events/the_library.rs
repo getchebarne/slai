@@ -1,11 +1,13 @@
 use crate::effect::Amount;
+use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::ReadAt;
-use crate::effect::RewardRollTrigger;
 use crate::effect::Rounding;
+use crate::effect::SelectionKind;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
+use crate::events::EFFECT_CARD_PILE_EVENT_ROLL_CLEAR;
 use crate::events::EFFECT_EVENT_CONSUME;
 use crate::events::EventOptionTemplate;
 use crate::events::bake_options;
@@ -13,17 +15,24 @@ use crate::events::make_event_option_template;
 use crate::game::GameState;
 use crate::types::DeltaSign;
 
-// Read: 20 unique rolled Cards staged on the Reward context, keep one
+// Read: 20 unique rolled Cards wait in the event's roll; the selection keeps one, with no skip
 const OPTION_READ: &[Effect] = &[
     EFFECT_EVENT_CONSUME,
     Effect {
-        kind: EffectKind::RewardRollCards {
-            bundles: 1,
-            trigger: RewardRollTrigger::Library,
-        },
+        kind: EffectKind::LibraryCardsRoll,
         id_source: None,
         target: Target::Direct(None),
     },
+    Effect {
+        kind: EffectKind::CardAdopt { landing: false },
+        id_source: None,
+        target: Target::Resolve {
+            candidate_pool: CandidatePool::CardPileEventRoll,
+            filters: &[],
+            selection_kind: SelectionKind::Input { count: 1 },
+        },
+    },
+    EFFECT_CARD_PILE_EVENT_ROLL_CLEAR,
 ];
 
 // Sleep: heal a third (A15+: a fifth) of max HP

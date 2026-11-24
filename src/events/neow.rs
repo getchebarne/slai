@@ -17,6 +17,7 @@ use crate::effect::RewardRollTrigger;
 use crate::effect::SelectionKind;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
+use crate::events::EFFECT_CARD_PILE_EVENT_ROLL_CLEAR;
 use crate::events::EFFECT_DECK_UPGRADE_SELECT_1;
 use crate::events::EFFECT_EVENT_CLOSE;
 use crate::events::EFFECT_EVENT_CONSUME;
@@ -105,13 +106,6 @@ const EFFECT_CARD_ADOPT_EVENT_ROLL: Effect = Effect {
         filters: &[],
         selection_kind: SelectionKind::InputUpTo { count: 1 },
     },
-};
-
-// The offer's Cards leave the event's roll once the selection is made or skipped
-const EFFECT_CARD_PILE_EVENT_ROLL_CLEAR: Effect = Effect {
-    kind: EffectKind::CardPileEventRollClear,
-    id_source: None,
-    target: Target::Direct(None),
 };
 
 const fn effect_relic_grant_random(tier: RelicTier) -> Effect {
