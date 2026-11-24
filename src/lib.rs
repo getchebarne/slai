@@ -448,6 +448,12 @@ mod _slai {
     #[pymodule_export]
     const ORICHALCUM_BLOCK: u16 = consts::ORICHALCUM_BLOCK;
     #[pymodule_export]
+    const MIN_BOOT_DAMAGE: u16 = consts::BOOT_DAMAGE_MIN;
+    #[pymodule_export]
+    const MAX_BOOT_DAMAGE: u16 = consts::BOOT_DAMAGE_MAX;
+    #[pymodule_export]
+    const BOOT_DAMAGE_LANDED: u16 = consts::BOOT_DAMAGE_LANDED;
+    #[pymodule_export]
     const MIN_TORII_DAMAGE: u16 = consts::TORII_DAMAGE_MIN;
     #[pymodule_export]
     const MAX_TORII_DAMAGE: u16 = consts::TORII_DAMAGE_MAX;
