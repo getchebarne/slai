@@ -3,7 +3,7 @@ use crate::effect::EffectKind;
 use crate::effect::ScaledAt;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::TARGET_SOURCE;
-use crate::entity::Intent;
+use crate::entity::IntentKind;
 use crate::entity::Move;
 use crate::modifier::ModifierKind;
 use crate::monsters::MonsterTemplate;
@@ -40,10 +40,7 @@ const fn move_harden(damage: u16) -> Move {
                 target: TARGET_CHARACTER,
             },
         ],
-        Intent::AttackBlock {
-            damage,
-            instances: 1,
-        },
+        IntentKind::AttackBlock,
     )
 }
 

@@ -7,7 +7,7 @@ use crate::effect::SelectionKind;
 use crate::effect::Summon;
 use crate::effect::TARGET_MONSTERS_ALL;
 use crate::effect::Target;
-use crate::entity::Intent;
+use crate::entity::IntentKind;
 use crate::entity::Move;
 use crate::modifier::ModifierKind;
 use crate::monsters::GREMLIN_POOL;
@@ -41,7 +41,7 @@ pub const EFFECT_GREMLIN_SUMMON: Effect = Effect {
 static MOVE_RALLY: Move = make_move(
     "Rally!",
     &[EFFECT_GREMLIN_SUMMON, EFFECT_GREMLIN_SUMMON],
-    Intent::Unknown,
+    IntentKind::Unknown,
 );
 
 // Encourage: Strength to everyone, block to the others
@@ -67,7 +67,7 @@ const fn move_encourage(strength: i16, block: u16) -> Move {
                 },
             },
         ],
-        Intent::BlockBuff,
+        IntentKind::BlockBuff,
     )
 }
 

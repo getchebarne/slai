@@ -4,7 +4,7 @@ use crate::effect::EffectKind;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::TARGET_SOURCE;
 use crate::effect::Target;
-use crate::entity::Intent;
+use crate::entity::IntentKind;
 use crate::entity::Move;
 use crate::modifier::ModifierKind;
 use crate::monsters::MonsterTemplate;
@@ -61,7 +61,7 @@ static MOVE_DEBILITATE: Move = make_move(
         debilitate_card(CardName::Burn),
         debilitate_card(CardName::Void),
     ],
-    Intent::DebuffPowerful,
+    IntentKind::DebuffPowerful,
 );
 
 // Buff: a negative Strength comes off, then 2 Strength, then the tier's extra
@@ -91,7 +91,7 @@ const fn move_buff_tier(mod_kind: ModifierKind, stacks: i16) -> Move {
                 target: TARGET_SOURCE,
             },
         ],
-        Intent::Buff,
+        IntentKind::Buff,
     )
 }
 

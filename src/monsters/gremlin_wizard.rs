@@ -1,4 +1,4 @@
-use crate::entity::Intent;
+use crate::entity::IntentKind;
 use crate::entity::Move;
 use crate::monsters::MonsterTemplate;
 use crate::monsters::make_move;
@@ -6,7 +6,7 @@ use crate::monsters::move_attack;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
 
-static MOVE_CHARGE: Move = make_move("Charge", &[], Intent::Unknown);
+static MOVE_CHARGE: Move = make_move("Charge", &[], IntentKind::Unknown);
 static MOVE_ULTIMATE_BLAST_25: Move = move_attack("Ultimate Blast", 25, 1);
 static MOVE_ULTIMATE_BLAST_30: Move = move_attack("Ultimate Blast", 30, 1);
 static MOVES_ASC0: [Move; 2] = [MOVE_CHARGE, MOVE_ULTIMATE_BLAST_25];

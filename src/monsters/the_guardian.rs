@@ -3,7 +3,7 @@ use crate::effect::EffectKind;
 use crate::effect::ScaledAt;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::TARGET_SOURCE;
-use crate::entity::Intent;
+use crate::entity::IntentKind;
 use crate::entity::Move;
 use crate::modifier::ModifierKind;
 use crate::modifier::Modifiers;
@@ -69,10 +69,7 @@ const fn move_twin_slam(mode_shift_stacks: i16) -> Move {
                 target: TARGET_SOURCE,
             },
         ],
-        Intent::AttackBuff {
-            damage: 8,
-            instances: 2,
-        },
+        IntentKind::AttackBuff,
     )
 }
 
@@ -83,7 +80,7 @@ static MOVE_CHARGING_UP: Move = make_move(
         id_source: None,
         target: TARGET_SOURCE,
     }],
-    Intent::Block,
+    IntentKind::Block,
 );
 static MOVE_FIERCE_BASH_32: Move = move_attack("Fierce Bash", 32, 1);
 static MOVE_FIERCE_BASH_36: Move = move_attack("Fierce Bash", 36, 1);
@@ -107,7 +104,7 @@ static MOVE_VENT_STEAM: Move = make_move(
             target: TARGET_CHARACTER,
         },
     ],
-    Intent::DebuffPowerful,
+    IntentKind::DebuffPowerful,
 );
 static MOVE_WHIRLWIND: Move = move_attack("Whirlwind", 5, 4);
 static MOVE_DEFENSIVE_MODE_3: Move = move_buff("Defensive Frame", ModifierKind::SharpHide, 3);

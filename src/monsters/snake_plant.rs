@@ -1,7 +1,7 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::TARGET_CHARACTER;
-use crate::entity::Intent;
+use crate::entity::IntentKind;
 use crate::entity::Move;
 use crate::modifier::ModifierKind;
 use crate::monsters::MonsterTemplate;
@@ -35,7 +35,7 @@ static MOVE_SPORES: Move = make_move(
             target: TARGET_CHARACTER,
         },
     ],
-    Intent::DebuffPowerful,
+    IntentKind::DebuffPowerful,
 );
 
 static MOVE_CHOMP_7: Move = move_attack("Chomp", 7, 3);

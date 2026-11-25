@@ -1,5 +1,5 @@
 use crate::consts::MAX_MONSTER_MOVES;
-use crate::entity::Intent;
+use crate::entity::IntentKind;
 use crate::entity::Move;
 use crate::modifier::ModifierKind;
 use crate::monsters::MonsterTemplate;
@@ -10,7 +10,7 @@ use crate::types::MonsterKind;
 use crate::types::MonsterName;
 use rand::Rng;
 
-static MOVE_GLARE: Move = move_debuff("Glare", ModifierKind::Weak, 1, Intent::Debuff);
+static MOVE_GLARE: Move = move_debuff("Glare", ModifierKind::Weak, 1, IntentKind::Debuff);
 static MOVE_COUNT: Move = move_attack("Count", 13, 1);
 
 // It Is Time hits 5 more each time, up to 30 more; one entry per step

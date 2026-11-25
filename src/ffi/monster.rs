@@ -1,5 +1,4 @@
 use pyo3::prelude::*;
-use strum::IntoEnumIterator;
 
 use super::macros::mirror_enum;
 
@@ -9,7 +8,7 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::PlaySource;
 use crate::entity::Entity;
-use crate::entity::Intent;
+use crate::entity::IntentKind;
 use crate::entity::Move;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
@@ -60,67 +59,10 @@ mirror_enum!(PyMonsterEncounter from MonsterEncounter, "MonsterEncounter", {
     AwakenedOne, DonuAndDeca, TimeEater, ShieldAndSpear, CorruptHeart,
 });
 
-#[pyclass(
-    from_py_object,
-    eq,
-    eq_int,
-    frozen,
-    name = "IntentKind",
-    module = "slai._slai"
-)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, strum::EnumIter)]
-pub enum PyIntentKind {
-    Attack,
-    AttackBlock,
-    AttackBuff,
-    AttackDebuff,
-    Block,
-    BlockBuff,
-    BlockDebuff,
-    Buff,
-    Debuff,
-    DebuffPowerful,
-    Escape,
-    Sleep,
-    Stunned,
-    Unknown,
-}
-
-#[pymethods]
-impl PyIntentKind {
-    // Declaration order, which is also int() order
-    #[staticmethod]
-    fn members() -> Vec<PyIntentKind> {
-        PyIntentKind::iter().collect()
-    }
-
-    // Hash by raw discriminant so eq_int and hash agree; the derived hash
-    // breaks Python's eq/hash contract for int-keyed dicts
-    fn __hash__(&self) -> isize {
-        *self as isize
-    }
-}
-
-impl From<Intent> for PyIntentKind {
-    fn from(intent: Intent) -> Self {
-        match intent {
-            Intent::Attack { .. } => Self::Attack,
-            Intent::AttackBlock { .. } => Self::AttackBlock,
-            Intent::AttackBuff { .. } => Self::AttackBuff,
-            Intent::AttackDebuff { .. } => Self::AttackDebuff,
-            Intent::Block => Self::Block,
-            Intent::BlockBuff => Self::BlockBuff,
-            Intent::BlockDebuff => Self::BlockDebuff,
-            Intent::Buff => Self::Buff,
-            Intent::Debuff => Self::Debuff,
-            Intent::DebuffPowerful => Self::DebuffPowerful,
-            Intent::Escape => Self::Escape,
-            Intent::Sleep => Self::Sleep,
-            Intent::Stunned => Self::Stunned,
-            Intent::Unknown => Self::Unknown,
-        }
-    }
-}
+mirror_enum!(PyIntentKind from IntentKind, "IntentKind", {
+    Attack, AttackBlock, AttackBuff, AttackDebuff, Block, BlockBuff, BlockDebuff, Buff, Debuff,
+    DebuffPowerful, Escape, Sleep, Stunned, Unknown,
+});
 
 #[pyclass(eq, hash, frozen, get_all, name = "Intent", module = "slai._slai")]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -150,37 +92,24 @@ pub struct PyMonster {
     pub replay_target: bool, // A waiting replay aims at this Monster
 }
 
+// The DamagePhysical an attack's intent shows: its amount and hit count; None for any other move
+pub(crate) fn attack_hit(effects: &[Effect]) -> Option<(u16, u8)> {
+    effects.iter().find_map(|effect| match effect.kind {
+        EffectKind::DamagePhysical {
+            amount, instances, ..
+        } => Some((amount, instances as u8)),
+        _ => None,
+    })
+}
+
 // The intent a move shows on screen: its kind, and an attack's scaled damage and hit count
 fn intent_shown(
     state: &GameState,
     monster: &Entity,
-    intent: Intent,
+    intent: IntentKind,
     effects: &[Effect],
 ) -> PyIntent {
-    let (base_damage, instances) = match intent {
-        Intent::Attack { damage, instances }
-        | Intent::AttackBlock { damage, instances }
-        | Intent::AttackBuff { damage, instances }
-        | Intent::AttackDebuff { damage, instances } => (Some(damage), Some(instances)),
-        Intent::Block
-        | Intent::BlockBuff
-        | Intent::BlockDebuff
-        | Intent::Buff
-        | Intent::Debuff
-        | Intent::DebuffPowerful
-        | Intent::Escape
-        | Intent::Sleep
-        | Intent::Stunned
-        | Intent::Unknown => (None, None),
-    };
-    let hit = effects.iter().find_map(|effect| match effect.kind {
-        EffectKind::DamagePhysical {
-            amount, instances, ..
-        } => Some((amount, instances)),
-        _ => None,
-    });
-    let base_damage = base_damage.map(|damage| hit.map_or(damage, |(amount, _)| amount));
-    let instances = instances.map(|count| hit.map_or(count, |(_, instances)| instances as u8));
+    let (base_damage, instances) = attack_hit(effects).unzip();
     let mods_char = &state.entities[state.id_character].modifiers;
     let damage = base_damage.map(|damage| {
         let str_stacks = if has_modifier(&monster.modifiers, ModifierKind::Strength) {
@@ -213,6 +142,7 @@ fn intent_shown(
         if has_modifier(mods_char, ModifierKind::Intangible) && scaled > 1 {
             scaled = 1;
         }
+
         scaled
     });
 

@@ -3,7 +3,7 @@ use crate::effect::EffectKind;
 use crate::effect::ScaledAt;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::TARGET_SOURCE;
-use crate::entity::Intent;
+use crate::entity::IntentKind;
 use crate::entity::Move;
 use crate::modifier::ModifierKind;
 use crate::monsters::MonsterTemplate;
@@ -36,10 +36,7 @@ const fn move_lunge(damage: u16) -> Move {
                 target: TARGET_SOURCE,
             },
         ],
-        Intent::AttackBlock {
-            damage,
-            instances: 1,
-        },
+        IntentKind::AttackBlock,
     )
 }
 
@@ -47,13 +44,13 @@ static MOVE_BEAR_HUG_2: Move = move_debuff(
     "Bear Hug",
     ModifierKind::Dexterity,
     -2,
-    Intent::DebuffPowerful,
+    IntentKind::DebuffPowerful,
 );
 static MOVE_BEAR_HUG_4: Move = move_debuff(
     "Bear Hug",
     ModifierKind::Dexterity,
     -4,
-    Intent::DebuffPowerful,
+    IntentKind::DebuffPowerful,
 );
 static MOVE_LUNGE_9: Move = move_lunge(9);
 static MOVE_LUNGE_10: Move = move_lunge(10);

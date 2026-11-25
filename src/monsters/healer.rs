@@ -4,7 +4,7 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::TARGET_MONSTERS_ALL;
 use crate::entity::Entity;
-use crate::entity::Intent;
+use crate::entity::IntentKind;
 use crate::entity::Move;
 use crate::modifier::ModifierKind;
 use crate::monsters::MonsterTemplate;
@@ -26,7 +26,7 @@ const fn move_heal(amount: u16) -> Move {
             id_source: None,
             target: TARGET_MONSTERS_ALL,
         }],
-        Intent::Buff,
+        IntentKind::Buff,
     )
 }
 
@@ -41,7 +41,7 @@ const fn move_buff_all(strength: i16) -> Move {
             id_source: None,
             target: TARGET_MONSTERS_ALL,
         }],
-        Intent::Buff,
+        IntentKind::Buff,
     )
 }
 

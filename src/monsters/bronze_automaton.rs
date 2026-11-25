@@ -2,7 +2,7 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::TARGET_SOURCE;
 use crate::effect::Target;
-use crate::entity::Intent;
+use crate::entity::IntentKind;
 use crate::entity::Move;
 use crate::modifier::ModifierKind;
 use crate::monsters::MonsterTemplate;
@@ -35,9 +35,9 @@ static MOVE_SPAWN_ORBS: Move = make_move(
             target: Target::Direct(None),
         },
     ],
-    Intent::Unknown,
+    IntentKind::Unknown,
 );
-static MOVE_STUNNED: Move = make_move("Stunned", &[], Intent::Stunned);
+static MOVE_STUNNED: Move = make_move("Stunned", &[], IntentKind::Stunned);
 static MOVE_FLAIL_7: Move = move_attack("Flail", 7, 2);
 static MOVE_FLAIL_8: Move = move_attack("Flail", 8, 2);
 static MOVE_HYPER_BEAM_45: Move = move_attack("Hyper Beam", 45, 1);
@@ -62,7 +62,7 @@ const fn move_boost(block: u16, strength: i16) -> Move {
                 target: TARGET_SOURCE,
             },
         ],
-        Intent::BlockBuff,
+        IntentKind::BlockBuff,
     )
 }
 

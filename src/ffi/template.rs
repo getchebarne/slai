@@ -4,7 +4,6 @@ use strum::IntoEnumIterator;
 
 use crate::cards::CardTemplate;
 use crate::cards::get_card_template;
-use crate::entity::Intent;
 use crate::entity::Move;
 use crate::events::options_catalog;
 use crate::monsters::monster_template;
@@ -34,6 +33,7 @@ use super::modifier::PyModifierKind;
 use super::monster::PyIntentKind;
 use super::monster::PyMonsterKind;
 use super::monster::PyMonsterName;
+use super::monster::attack_hit;
 use super::potion::PyPotionName;
 use super::potion::PyPotionRarity;
 use super::relic::PyRelicName;
@@ -290,23 +290,15 @@ fn template_potion(template: &PotionTemplate) -> PyPotionTemplate {
 }
 
 fn template_monster_move(mv: &Move) -> PyMonsterMoveTemplate {
-    let (damage, instances) = match mv.intent {
-        Intent::Attack { damage, instances }
-        | Intent::AttackBlock { damage, instances }
-        | Intent::AttackBuff { damage, instances }
-        | Intent::AttackDebuff { damage, instances } => (Some(damage), Some(instances)),
-        _ => (None, None),
-    };
+    let effects = &mv.effects[..mv.effects_len as usize];
+    let (damage, instances) = attack_hit(effects).unzip();
 
     PyMonsterMoveTemplate {
         name: mv.name.to_string(),
         intent: mv.intent.into(),
         damage,
         instances,
-        effects: mv.effects[..mv.effects_len as usize]
-            .iter()
-            .map(snapshot_effect)
-            .collect(),
+        effects: effects.iter().map(snapshot_effect).collect(),
     }
 }
 

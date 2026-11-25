@@ -2,7 +2,7 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::TARGET_SOURCE;
-use crate::entity::Intent;
+use crate::entity::IntentKind;
 use crate::entity::Move;
 use crate::modifier::ModifierKind;
 use crate::modifier::Modifiers;
@@ -36,14 +36,14 @@ const fn move_siphon_soul(stacks: i16) -> Move {
                 target: TARGET_CHARACTER,
             },
         ],
-        Intent::DebuffPowerful,
+        IntentKind::DebuffPowerful,
     )
 }
 
 // The Metallicize its sleep kit opens with, and sheds on waking
 pub const METALLICIZE_SLEEP: i16 = 8;
 
-static MOVE_SLEEP: Move = make_move("Sleep", &[], Intent::Sleep);
+static MOVE_SLEEP: Move = make_move("Sleep", &[], IntentKind::Sleep);
 static MOVE_WAKE_UP: Move = make_move(
     "Wake up",
     &[
@@ -63,9 +63,9 @@ static MOVE_WAKE_UP: Move = make_move(
             target: TARGET_SOURCE,
         },
     ],
-    Intent::Sleep,
+    IntentKind::Sleep,
 );
-static MOVE_STUNNED: Move = make_move("Stunned", &[], Intent::Stunned);
+static MOVE_STUNNED: Move = make_move("Stunned", &[], IntentKind::Stunned);
 static MOVE_ATTACK_18: Move = move_attack("Attack", 18, 1);
 static MOVE_ATTACK_20: Move = move_attack("Attack", 20, 1);
 static MOVE_SIPHON_SOUL_1: Move = move_siphon_soul(-1);

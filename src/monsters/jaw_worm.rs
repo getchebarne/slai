@@ -3,7 +3,7 @@ use crate::effect::EffectKind;
 use crate::effect::ScaledAt;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::TARGET_SOURCE;
-use crate::entity::Intent;
+use crate::entity::IntentKind;
 use crate::entity::Move;
 use crate::modifier::ModifierKind;
 use crate::monsters::MonsterTemplate;
@@ -38,10 +38,7 @@ static MOVE_THRASH: Move = make_move(
             target: TARGET_SOURCE,
         },
     ],
-    Intent::AttackBlock {
-        damage: 7,
-        instances: 1,
-    },
+    IntentKind::AttackBlock,
 );
 static MOVE_BELLOW_3_6: Move = move_block_buff("Bellow", 6, 3);
 static MOVE_BELLOW_4_6: Move = move_block_buff("Bellow", 6, 4);

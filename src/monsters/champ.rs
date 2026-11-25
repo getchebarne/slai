@@ -4,7 +4,7 @@ use crate::effect::EffectKind;
 use crate::effect::ScaledAt;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::TARGET_SOURCE;
-use crate::entity::Intent;
+use crate::entity::IntentKind;
 use crate::entity::Move;
 use crate::modifier::ModifierKind;
 use crate::monsters::MonsterTemplate;
@@ -34,7 +34,7 @@ const fn move_defensive_stance(block: u16, metallicize: i16) -> Move {
                 target: TARGET_SOURCE,
             },
         ],
-        Intent::BlockBuff,
+        IntentKind::BlockBuff,
     )
 }
 
@@ -72,10 +72,7 @@ const fn move_face_slap(damage: u16) -> Move {
                 target: TARGET_CHARACTER,
             },
         ],
-        Intent::AttackDebuff {
-            damage,
-            instances: 1,
-        },
+        IntentKind::AttackDebuff,
     )
 }
 
@@ -100,7 +97,7 @@ static MOVE_TAUNT: Move = make_move(
             target: TARGET_CHARACTER,
         },
     ],
-    Intent::Debuff,
+    IntentKind::Debuff,
 );
 
 // Anger: shed every debuff and surge Strength
@@ -122,7 +119,7 @@ const fn move_anger(strength: i16) -> Move {
                 target: TARGET_SOURCE,
             },
         ],
-        Intent::Buff,
+        IntentKind::Buff,
     )
 }
 

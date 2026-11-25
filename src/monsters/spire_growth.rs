@@ -1,4 +1,4 @@
-use crate::entity::Intent;
+use crate::entity::IntentKind;
 use crate::entity::Move;
 use crate::modifier::ModifierKind;
 use crate::monsters::MonsterTemplate;
@@ -14,13 +14,13 @@ static MOVE_CONSTRICT_10: Move = move_debuff(
     "Constrict",
     ModifierKind::Constricted,
     10,
-    Intent::DebuffPowerful,
+    IntentKind::DebuffPowerful,
 );
 static MOVE_CONSTRICT_12: Move = move_debuff(
     "Constrict",
     ModifierKind::Constricted,
     12,
-    Intent::DebuffPowerful,
+    IntentKind::DebuffPowerful,
 );
 static MOVE_SMASH_22: Move = move_attack("Smash", 22, 1);
 static MOVE_SMASH_25: Move = move_attack("Smash", 25, 1);

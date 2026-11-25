@@ -6,7 +6,7 @@ use crate::effect::ScaledAt;
 use crate::effect::SelectionKind;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
-use crate::entity::Intent;
+use crate::entity::IntentKind;
 use crate::entity::Move;
 use crate::modifier::ModifierKind;
 use crate::monsters::MonsterTemplate;
@@ -49,7 +49,7 @@ const fn move_attack_intangible(name: &'static str, damage: u16, instances: u8) 
             },
             EFFECT_INTANGIBLE_GAIN,
         ],
-        Intent::Attack { damage, instances },
+        IntentKind::Attack,
     )
 }
 
@@ -69,7 +69,7 @@ const fn move_tri_burn(count: u16) -> Move {
             },
             EFFECT_INTANGIBLE_GAIN,
         ],
-        Intent::Debuff,
+        IntentKind::Debuff,
     )
 }
 

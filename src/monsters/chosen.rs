@@ -2,7 +2,7 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::TARGET_SOURCE;
-use crate::entity::Intent;
+use crate::entity::IntentKind;
 use crate::entity::Move;
 use crate::modifier::ModifierKind;
 use crate::monsters::MonsterTemplate;
@@ -35,7 +35,7 @@ static MOVE_DRAIN: Move = make_move(
             target: TARGET_SOURCE,
         },
     ],
-    Intent::Debuff,
+    IntentKind::Debuff,
 );
 
 static MOVE_POKE_5: Move = move_attack("Poke", 5, 2);
@@ -44,7 +44,7 @@ static MOVE_ZAP_18: Move = move_attack("Zap", 18, 1);
 static MOVE_ZAP_21: Move = move_attack("Zap", 21, 1);
 static MOVE_DEBILITATE_10: Move = move_attack_debuff("Debilitate", 10, ModifierKind::Vulnerable, 2);
 static MOVE_DEBILITATE_12: Move = move_attack_debuff("Debilitate", 12, ModifierKind::Vulnerable, 2);
-static MOVE_HEX: Move = move_debuff("Hex", ModifierKind::Hex, 1, Intent::DebuffPowerful);
+static MOVE_HEX: Move = move_debuff("Hex", ModifierKind::Hex, 1, IntentKind::DebuffPowerful);
 
 static MOVES_ASC0: [Move; 5] = [
     MOVE_POKE_5,

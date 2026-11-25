@@ -1,7 +1,7 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::entity::Intent;
+use crate::entity::IntentKind;
 use crate::entity::Move;
 use crate::monsters::MonsterTemplate;
 use crate::monsters::make_move;
@@ -24,7 +24,7 @@ static MOVE_DAZE: Move = make_move(
         id_source: None,
         target: Target::Direct(None),
     }],
-    Intent::Debuff,
+    IntentKind::Debuff,
 );
 static MOVE_ATTACK_11: Move = move_attack("Attack", 11, 1);
 static MOVE_ATTACK_13: Move = move_attack("Attack", 13, 1);

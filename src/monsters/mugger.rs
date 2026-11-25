@@ -1,7 +1,7 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::TARGET_SOURCE;
-use crate::entity::Intent;
+use crate::entity::IntentKind;
 use crate::entity::Move;
 use crate::modifier::ModifierKind;
 use crate::monsters::MonsterTemplate;
@@ -25,7 +25,7 @@ static MOVE_ESCAPE: Move = make_move(
         id_source: None,
         target: TARGET_SOURCE,
     }],
-    Intent::Escape,
+    IntentKind::Escape,
 );
 
 static MOVES_ASC0: [Move; 4] = [
