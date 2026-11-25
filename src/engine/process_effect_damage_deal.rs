@@ -1,5 +1,8 @@
 use std::collections::VecDeque;
 
+use crate::consts::BOOT_DAMAGE_LANDED;
+use crate::consts::BOOT_DAMAGE_MAX;
+use crate::consts::BOOT_DAMAGE_MIN;
 use crate::consts::TORII_DAMAGE_LANDED;
 use crate::consts::TORII_DAMAGE_MAX;
 use crate::consts::TORII_DAMAGE_MIN;
@@ -63,11 +66,11 @@ pub fn process_effect_damage_deal(
     // Boot: the player's Card hits leaving a 1-4 remainder land 5 instead
     if from_card
         && target.kind == EntityKind::Monster
-        && 1 <= damage_over_block
-        && damage_over_block <= 4
+        && BOOT_DAMAGE_MIN <= damage_over_block
+        && damage_over_block <= BOOT_DAMAGE_MAX
         && has_relic(&state.id_relics, RelicName::Boot)
     {
-        damage_over_block = 5;
+        damage_over_block = BOOT_DAMAGE_LANDED;
     }
 
     // Torii: Monster hits leaving a 2-5 remainder on the Character land 1 instead

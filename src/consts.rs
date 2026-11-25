@@ -90,6 +90,11 @@ pub const POCKETWATCH_PLAYS_MAX: i16 = 3;
 // Orichalcum's block at the turn end, when the Character has none
 pub const ORICHALCUM_BLOCK: u16 = 6;
 
+// Boot: Card hits leaving a 1-4 remainder on a Monster land 5 instead
+pub const BOOT_DAMAGE_MIN: u16 = 1;
+pub const BOOT_DAMAGE_MAX: u16 = 4;
+pub const BOOT_DAMAGE_LANDED: u16 = 5;
+
 // Torii: Monster hits leaving a 2-5 remainder on the Character land 1 instead
 pub const TORII_DAMAGE_MIN: u16 = 2;
 pub const TORII_DAMAGE_MAX: u16 = 5;
