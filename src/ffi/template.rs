@@ -5,6 +5,7 @@ use strum::IntoEnumIterator;
 use crate::cards::CardTemplate;
 use crate::cards::get_card_template;
 use crate::entity::Intent;
+use crate::entity::Move;
 use crate::events::options_catalog;
 use crate::monsters::monster_template;
 use crate::monsters::tier_at;
@@ -157,7 +158,7 @@ pub struct PyMonsterTemplate {
     pub kind: PyMonsterKind,
     pub hp_range: (u16, u16),
     pub block_start: u16,
-    pub moves: Vec<PyMonsterMoveTemplate>,
+    pub movesets: Vec<Vec<PyMonsterMoveTemplate>>, // One move table per spawn roll
     pub modifier_spawns: Vec<PyModifierSpawnTemplate>,
 }
 
@@ -288,38 +289,37 @@ fn template_potion(template: &PotionTemplate) -> PyPotionTemplate {
     }
 }
 
+fn template_monster_move(mv: &Move) -> PyMonsterMoveTemplate {
+    let (damage, instances) = match mv.intent {
+        Intent::Attack { damage, instances }
+        | Intent::AttackBlock { damage, instances }
+        | Intent::AttackBuff { damage, instances }
+        | Intent::AttackDebuff { damage, instances } => (Some(damage), Some(instances)),
+        _ => (None, None),
+    };
+
+    PyMonsterMoveTemplate {
+        name: mv.name.to_string(),
+        intent: mv.intent.into(),
+        damage,
+        instances,
+        effects: mv.effects[..mv.effects_len as usize]
+            .iter()
+            .map(snapshot_effect)
+            .collect(),
+    }
+}
+
 // Every Monster in enum declaration order
 #[pyfunction]
 pub fn get_monster_templates(ascension: u8) -> Vec<PyMonsterTemplate> {
     MonsterName::iter()
         .map(|name| {
             let template = monster_template(name);
-            let moveset =
-                tier_at(template.move_tiers, ascension).expect("`move_tiers` is never empty");
-            let moves = moveset
+            let movesets = tier_at(template.move_tiers, ascension)
+                .expect("`move_tiers` is never empty")
                 .iter()
-                .flat_map(|moveset| moveset.iter())
-                .map(|move_| {
-                    let (damage, instances) = match move_.intent {
-                        Intent::Attack { damage, instances }
-                        | Intent::AttackBlock { damage, instances }
-                        | Intent::AttackBuff { damage, instances }
-                        | Intent::AttackDebuff { damage, instances } => {
-                            (Some(damage), Some(instances))
-                        }
-                        _ => (None, None),
-                    };
-                    PyMonsterMoveTemplate {
-                        name: move_.name.to_string(),
-                        intent: move_.intent.into(),
-                        damage,
-                        instances,
-                        effects: move_.effects[..move_.effects_len as usize]
-                            .iter()
-                            .map(snapshot_effect)
-                            .collect(),
-                    }
-                })
+                .map(|moveset| moveset.iter().map(template_monster_move).collect())
                 .collect();
             PyMonsterTemplate {
                 name: name.into(),
@@ -327,7 +327,7 @@ pub fn get_monster_templates(ascension: u8) -> Vec<PyMonsterTemplate> {
                 hp_range: tier_at(template.health_tiers, ascension)
                     .expect("health_tiers is never empty"),
                 block_start: tier_at(template.block_tiers, ascension).unwrap_or(0),
-                moves,
+                movesets,
                 modifier_spawns: tier_at(template.modifier_tiers, ascension)
                     .unwrap_or(&[])
                     .iter()

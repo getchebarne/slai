@@ -39,8 +39,8 @@ static MOVES_ASC3: [Move; 9] = [
 
 const IDX_MOVE_GLARE: usize = 0;
 const IDX_MOVE_COUNT: usize = 1;
-const IDX_MOVE_IT_IS_TIME_FIRST: usize = 2;
-const IDX_MOVE_IT_IS_TIME_LAST: usize = 8;
+pub const IDX_MOVE_IT_IS_TIME_FIRST: usize = 2;
+pub const IDX_MOVE_IT_IS_TIME_LAST: usize = 8;
 
 pub static GIANT_HEAD: MonsterTemplate = MonsterTemplate {
     name: MonsterName::GiantHead,

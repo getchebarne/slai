@@ -126,8 +126,8 @@ static MOVES_ASC4: [Move; 8] = [
 const IDX_MOVE_BLOOD_SHOTS: usize = 0;
 const IDX_MOVE_ECHO: usize = 1;
 const IDX_MOVE_DEBILITATE: usize = 2;
-const IDX_MOVE_BUFF_FIRST: usize = 3;
-const IDX_MOVE_BUFF_LAST: usize = 7;
+pub const IDX_MOVE_BUFF_FIRST: usize = 3;
+pub const IDX_MOVE_BUFF_LAST: usize = 7;
 
 const STACKS_INVINCIBLE_BASE: i16 = 300;
 const STACKS_INVINCIBLE_A19: i16 = 200;

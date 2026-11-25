@@ -432,8 +432,6 @@ mod _slai {
     #[pymodule_export]
     const MAX_MOVE_HISTORY: usize = consts::MAX_MOVE_HISTORY;
     #[pymodule_export]
-    const MAX_MONSTER_MOVES: usize = consts::MAX_MONSTER_MOVES;
-    #[pymodule_export]
     const NUM_ENCOUNTERS_EASY_ACT1: usize = consts::NUM_ENCOUNTERS_EASY_ACT1;
     #[pymodule_export]
     const TIME_WARP_PLAYS: i16 = consts::TIME_WARP_PLAYS;

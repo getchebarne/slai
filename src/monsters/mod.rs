@@ -95,6 +95,7 @@ use crate::types::MonsterName;
 use crate::types::Vitals;
 use crate::utils::monsters_alive;
 use rand::Rng;
+use std::ops::RangeInclusive;
 
 // Static definition of a Monster: everything spawn-time except per-Monster rolls
 #[derive(Debug, Clone, Copy)]
@@ -315,6 +316,24 @@ pub fn move_ultimate(monster_name: MonsterName) -> Option<usize> {
         MonsterName::TheCollector => Some(the_collector::IDX_MOVE_MEGA_DEBUFF),
         MonsterName::TimeEater => Some(time_eater::IDX_MOVE_HASTE),
         MonsterName::WrithingMass => Some(writhing_mass::IDX_MOVE_IMPLANT),
+        _ => None,
+    }
+}
+
+// The entries that are one move's successive stages: the history tells the stage, not the intent
+pub fn move_stages(monster_name: MonsterName) -> Option<RangeInclusive<usize>> {
+    match monster_name {
+        MonsterName::CorruptHeart => {
+            Some(corrupt_heart::IDX_MOVE_BUFF_FIRST..=corrupt_heart::IDX_MOVE_BUFF_LAST)
+        }
+        MonsterName::GiantHead => {
+            Some(giant_head::IDX_MOVE_IT_IS_TIME_FIRST..=giant_head::IDX_MOVE_IT_IS_TIME_LAST)
+        }
+        MonsterName::Hexaghost => {
+            Some(hexaghost::IDX_MOVE_SEAR_PRE..=hexaghost::IDX_MOVE_SEAR_POST)
+        }
+        MonsterName::Lagavulin => Some(lagavulin::IDX_MOVE_SLEEP..=lagavulin::IDX_MOVE_WAKE_UP),
+        MonsterName::Transient => Some(0..=MAX_MONSTER_MOVES - 1), // Every entry
         _ => None,
     }
 }

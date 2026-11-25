@@ -57,7 +57,7 @@ pub enum CardCostKind {
 }
 
 // TODO: revisit implementation. Could be flat-enum and `damage: u16` and `instances: u8`
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Intent {
     Attack { damage: u16, instances: u8 },
     AttackBlock { damage: u16, instances: u8 },
@@ -75,7 +75,7 @@ pub enum Intent {
     Unknown,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Move {
     pub name: &'static str,
     pub effects: [Effect; MAX_EFFECTS_PER_MOVE],

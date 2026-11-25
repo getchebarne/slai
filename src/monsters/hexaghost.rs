@@ -138,8 +138,8 @@ static MOVES_ASC19: [Move; 7] = [
 
 const IDX_MOVE_ACTIVATE: usize = 0;
 pub const IDX_MOVE_DIVIDER: usize = 1;
-const IDX_MOVE_SEAR_PRE: usize = 2;
-const IDX_MOVE_SEAR_POST: usize = 3;
+pub const IDX_MOVE_SEAR_PRE: usize = 2;
+pub const IDX_MOVE_SEAR_POST: usize = 3;
 const IDX_MOVE_TACKLE: usize = 4;
 const IDX_MOVE_INFLAME: usize = 5;
 const IDX_MOVE_INFERNO: usize = 6;

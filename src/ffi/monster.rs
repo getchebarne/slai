@@ -3,18 +3,22 @@ use strum::IntoEnumIterator;
 
 use super::macros::mirror_enum;
 
-use super::effect::PyEffect;
 use super::effect::id_target_shown;
-use super::effect::snapshot_effects;
 use crate::consts::FACTOR_BACK_ATTACK;
+use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::PlaySource;
+use crate::entity::Entity;
 use crate::entity::Intent;
+use crate::entity::Move;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
 use crate::modifier::modifier_stacks;
+use crate::monsters::monster_template;
+use crate::monsters::move_stages;
 use crate::monsters::move_ultimate;
+use crate::monsters::tier_at;
 use crate::types::MonsterEncounter;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
@@ -137,20 +141,98 @@ pub struct PyMonster {
     pub block: u16,
     pub half_dead: bool, // At 0 HP, out of every Card's, hit's and Power's reach until its rebirth or its next Death
     pub modifiers: Vec<PyModifier>,
-    pub intent: Option<PyIntent>,    // None while Runic Dome hides it
-    pub move_effects: Vec<PyEffect>, // The current move's Effect payload; empty when the intent is hidden
-    pub move_current: Option<u8>,    // Index into the spawn-rolled moveset; None when hidden
-    pub move_history: Vec<u8>, // Selection-ordered move indices; the last entry IS the current move, and under Runic Dome only executed moves
-    pub gold_stolen: u16,      // Only relevant for Looters and Muggers
+    pub intent: Option<PyIntent>, // None while Runic Dome hides it
+    pub moveset: Option<u8>, // Its template's moveset index; None until a spawn-rolled move shows
+    pub moves_shown: Vec<u8>, // Moveset indices of the moves showing its intent; empty while hidden
+    pub move_history: Vec<u8>, // Moves before the current one; under Runic Dome only executed ones
+    pub gold_stolen: u16,    // Only relevant for Looters and Muggers
     pub ultimate_used: bool, // The Monster's once-per-combat move has been used: Red Slaver's Entangle, Champ's Anger, Bronze Orb's Stasis, the Collector's Mega Debuff, Time Eater's Haste, Writhing Mass's Implant
     pub replay_target: bool, // A waiting replay aims at this Monster
+}
+
+// The intent a move shows on screen: its kind, and an attack's scaled damage and hit count
+fn intent_shown(
+    state: &GameState,
+    monster: &Entity,
+    intent: Intent,
+    effects: &[Effect],
+) -> PyIntent {
+    let (base_damage, instances) = match intent {
+        Intent::Attack { damage, instances }
+        | Intent::AttackBlock { damage, instances }
+        | Intent::AttackBuff { damage, instances }
+        | Intent::AttackDebuff { damage, instances } => (Some(damage), Some(instances)),
+        Intent::Block
+        | Intent::BlockBuff
+        | Intent::BlockDebuff
+        | Intent::Buff
+        | Intent::Debuff
+        | Intent::DebuffPowerful
+        | Intent::Escape
+        | Intent::Sleep
+        | Intent::Stunned
+        | Intent::Unknown => (None, None),
+    };
+    let hit = effects.iter().find_map(|effect| match effect.kind {
+        EffectKind::DamagePhysical {
+            amount, instances, ..
+        } => Some((amount, instances)),
+        _ => None,
+    });
+    let base_damage = base_damage.map(|damage| hit.map_or(damage, |(amount, _)| amount));
+    let instances = instances.map(|count| hit.map_or(count, |(_, instances)| instances as u8));
+    let mods_char = &state.entities[state.id_character].modifiers;
+    let damage = base_damage.map(|damage| {
+        let str_stacks = if has_modifier(&monster.modifiers, ModifierKind::Strength) {
+            modifier_stacks(&monster.modifiers, ModifierKind::Strength)
+        } else {
+            0
+        };
+        let mut unrounded = scale_attack_damage(
+            damage,
+            str_stacks,
+            has_modifier(&monster.modifiers, ModifierKind::DoubleDamage),
+            has_modifier(&monster.modifiers, ModifierKind::PenNib),
+            weak_factor(
+                has_modifier(&monster.modifiers, ModifierKind::Weak),
+                has_relic(&state.id_relics, RelicName::PaperKrane),
+            ),
+            slow_factor(modifier_stacks(mods_char, ModifierKind::Slow)),
+            vuln_factor(
+                has_modifier(mods_char, ModifierKind::Vulnerable),
+                has_relic(&state.id_relics, RelicName::OddMushroom),
+            ),
+            has_modifier(mods_char, ModifierKind::Flight),
+        );
+
+        // Back Attack multiplies the unrounded value here and the truncated one in the hit, so this intent can read 1 above the hit
+        if has_modifier(&monster.modifiers, ModifierKind::BackAttack) {
+            unrounded *= FACTOR_BACK_ATTACK;
+        }
+        let mut scaled = unrounded as u16;
+        if has_modifier(mods_char, ModifierKind::Intangible) && scaled > 1 {
+            scaled = 1;
+        }
+        scaled
+    });
+
+    PyIntent {
+        kind: intent.into(),
+        damage,
+        instances,
+    }
+}
+
+// A spawn-rolled move: an entry the tier's move tables don't all hold alike
+fn move_spawn_rolled(movesets: &[&[Move]], idx_move: usize) -> bool {
+    movesets
+        .iter()
+        .any(|moveset| moveset[idx_move] != movesets[0][idx_move])
 }
 
 pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
     // Runic Dome hides every Monster's upcoming move; its history shows only the executed moves
     let move_hidden = has_relic(&state.id_relics, RelicName::RunicDome);
-    let character = &state.entities[state.id_character];
-    let mods_char = &character.modifiers;
     state
         .combat
         .id_monsters
@@ -162,95 +244,56 @@ pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
 
             let len_history = monster.monster_move_history_len as usize;
             let move_history = &monster.monster_move_history[..len_history];
+            let move_history_exec = &monster.monster_move_history_exec[..len_history];
             let move_history = if move_hidden {
                 // The upcoming move and any move replaced before it executed were never seen
                 move_history
                     .iter()
-                    .zip(&monster.monster_move_history_exec[..len_history])
+                    .zip(move_history_exec)
                     .filter(|(_, executed)| **executed)
                     .map(|(&move_idx, _)| move_idx)
                     .collect()
+            } else if move_history_exec.last() == Some(&false) {
+                // The last entry is the upcoming move until it executes
+                move_history[..len_history - 1].to_vec()
             } else {
                 move_history.to_vec()
             };
 
-            let (intent, move_effects) = if move_hidden {
+            // The Monster's once-per-Combat move, once it has been used
+            let idx_ultimate_used = move_ultimate(monster.monster_name)
+                .filter(|&idx_move| monster.monster_move_uses[idx_move] > 0);
+
+            let (intent, moves_shown) = if move_hidden {
                 (None, Vec::new())
-            } else if let Some(move_idx) = monster.monster_move_current {
-                let mv = &monster.monster_moves[move_idx];
-                let (base_damage, instances) = match mv.intent {
-                    Intent::Attack { damage, instances }
-                    | Intent::AttackBlock { damage, instances }
-                    | Intent::AttackBuff { damage, instances }
-                    | Intent::AttackDebuff { damage, instances } => (Some(damage), Some(instances)),
-                    Intent::Block
-                    | Intent::BlockBuff
-                    | Intent::BlockDebuff
-                    | Intent::Buff
-                    | Intent::Debuff
-                    | Intent::DebuffPowerful
-                    | Intent::Escape
-                    | Intent::Sleep
-                    | Intent::Stunned
-                    | Intent::Unknown => (None, None),
-                };
-
-                // The Monster's copy of the move holds the hit as chosen: Divider's and the Transient's locked damage, Multi-Stab's and Nom's locked counts
-                let move_effects =
+            } else if let Some(idx_current) = monster.monster_move_current {
+                // The Monster's copy of its current move holds the hit as chosen
+                let moves = monster.monster_moves;
+                let effects_current =
                     &monster.monster_move_effects[..monster.monster_move_effects_len as usize];
-                let hit = move_effects.iter().find_map(|effect| match effect.kind {
-                    EffectKind::DamagePhysical {
-                        amount, instances, ..
-                    } => Some((amount, instances)),
-                    _ => None,
-                });
-                let base_damage =
-                    base_damage.map(|damage| hit.map_or(damage, |(amount, _)| amount));
-                let instances =
-                    instances.map(|count| hit.map_or(count, |(_, instances)| instances as u8));
-                let damage = base_damage.map(|damage| {
-                    let str_stacks = if has_modifier(&monster.modifiers, ModifierKind::Strength) {
-                        modifier_stacks(&monster.modifiers, ModifierKind::Strength)
-                    } else {
-                        0
-                    };
-                    let mut unrounded = scale_attack_damage(
-                        damage,
-                        str_stacks,
-                        has_modifier(&monster.modifiers, ModifierKind::DoubleDamage),
-                        has_modifier(&monster.modifiers, ModifierKind::PenNib),
-                        weak_factor(
-                            has_modifier(&monster.modifiers, ModifierKind::Weak),
-                            has_relic(&state.id_relics, RelicName::PaperKrane),
-                        ),
-                        slow_factor(modifier_stacks(mods_char, ModifierKind::Slow)),
-                        vuln_factor(
-                            has_modifier(mods_char, ModifierKind::Vulnerable),
-                            has_relic(&state.id_relics, RelicName::OddMushroom),
-                        ),
-                        has_modifier(mods_char, ModifierKind::Flight),
-                    );
+                let intent =
+                    intent_shown(state, monster, moves[idx_current].intent, effects_current);
 
-                    // Back Attack multiplies the unrounded value here and the truncated one in the hit, so this intent can read 1 above the hit
-                    if has_modifier(&monster.modifiers, ModifierKind::BackAttack) {
-                        unrounded *= FACTOR_BACK_ATTACK;
-                    }
-                    let mut scaled = unrounded as u16;
-                    if has_modifier(mods_char, ModifierKind::Intangible) && scaled > 1 {
-                        scaled = 1;
-                    }
-                    scaled
-                });
+                // Never listed with the current move: its other stages, a used once-per-Combat move
+                let stages = move_stages(monster.monster_name)
+                    .filter(|stages| stages.contains(&idx_current));
+                let moves_shown = moves
+                    .iter()
+                    .enumerate()
+                    .filter(|&(idx_move, mv)| {
+                        let effects = &mv.effects[..mv.effects_len as usize];
 
-                let move_effects = snapshot_effects(state, move_effects, None);
-                (
-                    Some(PyIntent {
-                        kind: mv.intent.into(),
-                        damage,
-                        instances,
-                    }),
-                    move_effects,
-                )
+                        idx_move == idx_current
+                            || idx_ultimate_used != Some(idx_move)
+                                && !stages
+                                    .as_ref()
+                                    .is_some_and(|stages| stages.contains(&idx_move))
+                                && intent_shown(state, monster, mv.intent, effects) == intent
+                    })
+                    .map(|(idx_move, _)| idx_move as u8)
+                    .collect();
+
+                (Some(intent), moves_shown)
             } else {
                 (
                     Some(PyIntent {
@@ -261,6 +304,22 @@ pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
                     Vec::new(),
                 )
             };
+
+            // The moveset is told once a spawn-rolled move is in the history or shows as current
+            let template = monster_template(monster.monster_name);
+            let movesets =
+                tier_at(template.move_tiers, state.ascension).expect("`move_tiers` is never empty");
+            let moveset_told = movesets.len() == 1
+                || move_history
+                    .iter()
+                    .map(|&idx_move| idx_move as usize)
+                    .chain(monster.monster_move_current.filter(|_| !move_hidden))
+                    .any(|idx_move| move_spawn_rolled(movesets, idx_move));
+            let moveset = movesets
+                .iter()
+                .position(|moveset| *moveset == monster.monster_moves)
+                .filter(|_| moveset_told)
+                .map(|idx_moveset| idx_moveset as u8);
 
             // A replay aims at its first play's target; a draw-top play's random target stays hidden until it hits
             let replay_target = state.card_play_queue.iter().any(|card_play| {
@@ -280,16 +339,11 @@ pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
                 half_dead: monster.monster_half_dead,
                 modifiers: snapshot_modifiers(&monster.modifiers),
                 intent,
-                move_effects,
-                move_current: if move_hidden {
-                    None
-                } else {
-                    monster.monster_move_current.map(|idx| idx as u8)
-                },
+                moveset,
+                moves_shown,
                 move_history,
                 gold_stolen: monster.monster_gold_stolen,
-                ultimate_used: move_ultimate(monster.monster_name)
-                    .is_some_and(|idx_move| monster.monster_move_uses[idx_move] > 0),
+                ultimate_used: idx_ultimate_used.is_some(),
                 replay_target,
             }
         })
