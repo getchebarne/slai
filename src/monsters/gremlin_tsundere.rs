@@ -4,7 +4,7 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
-use crate::entity::Intent;
+use crate::entity::IntentKind;
 use crate::entity::Move;
 use crate::monsters::MonsterTemplate;
 use crate::monsters::make_move;
@@ -25,7 +25,7 @@ const fn move_protect(block: u16) -> Move {
                 selection_kind: SelectionKind::Random { count: 1 },
             },
         }],
-        Intent::Block,
+        IntentKind::Block,
     )
 }
 

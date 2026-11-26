@@ -4,7 +4,7 @@ use crate::effect::EffectKind;
 use crate::effect::ReadAt;
 use crate::effect::Rounding;
 use crate::effect::TARGET_SOURCE;
-use crate::entity::Intent;
+use crate::entity::IntentKind;
 use crate::entity::Move;
 use crate::modifier::ModifierKind;
 use crate::monsters::MonsterTemplate;
@@ -37,11 +37,11 @@ const MOVE_HARDEN_STRENGTH: Move = make_move(
             target: TARGET_SOURCE,
         },
     ],
-    Intent::BlockBuff,
+    IntentKind::BlockBuff,
 );
 
 // Count: the half-dead Darkling's turn before its rebirth, which does nothing
-const MOVE_COUNT: Move = make_move("Count", &[], Intent::Unknown);
+const MOVE_COUNT: Move = make_move("Count", &[], IntentKind::Unknown);
 
 // Reincarnate: the Darkling leaves half-dead, heals half its max HP and regrows; Philosopher's Stone adds 1 Strength
 const MOVE_REINCARNATE: Move = make_move(
@@ -79,7 +79,7 @@ const MOVE_REINCARNATE: Move = make_move(
             target: TARGET_SOURCE,
         },
     ],
-    Intent::Buff,
+    IntentKind::Buff,
 );
 
 // One table per spawn-rolled Nip damage, each holding the five moves at the same indices

@@ -2,7 +2,7 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::ScaledAt;
 use crate::effect::TARGET_CHARACTER;
-use crate::entity::Intent;
+use crate::entity::IntentKind;
 use crate::entity::Move;
 use crate::modifier::ModifierKind;
 use crate::monsters::MonsterTemplate;
@@ -47,17 +47,14 @@ static MOVE_TAIL_WHIP_10_A17: Move = make_move(
             target: TARGET_CHARACTER,
         },
     ],
-    Intent::AttackDebuff {
-        damage: 10,
-        instances: 1,
-    },
+    IntentKind::AttackDebuff,
 );
 
 static MOVE_GLARE: Move = move_debuff(
     "Perplexing Glare",
     ModifierKind::Confusion,
     1,
-    Intent::DebuffPowerful,
+    IntentKind::DebuffPowerful,
 );
 static MOVE_BITE_15: Move = move_attack("Bite", 15, 1);
 static MOVE_BITE_18: Move = move_attack("Bite", 18, 1);

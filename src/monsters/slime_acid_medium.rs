@@ -1,4 +1,4 @@
-use crate::entity::Intent;
+use crate::entity::IntentKind;
 use crate::entity::Move;
 use crate::modifier::ModifierKind;
 use crate::monsters::MonsterTemplate;
@@ -16,7 +16,7 @@ static MOVE_WOUND_TACKLE_8: Move =
     move_attack_card_add("Corrosive Spit", 8, CardName::Slimed, 1, false);
 static MOVE_HEAVY_TACKLE_10: Move = move_attack("Tackle", 10, 1);
 static MOVE_HEAVY_TACKLE_12: Move = move_attack("Tackle", 12, 1);
-static MOVE_LICK: Move = move_debuff("Lick", ModifierKind::Weak, 1, Intent::Debuff);
+static MOVE_LICK: Move = move_debuff("Lick", ModifierKind::Weak, 1, IntentKind::Debuff);
 
 static MOVES_ASC0: [Move; 3] = [MOVE_WOUND_TACKLE_7, MOVE_HEAVY_TACKLE_10, MOVE_LICK];
 static MOVES_ASC2: [Move; 3] = [MOVE_WOUND_TACKLE_8, MOVE_HEAVY_TACKLE_12, MOVE_LICK];

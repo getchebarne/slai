@@ -5,7 +5,7 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
-use crate::entity::Intent;
+use crate::entity::IntentKind;
 use crate::entity::Move;
 use crate::modifier::ModifierKind;
 use crate::monsters::MonsterTemplate;
@@ -23,7 +23,7 @@ static MOVE_STASIS: Move = make_move(
         id_source: None,
         target: Target::Direct(None),
     }],
-    Intent::DebuffPowerful,
+    IntentKind::DebuffPowerful,
 );
 
 // Support Beam: block onto the Automaton (the one non-Minion on the field)
@@ -38,7 +38,7 @@ static MOVE_SUPPORT_BEAM: Move = make_move(
             selection_kind: SelectionKind::All,
         },
     }],
-    Intent::Block,
+    IntentKind::Block,
 );
 static MOVE_BEAM: Move = move_attack("Beam", 8, 1);
 

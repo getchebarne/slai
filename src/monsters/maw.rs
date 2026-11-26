@@ -2,7 +2,7 @@ use crate::consts::MAX_MONSTER_MOVES;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::TARGET_CHARACTER;
-use crate::entity::Intent;
+use crate::entity::IntentKind;
 use crate::entity::Move;
 use crate::modifier::ModifierKind;
 use crate::monsters::MonsterTemplate;
@@ -35,7 +35,7 @@ const fn move_roar(stacks: i16) -> Move {
                 target: TARGET_CHARACTER,
             },
         ],
-        Intent::DebuffPowerful,
+        IntentKind::DebuffPowerful,
     )
 }
 

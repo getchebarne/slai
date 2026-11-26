@@ -1,5 +1,5 @@
 use crate::consts::MAX_MONSTER_MOVES;
-use crate::entity::Intent;
+use crate::entity::IntentKind;
 use crate::entity::Move;
 use crate::modifier::ModifierKind;
 use crate::monsters::MonsterTemplate;
@@ -16,7 +16,7 @@ static MOVE_ENTANGLE: Move = move_debuff(
     "Entangle",
     ModifierKind::Entangled,
     1,
-    Intent::DebuffPowerful,
+    IntentKind::DebuffPowerful,
 );
 static MOVE_SCRAPE_8_VULN_1: Move = move_attack_debuff("Scrape", 8, ModifierKind::Vulnerable, 1);
 static MOVE_SCRAPE_9_VULN_1: Move = move_attack_debuff("Scrape", 9, ModifierKind::Vulnerable, 1);

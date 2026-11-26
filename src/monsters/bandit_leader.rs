@@ -1,4 +1,4 @@
-use crate::entity::Intent;
+use crate::entity::IntentKind;
 use crate::entity::Move;
 use crate::modifier::ModifierKind;
 use crate::monsters::MonsterTemplate;
@@ -8,7 +8,7 @@ use crate::monsters::move_attack_debuff;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
 
-static MOVE_MOCK: Move = make_move("Mock", &[], Intent::Unknown);
+static MOVE_MOCK: Move = make_move("Mock", &[], IntentKind::Unknown);
 static MOVE_AGONIZING_10_W2: Move =
     move_attack_debuff("Agonizing Slash", 10, ModifierKind::Weak, 2);
 static MOVE_AGONIZING_12_W2: Move =

@@ -4,7 +4,7 @@ use crate::effect::ScaledAt;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::TARGET_MONSTERS_ALL;
 use crate::effect::Target;
-use crate::entity::Intent;
+use crate::entity::IntentKind;
 use crate::entity::Move;
 use crate::modifier::ModifierKind;
 use crate::monsters::MonsterTemplate;
@@ -43,10 +43,7 @@ const fn move_beam(damage: u16) -> Move {
                 target: Target::Direct(None),
             },
         ],
-        Intent::AttackDebuff {
-            damage,
-            instances: 2,
-        },
+        IntentKind::AttackDebuff,
     )
 }
 
@@ -61,7 +58,7 @@ static MOVE_SQUARE_OF_PROTECTION: Move = make_move(
         id_source: None,
         target: TARGET_MONSTERS_ALL,
     }],
-    Intent::Block,
+    IntentKind::Block,
 );
 
 // The A19 Square: the block, then 3 Plated Armor to every living Monster
@@ -82,7 +79,7 @@ static MOVE_SQUARE_OF_PROTECTION_PLATED_ARMOR: Move = make_move(
             target: TARGET_MONSTERS_ALL,
         },
     ],
-    Intent::BlockBuff,
+    IntentKind::BlockBuff,
 );
 
 static MOVES_ASC0: [Move; 2] = [MOVE_BEAM_10, MOVE_SQUARE_OF_PROTECTION];

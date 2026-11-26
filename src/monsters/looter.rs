@@ -1,7 +1,7 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::TARGET_SOURCE;
-use crate::entity::Intent;
+use crate::entity::IntentKind;
 use crate::entity::Move;
 use crate::modifier::ModifierKind;
 use crate::monsters::MonsterTemplate;
@@ -23,7 +23,7 @@ static MOVE_SMOKE_BOMB: Move = make_move(
         id_source: None,
         target: TARGET_SOURCE,
     }],
-    Intent::Block,
+    IntentKind::Block,
 );
 static MOVE_ESCAPE: Move = make_move(
     "Escape",
@@ -32,7 +32,7 @@ static MOVE_ESCAPE: Move = make_move(
         id_source: None,
         target: TARGET_SOURCE,
     }],
-    Intent::Escape,
+    IntentKind::Escape,
 );
 
 static MOVES_ASC0: [Move; 4] = [MOVE_MUG_10, MOVE_LUNGE_12, MOVE_SMOKE_BOMB, MOVE_ESCAPE];

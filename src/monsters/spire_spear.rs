@@ -4,7 +4,7 @@ use crate::effect::ScaledAt;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::TARGET_MONSTERS_ALL;
 use crate::effect::Target;
-use crate::entity::Intent;
+use crate::entity::IntentKind;
 use crate::entity::Move;
 use crate::modifier::ModifierKind;
 use crate::monsters::MonsterTemplate;
@@ -45,10 +45,7 @@ const fn move_burn_strike(damage: u16, card_pile: CardPile) -> Move {
                 target: Target::Direct(None),
             },
         ],
-        Intent::AttackDebuff {
-            damage,
-            instances: 2,
-        },
+        IntentKind::AttackDebuff,
     )
 }
 
@@ -63,7 +60,7 @@ static MOVE_PIERCER: Move = make_move(
         id_source: None,
         target: TARGET_MONSTERS_ALL,
     }],
-    Intent::Buff,
+    IntentKind::Buff,
 );
 
 static MOVE_BURN_STRIKE_5: Move = move_burn_strike(5, CardPile::Discard);

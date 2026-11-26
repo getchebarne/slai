@@ -4,7 +4,7 @@ use crate::effect::ScaledAt;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::TARGET_SOURCE;
 use crate::effect::Target;
-use crate::entity::Intent;
+use crate::entity::IntentKind;
 use crate::entity::Move;
 use crate::modifier::ModifierKind;
 use crate::monsters::MonsterTemplate;
@@ -50,10 +50,7 @@ static MOVE_SCOURING_WHIP_A18: Move = make_move(
             target: TARGET_SOURCE,
         },
     ],
-    Intent::AttackDebuff {
-        damage: 7,
-        instances: 1,
-    },
+    IntentKind::AttackDebuff,
 );
 
 static MOVE_SCOURING_WHIP_W1: Move =

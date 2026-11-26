@@ -3,7 +3,7 @@ use crate::effect::EffectKind;
 use crate::effect::ScaledAt;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
-use crate::entity::Intent;
+use crate::entity::IntentKind;
 use crate::entity::Move;
 use crate::modifier::ModifierKind;
 use crate::monsters::MonsterTemplate;
@@ -54,10 +54,7 @@ const fn move_laser(damage: u16) -> Move {
                 target: Target::Direct(None),
             },
         ],
-        Intent::AttackDebuff {
-            damage,
-            instances: 1,
-        },
+        IntentKind::AttackDebuff,
     )
 }
 

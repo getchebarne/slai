@@ -7,7 +7,7 @@ use crate::effect::ScaledAt;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::TARGET_SOURCE;
 use crate::effect::Target;
-use crate::entity::Intent;
+use crate::entity::IntentKind;
 use crate::entity::Move;
 use crate::modifier::ModifierKind;
 use crate::modifier::Modifiers;
@@ -49,7 +49,7 @@ static MOVE_REBIRTH: Move = make_move(
             target: TARGET_SOURCE,
         },
     ],
-    Intent::Unknown,
+    IntentKind::Unknown,
 );
 static MOVE_DARK_ECHO: Move = move_attack("Dark Echo", 40, 1);
 
@@ -80,10 +80,7 @@ static MOVE_SLUDGE: Move = make_move(
             target: Target::Direct(None),
         },
     ],
-    Intent::AttackDebuff {
-        damage: 18,
-        instances: 1,
-    },
+    IntentKind::AttackDebuff,
 );
 static MOVE_TACKLE: Move = move_attack("Tackle", 10, 3);
 static MOVES: [Move; 6] = [

@@ -1,4 +1,4 @@
-use crate::entity::Intent;
+use crate::entity::IntentKind;
 use crate::entity::Move;
 use crate::modifier::ModifierKind;
 use crate::monsters::MonsterTemplate;
@@ -16,8 +16,8 @@ static MOVE_FLAME_TACKLE_16: Move =
     move_attack_card_add("Flame Tackle", 16, CardName::Slimed, 2, false);
 static MOVE_FLAME_TACKLE_18: Move =
     move_attack_card_add("Flame Tackle", 18, CardName::Slimed, 2, false);
-static MOVE_LICK_FRAIL_2: Move = move_debuff("Lick", ModifierKind::Frail, 2, Intent::Debuff);
-static MOVE_LICK_FRAIL_3: Move = move_debuff("Lick", ModifierKind::Frail, 3, Intent::Debuff);
+static MOVE_LICK_FRAIL_2: Move = move_debuff("Lick", ModifierKind::Frail, 2, IntentKind::Debuff);
+static MOVE_LICK_FRAIL_3: Move = move_debuff("Lick", ModifierKind::Frail, 3, IntentKind::Debuff);
 static MOVE_SPLIT: Move = move_split(
     "Split",
     MonsterName::SlimeSpikeMedium,

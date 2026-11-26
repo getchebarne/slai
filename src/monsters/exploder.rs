@@ -1,4 +1,4 @@
-use crate::entity::Intent;
+use crate::entity::IntentKind;
 use crate::entity::Move;
 use crate::modifier::ModifierKind;
 use crate::monsters::MonsterTemplate;
@@ -12,7 +12,7 @@ static MOVE_ATTACK_9: Move = move_attack("Attack", 9, 1);
 static MOVE_ATTACK_11: Move = move_attack("Attack", 11, 1);
 
 // The third move does nothing; the blast behind it is Explosive's, not the move's
-static MOVE_UNKNOWN: Move = make_move("Unknown", &[], Intent::Unknown);
+static MOVE_UNKNOWN: Move = make_move("Unknown", &[], IntentKind::Unknown);
 
 static MOVES_ASC0: [Move; 2] = [MOVE_ATTACK_9, MOVE_UNKNOWN];
 static MOVES_ASC2: [Move; 2] = [MOVE_ATTACK_11, MOVE_UNKNOWN];

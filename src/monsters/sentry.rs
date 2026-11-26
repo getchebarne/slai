@@ -2,7 +2,7 @@ use crate::consts::MAX_MONSTERS;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::entity::Intent;
+use crate::entity::IntentKind;
 use crate::entity::Move;
 use crate::modifier::ModifierKind;
 use crate::monsters::MonsterTemplate;
@@ -28,7 +28,7 @@ static MOVE_BOLT_2: Move = make_move(
         id_source: None,
         target: Target::Direct(None),
     }],
-    Intent::Debuff,
+    IntentKind::Debuff,
 );
 static MOVE_BOLT_3: Move = make_move(
     "Bolt",
@@ -42,7 +42,7 @@ static MOVE_BOLT_3: Move = make_move(
         id_source: None,
         target: Target::Direct(None),
     }],
-    Intent::Debuff,
+    IntentKind::Debuff,
 );
 
 static MOVES_ASC0: [Move; 2] = [MOVE_BEAM_9, MOVE_BOLT_2];

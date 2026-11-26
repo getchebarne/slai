@@ -4,7 +4,7 @@ use crate::effect::ScaledAt;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::TARGET_MONSTERS_ALL;
 use crate::effect::TARGET_SOURCE;
-use crate::entity::Intent;
+use crate::entity::IntentKind;
 use crate::entity::Move;
 use crate::modifier::ModifierKind;
 use crate::monsters::MonsterTemplate;
@@ -31,10 +31,7 @@ const fn move_smash(damage: u16) -> Move {
             id_source: None,
             target: TARGET_CHARACTER,
         }],
-        Intent::AttackBlock {
-            damage,
-            instances: 1,
-        },
+        IntentKind::AttackBlock,
     )
 }
 
@@ -60,10 +57,7 @@ static MOVE_SMASH_38_BLOCK_99: Move = make_move(
             target: TARGET_SOURCE,
         },
     ],
-    Intent::AttackBlock {
-        damage: 38,
-        instances: 1,
-    },
+    IntentKind::AttackBlock,
 );
 
 // Fortify: 30 block to every living Monster, the Shield included
@@ -74,7 +68,7 @@ static MOVE_FORTIFY: Move = make_move(
         id_source: None,
         target: TARGET_MONSTERS_ALL,
     }],
-    Intent::Block,
+    IntentKind::Block,
 );
 
 static MOVE_BASH_12: Move = move_attack_debuff("Bash", 12, ModifierKind::Strength, -1);

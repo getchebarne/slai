@@ -56,13 +56,13 @@ pub enum CardCostKind {
     XCost { offset: i8 }, // offset is consumed by the per-play multiplier in `process_card_play`
 }
 
-// TODO: revisit implementation. Could be flat-enum and `damage: u16` and `instances: u8`
+// The kind a move's intent shows; an attack's numbers are its DamagePhysical's
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub enum Intent {
-    Attack { damage: u16, instances: u8 },
-    AttackBlock { damage: u16, instances: u8 },
-    AttackBuff { damage: u16, instances: u8 },
-    AttackDebuff { damage: u16, instances: u8 },
+pub enum IntentKind {
+    Attack,
+    AttackBlock,
+    AttackBuff,
+    AttackDebuff,
     Block,
     BlockBuff,
     BlockDebuff,
@@ -80,7 +80,7 @@ pub struct Move {
     pub name: &'static str,
     pub effects: [Effect; MAX_EFFECTS_PER_MOVE],
     pub effects_len: u8,
-    pub intent: Intent,
+    pub intent: IntentKind,
 }
 
 // Fat Entity
