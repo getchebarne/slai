@@ -85,8 +85,8 @@ pub struct PyMonster {
     pub modifiers: Vec<PyModifier>,
     pub intent: Option<PyIntent>, // None while Runic Dome hides it
     pub moveset: Option<u8>, // Its template's moveset index; None until a spawn-rolled move shows
-    pub moves_shown: Vec<u8>, // Moveset indices of the moves showing its intent; empty while hidden
-    pub move_history: Vec<u8>, // Moves before the current one; under Runic Dome only executed ones
+    pub moves_shown: Vec<usize>, // Moveset indices of the moves showing its intent; empty if hidden
+    pub move_history: Vec<usize>, // Moves before the current; under Runic Dome only executed ones
     pub gold_stolen: u16,    // Only relevant for Looters and Muggers
     pub ultimate_used: bool, // The Monster's once-per-combat move has been used: Red Slaver's Entangle, Champ's Anger, Bronze Orb's Stasis, the Collector's Mega Debuff, Time Eater's Haste, Writhing Mass's Implant
     pub replay_target: bool, // A waiting replay aims at this Monster
@@ -175,19 +175,25 @@ pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
             let len_history = monster.monster_move_history_len as usize;
             let move_history = &monster.monster_move_history[..len_history];
             let move_history_exec = &monster.monster_move_history_exec[..len_history];
-            let move_history = if move_hidden {
+            let move_history: Vec<usize> = if move_hidden {
                 // The upcoming move and any move replaced before it executed were never seen
                 move_history
                     .iter()
                     .zip(move_history_exec)
                     .filter(|(_, executed)| **executed)
-                    .map(|(&move_idx, _)| move_idx)
+                    .map(|(&move_idx, _)| usize::from(move_idx))
                     .collect()
             } else if move_history_exec.last() == Some(&false) {
                 // The last entry is the upcoming move until it executes
-                move_history[..len_history - 1].to_vec()
+                move_history[..len_history - 1]
+                    .iter()
+                    .map(|&idx_move| usize::from(idx_move))
+                    .collect()
             } else {
-                move_history.to_vec()
+                move_history
+                    .iter()
+                    .map(|&idx_move| usize::from(idx_move))
+                    .collect()
             };
 
             // The Monster's once-per-Combat move, once it has been used
@@ -220,7 +226,7 @@ pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
                                     .is_some_and(|stages| stages.contains(&idx_move))
                                 && intent_shown(state, monster, mv.intent, effects) == intent
                     })
-                    .map(|(idx_move, _)| idx_move as u8)
+                    .map(|(idx_move, _)| idx_move)
                     .collect();
 
                 (Some(intent), moves_shown)
@@ -242,7 +248,7 @@ pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
             let moveset_told = movesets.len() == 1
                 || move_history
                     .iter()
-                    .map(|&idx_move| idx_move as usize)
+                    .copied()
                     .chain(monster.monster_move_current.filter(|_| !move_hidden))
                     .any(|idx_move| move_spawn_rolled(movesets, idx_move));
             let moveset = movesets
