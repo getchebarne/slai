@@ -5,7 +5,7 @@ use crate::effect::ScaledAt;
 use crate::effect::Summon;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
-use crate::entity::Intent;
+use crate::entity::IntentKind;
 use crate::entity::Move;
 use crate::modifier::ModifierKind;
 use crate::monsters::MonsterTemplate;
@@ -60,21 +60,18 @@ const fn move_snake_strike(damage: u16) -> Move {
                 target: TARGET_CHARACTER,
             },
         ],
-        Intent::AttackDebuff {
-            damage,
-            instances: 2,
-        },
+        IntentKind::AttackDebuff,
     )
 }
 
 static MOVE_SNAKE_STRIKE_13: Move = move_snake_strike(13);
 static MOVE_SNAKE_STRIKE_16: Move = move_snake_strike(16);
 // Summon: one dagger, two from A18
-static MOVE_SUMMON_1: Move = make_move("Summon", &[EFFECT_DAGGER_SUMMON], Intent::Unknown);
+static MOVE_SUMMON_1: Move = make_move("Summon", &[EFFECT_DAGGER_SUMMON], IntentKind::Unknown);
 static MOVE_SUMMON_2: Move = make_move(
     "Summon",
     &[EFFECT_DAGGER_SUMMON, EFFECT_DAGGER_SUMMON],
-    Intent::Unknown,
+    IntentKind::Unknown,
 );
 static MOVE_BIG_BITE_30: Move = move_attack("Big Bite", 30, 1);
 static MOVE_BIG_BITE_34: Move = move_attack("Big Bite", 34, 1);

@@ -7,7 +7,7 @@ use crate::effect::TARGET_MONSTERS_ALL;
 use crate::effect::TARGET_SOURCE;
 use crate::effect::Target;
 use crate::entity::Entity;
-use crate::entity::Intent;
+use crate::entity::IntentKind;
 use crate::entity::Move;
 use crate::modifier::ModifierKind;
 use crate::monsters::MonsterTemplate;
@@ -41,7 +41,7 @@ const fn move_torch_head_spawn(name: &'static str) -> Move {
             torch_head_spawn(TORCH_HEAD_POSTS[0]),
             torch_head_spawn(TORCH_HEAD_POSTS[1]),
         ],
-        Intent::Unknown,
+        IntentKind::Unknown,
     )
 }
 
@@ -67,7 +67,7 @@ const fn move_buff_side(block: u16, strength: i16) -> Move {
                 target: TARGET_MONSTERS_ALL,
             },
         ],
-        Intent::BlockBuff,
+        IntentKind::BlockBuff,
     )
 }
 
@@ -101,7 +101,7 @@ const fn move_mega_debuff(stacks: i16) -> Move {
                 target: TARGET_CHARACTER,
             },
         ],
-        Intent::DebuffPowerful,
+        IntentKind::DebuffPowerful,
     )
 }
 

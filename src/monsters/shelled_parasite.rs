@@ -2,7 +2,7 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::ScaledAt;
 use crate::effect::TARGET_CHARACTER;
-use crate::entity::Intent;
+use crate::entity::IntentKind;
 use crate::entity::Move;
 use crate::modifier::ModifierKind;
 use crate::monsters::MonsterTemplate;
@@ -31,10 +31,7 @@ const fn move_suck(damage: u16) -> Move {
             id_source: None,
             target: TARGET_CHARACTER,
         }],
-        Intent::AttackBuff {
-            damage,
-            instances: 1,
-        },
+        IntentKind::AttackBuff,
     )
 }
 
@@ -44,7 +41,7 @@ static MOVE_DOUBLE_STRIKE_6: Move = move_attack("Double Strike", 6, 2);
 static MOVE_DOUBLE_STRIKE_7: Move = move_attack("Double Strike", 7, 2);
 static MOVE_SUCK_10: Move = move_suck(10);
 static MOVE_SUCK_12: Move = move_suck(12);
-static MOVE_STUNNED: Move = make_move("Stunned", &[], Intent::Stunned);
+static MOVE_STUNNED: Move = make_move("Stunned", &[], IntentKind::Stunned);
 
 static MOVES_ASC0: [Move; 4] = [
     MOVE_FELL_18,

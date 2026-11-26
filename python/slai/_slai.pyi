@@ -24,7 +24,6 @@ __all__ = [
     "MAX_COMBAT_CARD_REWARD",
     "MAX_ENERGY_MAX",
     "MAX_MONSTERS",
-    "MAX_MONSTER_MOVES",
     "MAX_MOVE_HISTORY",
     "MAX_NORMALITY_PLAYS",
     "MAX_POCKETWATCH_PLAYS",
@@ -249,7 +248,6 @@ MAX_BOOT_DAMAGE: Final[int]
 MAX_COMBAT_CARD_REWARD: Final = 4
 MAX_ENERGY_MAX: Final[int]
 MAX_MONSTERS: Final[int]
-MAX_MONSTER_MOVES: Final[int]
 MAX_MOVE_HISTORY: Final[int]
 MAX_NORMALITY_PLAYS: Final[int]
 MAX_POCKETWATCH_PLAYS: Final[int]
@@ -2228,11 +2226,11 @@ class Monster:
     @property
     def modifiers(self, /) -> list[Modifier]: ...
     @property
-    def move_current(self, /) -> int | None: ...
-    @property
-    def move_effects(self, /) -> list[Effect]: ...
-    @property
     def move_history(self, /) -> bytes: ...
+    @property
+    def moves_shown(self, /) -> bytes: ...
+    @property
+    def moveset(self, /) -> int | None: ...
     @property
     def name(self, /) -> MonsterName: ...
     @property
@@ -2430,7 +2428,7 @@ class MonsterTemplate:
     @property
     def modifier_spawns(self, /) -> list[ModifierSpawnTemplate]: ...
     @property
-    def moves(self, /) -> list[MonsterMoveTemplate]: ...
+    def movesets(self, /) -> list[list[MonsterMoveTemplate]]: ...
     @property
     def name(self, /) -> MonsterName: ...
 

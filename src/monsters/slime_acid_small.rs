@@ -1,4 +1,4 @@
-use crate::entity::Intent;
+use crate::entity::IntentKind;
 use crate::entity::Move;
 use crate::modifier::ModifierKind;
 use crate::monsters::MonsterTemplate;
@@ -10,7 +10,7 @@ use rand::Rng;
 
 static MOVE_TACKLE_3: Move = move_attack("Tackle", 3, 1);
 static MOVE_TACKLE_4: Move = move_attack("Tackle", 4, 1);
-static MOVE_LICK: Move = move_debuff("Lick", ModifierKind::Weak, 1, Intent::Debuff);
+static MOVE_LICK: Move = move_debuff("Lick", ModifierKind::Weak, 1, IntentKind::Debuff);
 static MOVES_ASC0: [Move; 2] = [MOVE_TACKLE_3, MOVE_LICK];
 static MOVES_ASC2: [Move; 2] = [MOVE_TACKLE_4, MOVE_LICK];
 static MOVES_ASC17: [Move; 2] = [MOVE_TACKLE_4, MOVE_LICK];

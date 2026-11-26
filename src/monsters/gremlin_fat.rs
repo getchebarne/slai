@@ -2,7 +2,7 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::ScaledAt;
 use crate::effect::TARGET_CHARACTER;
-use crate::entity::Intent;
+use crate::entity::IntentKind;
 use crate::entity::Move;
 use crate::modifier::ModifierKind;
 use crate::monsters::MonsterTemplate;
@@ -45,10 +45,7 @@ static MOVE_SMASH_5_W1_F1: Move = make_move(
             target: TARGET_CHARACTER,
         },
     ],
-    Intent::AttackDebuff {
-        damage: 5,
-        instances: 1,
-    },
+    IntentKind::AttackDebuff,
 );
 static MOVES_ASC0: [Move; 1] = [MOVE_SMASH_4_W1];
 static MOVES_ASC2: [Move; 1] = [MOVE_SMASH_5_W1];

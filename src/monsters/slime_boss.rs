@@ -1,7 +1,7 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::entity::Intent;
+use crate::entity::IntentKind;
 use crate::entity::Move;
 use crate::modifier::ModifierKind;
 use crate::monsters::MonsterTemplate;
@@ -26,7 +26,7 @@ static MOVE_GOOP_SPRAY_3: Move = make_move(
         id_source: None,
         target: Target::Direct(None),
     }],
-    Intent::DebuffPowerful,
+    IntentKind::DebuffPowerful,
 );
 static MOVE_GOOP_SPRAY_5: Move = make_move(
     "Goop Spray",
@@ -40,9 +40,9 @@ static MOVE_GOOP_SPRAY_5: Move = make_move(
         id_source: None,
         target: Target::Direct(None),
     }],
-    Intent::DebuffPowerful,
+    IntentKind::DebuffPowerful,
 );
-static MOVE_PREPARING: Move = make_move("Preparing", &[], Intent::Unknown);
+static MOVE_PREPARING: Move = make_move("Preparing", &[], IntentKind::Unknown);
 static MOVE_SLAM_35: Move = move_attack("Slam", 35, 1);
 static MOVE_SLAM_38: Move = move_attack("Slam", 38, 1);
 // The Larges flank the boss's slot 2, leaving each a free slot to its left for its own split

@@ -6,7 +6,7 @@ use crate::effect::Rounding;
 use crate::effect::ScaledAt;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::TARGET_SOURCE;
-use crate::entity::Intent;
+use crate::entity::IntentKind;
 use crate::entity::Move;
 use crate::modifier::ModifierKind;
 use crate::monsters::MonsterTemplate;
@@ -50,10 +50,7 @@ static MOVE_EXPLODE: Move = make_move(
             target: TARGET_SOURCE,
         },
     ],
-    Intent::Attack {
-        damage: 25,
-        instances: 1,
-    },
+    IntentKind::Attack,
 );
 
 static MOVES: [Move; 2] = [MOVE_STAB, MOVE_EXPLODE];

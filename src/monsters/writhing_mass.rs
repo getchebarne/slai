@@ -5,7 +5,7 @@ use crate::effect::ScaledAt;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::TARGET_SOURCE;
 use crate::effect::Target;
-use crate::entity::Intent;
+use crate::entity::IntentKind;
 use crate::entity::Move;
 use crate::modifier::ModifierKind;
 use crate::monsters::MonsterTemplate;
@@ -42,10 +42,7 @@ const fn move_attack_block(damage: u16) -> Move {
                 target: TARGET_SOURCE,
             },
         ],
-        Intent::AttackBlock {
-            damage,
-            instances: 1,
-        },
+        IntentKind::AttackBlock,
     )
 }
 
@@ -83,10 +80,7 @@ const fn move_attack_weak_vulnerable(damage: u16) -> Move {
                 target: TARGET_CHARACTER,
             },
         ],
-        Intent::AttackDebuff {
-            damage,
-            instances: 1,
-        },
+        IntentKind::AttackDebuff,
     )
 }
 
@@ -112,7 +106,7 @@ static MOVE_IMPLANT: Move = make_move(
         id_source: None,
         target: Target::Direct(None),
     }],
-    Intent::DebuffPowerful,
+    IntentKind::DebuffPowerful,
 );
 
 static MOVES_ASC0: [Move; 5] = [

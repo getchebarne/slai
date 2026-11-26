@@ -1,7 +1,7 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::TARGET_SOURCE;
-use crate::entity::Intent;
+use crate::entity::IntentKind;
 use crate::entity::Move;
 use crate::modifier::ModifierKind;
 use crate::modifier::Modifiers;
@@ -26,7 +26,7 @@ const fn move_go_airborne(flight: i16) -> Move {
             id_source: None,
             target: TARGET_SOURCE,
         }],
-        Intent::Unknown,
+        IntentKind::Unknown,
     )
 }
 
@@ -35,7 +35,7 @@ static MOVE_PECK_6: Move = move_attack("Peck", 1, 6);
 static MOVE_SWOOP_12: Move = move_attack("Swoop", 12, 1);
 static MOVE_SWOOP_14: Move = move_attack("Swoop", 14, 1);
 static MOVE_CAW: Move = move_buff("Caw", ModifierKind::Strength, 1);
-static MOVE_STUNNED: Move = make_move("Stunned", &[], Intent::Stunned);
+static MOVE_STUNNED: Move = make_move("Stunned", &[], IntentKind::Stunned);
 static MOVE_HEADBUTT: Move = move_attack("Headbutt", 3, 1);
 static MOVE_GO_AIRBORNE_3: Move = move_go_airborne(3);
 static MOVE_GO_AIRBORNE_4: Move = move_go_airborne(4);

@@ -79,7 +79,7 @@ use crate::effect::Target;
 use crate::entity::ENTITY_ZERO;
 use crate::entity::Entity;
 use crate::entity::EntityKind;
-use crate::entity::Intent;
+use crate::entity::IntentKind;
 use crate::entity::Move;
 use crate::modifier::MODIFIERS_ZERO;
 use crate::modifier::ModifierKind;
@@ -95,6 +95,7 @@ use crate::types::MonsterName;
 use crate::types::Vitals;
 use crate::utils::monsters_alive;
 use rand::Rng;
+use std::ops::RangeInclusive;
 
 // Static definition of a Monster: everything spawn-time except per-Monster rolls
 #[derive(Debug, Clone, Copy)]
@@ -223,6 +224,37 @@ const _: () = {
     }
 };
 
+// An attack's intent shows its one hit: an attack kind holds one DamagePhysical, any other none
+const fn assert_attacks_hit(moves: &[Move]) {
+    let mut idx_move = 0;
+    while idx_move < moves.len() {
+        let mv = &moves[idx_move];
+        let mut num_damage_physical = 0;
+        let mut idx_effect = 0;
+        while idx_effect < mv.effects_len as usize {
+            if matches!(
+                mv.effects[idx_effect].kind,
+                EffectKind::DamagePhysical { .. }
+            ) {
+                num_damage_physical += 1;
+            }
+            idx_effect += 1;
+        }
+        let is_attack = matches!(
+            mv.intent,
+            IntentKind::Attack
+                | IntentKind::AttackBlock
+                | IntentKind::AttackBuff
+                | IntentKind::AttackDebuff
+        );
+        assert!(
+            num_damage_physical == is_attack as usize,
+            "An attack kind holds one DamagePhysical, any other kind none"
+        );
+        idx_move += 1;
+    }
+}
+
 // Move-use counts are indexed by move, so every move table must fit them
 const _: () = {
     let mut idx = 0;
@@ -237,6 +269,7 @@ const _: () = {
                     movesets[idx_set].len() <= MAX_MONSTER_MOVES,
                     "move table larger than MAX_MONSTER_MOVES"
                 );
+                assert_attacks_hit(movesets[idx_set]);
                 idx_set += 1;
             }
             idx_tier += 1;
@@ -315,6 +348,24 @@ pub fn move_ultimate(monster_name: MonsterName) -> Option<usize> {
         MonsterName::TheCollector => Some(the_collector::IDX_MOVE_MEGA_DEBUFF),
         MonsterName::TimeEater => Some(time_eater::IDX_MOVE_HASTE),
         MonsterName::WrithingMass => Some(writhing_mass::IDX_MOVE_IMPLANT),
+        _ => None,
+    }
+}
+
+// The entries that are one move's successive stages: the history tells the stage, not the intent
+pub fn move_stages(monster_name: MonsterName) -> Option<RangeInclusive<usize>> {
+    match monster_name {
+        MonsterName::CorruptHeart => {
+            Some(corrupt_heart::IDX_MOVE_BUFF_FIRST..=corrupt_heart::IDX_MOVE_BUFF_LAST)
+        }
+        MonsterName::GiantHead => {
+            Some(giant_head::IDX_MOVE_IT_IS_TIME_FIRST..=giant_head::IDX_MOVE_IT_IS_TIME_LAST)
+        }
+        MonsterName::Hexaghost => {
+            Some(hexaghost::IDX_MOVE_SEAR_PRE..=hexaghost::IDX_MOVE_SEAR_POST)
+        }
+        MonsterName::Lagavulin => Some(lagavulin::IDX_MOVE_SLEEP..=lagavulin::IDX_MOVE_WAKE_UP),
+        MonsterName::Transient => Some(0..=MAX_MONSTER_MOVES - 1), // Every entry
         _ => None,
     }
 }
@@ -711,7 +762,7 @@ pub const fn move_attack(name: &'static str, damage: u16, instances: u8) -> Move
             id_source: None,
             target: TARGET_CHARACTER,
         }],
-        Intent::Attack { damage, instances },
+        IntentKind::Attack,
     )
 }
 
@@ -723,7 +774,7 @@ pub const fn move_buff(name: &'static str, kind: ModifierKind, stacks: i16) -> M
             id_source: None,
             target: TARGET_SOURCE,
         }],
-        Intent::Buff,
+        IntentKind::Buff,
     )
 }
 
@@ -731,7 +782,7 @@ pub const fn move_debuff(
     name: &'static str,
     kind: ModifierKind,
     stacks: i16,
-    intent: Intent,
+    intent: IntentKind,
 ) -> Move {
     make_move(
         name,
@@ -771,10 +822,7 @@ pub const fn move_attack_debuff(
                 target: TARGET_CHARACTER,
             },
         ],
-        Intent::AttackDebuff {
-            damage,
-            instances: 1,
-        },
+        IntentKind::AttackDebuff,
     )
 }
 
@@ -811,10 +859,7 @@ pub const fn move_attack_card_add(
                 target: Target::Direct(None),
             },
         ],
-        Intent::AttackDebuff {
-            damage,
-            instances: 1,
-        },
+        IntentKind::AttackDebuff,
     )
 }
 
@@ -826,7 +871,7 @@ pub const fn move_block(name: &'static str, block: u16) -> Move {
             id_source: None,
             target: TARGET_SOURCE,
         }],
-        Intent::Block,
+        IntentKind::Block,
     )
 }
 
@@ -849,7 +894,7 @@ pub const fn move_block_buff(name: &'static str, block: u16, strength: i16) -> M
                 target: TARGET_SOURCE,
             },
         ],
-        Intent::BlockBuff,
+        IntentKind::BlockBuff,
     )
 }
 
@@ -886,11 +931,11 @@ pub const fn move_split(
                 target: TARGET_SOURCE,
             },
         ],
-        Intent::Unknown,
+        IntentKind::Unknown,
     )
 }
 
-pub const fn make_move(name: &'static str, effects: &[Effect], intent: Intent) -> Move {
+pub const fn make_move(name: &'static str, effects: &[Effect], intent: IntentKind) -> Move {
     let mut arr = [EFFECT_ZERO; MAX_EFFECTS_PER_MOVE];
     let mut idx = 0;
     while idx < effects.len() {

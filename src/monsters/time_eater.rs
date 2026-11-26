@@ -8,7 +8,7 @@ use crate::effect::ScaledAt;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::TARGET_SOURCE;
 use crate::effect::Target;
-use crate::entity::Intent;
+use crate::entity::IntentKind;
 use crate::entity::Move;
 use crate::modifier::ModifierKind;
 use crate::monsters::MonsterTemplate;
@@ -48,7 +48,7 @@ static MOVE_RIPPLE: Move = make_move(
             target: TARGET_CHARACTER,
         },
     ],
-    Intent::BlockDebuff,
+    IntentKind::BlockDebuff,
 );
 
 // A19+ Ripple also applies Frail
@@ -85,7 +85,7 @@ static MOVE_RIPPLE_A19: Move = make_move(
             target: TARGET_CHARACTER,
         },
     ],
-    Intent::BlockDebuff,
+    IntentKind::BlockDebuff,
 );
 
 // Haste: shed every debuff, then heal to half max HP
@@ -110,7 +110,7 @@ static MOVE_HASTE: Move = make_move(
             target: TARGET_SOURCE,
         },
     ],
-    Intent::Buff,
+    IntentKind::Buff,
 );
 
 // A19+ Haste also gains 32 block
@@ -140,7 +140,7 @@ static MOVE_HASTE_A19: Move = make_move(
             target: TARGET_SOURCE,
         },
     ],
-    Intent::Buff,
+    IntentKind::Buff,
 );
 
 static MOVE_REVERBERATE_7: Move = move_attack("Reverberate", 7, 3);
@@ -185,10 +185,7 @@ static MOVE_HEAD_SLAM_32_A19: Move = make_move(
             target: Target::Direct(None),
         },
     ],
-    Intent::AttackDebuff {
-        damage: 32,
-        instances: 1,
-    },
+    IntentKind::AttackDebuff,
 );
 
 static MOVES_ASC0: [Move; 4] = [

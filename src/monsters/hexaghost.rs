@@ -5,7 +5,7 @@ use crate::effect::ScaledAt;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::TARGET_SOURCE;
 use crate::effect::Target;
-use crate::entity::Intent;
+use crate::entity::IntentKind;
 use crate::entity::Move;
 use crate::modifier::ModifierKind;
 use crate::monsters::MonsterTemplate;
@@ -41,15 +41,12 @@ const fn move_inferno(damage: u16) -> Move {
                 target: Target::Direct(None),
             },
         ],
-        Intent::AttackDebuff {
-            damage,
-            instances: INFERNO_HITS,
-        },
+        IntentKind::AttackDebuff,
     )
 }
 
 // First move: essentially a no-op
-static MOVE_ACTIVATE: Move = make_move("Activate", &[], Intent::Unknown);
+static MOVE_ACTIVATE: Move = make_move("Activate", &[], IntentKind::Unknown);
 
 // Divider damage (HP/12+1 x 6); the 0 damage is a placeholder, locked in at move selection
 static MOVE_DIVIDER: Move = move_attack("Divider", 0, HEXAGHOST_DIVIDER_HITS);
@@ -79,7 +76,7 @@ static MOVE_INFLAME_2: Move = make_move(
             target: TARGET_SOURCE,
         },
     ],
-    Intent::BlockBuff,
+    IntentKind::BlockBuff,
 );
 static MOVE_INFLAME_3: Move = make_move(
     "Inflame",
@@ -98,7 +95,7 @@ static MOVE_INFLAME_3: Move = make_move(
             target: TARGET_SOURCE,
         },
     ],
-    Intent::BlockBuff,
+    IntentKind::BlockBuff,
 );
 
 // Inferno: 6 hits + Burn increase (upgrade existing Burns + add 3 upgraded)
@@ -138,8 +135,8 @@ static MOVES_ASC19: [Move; 7] = [
 
 const IDX_MOVE_ACTIVATE: usize = 0;
 pub const IDX_MOVE_DIVIDER: usize = 1;
-const IDX_MOVE_SEAR_PRE: usize = 2;
-const IDX_MOVE_SEAR_POST: usize = 3;
+pub const IDX_MOVE_SEAR_PRE: usize = 2;
+pub const IDX_MOVE_SEAR_POST: usize = 3;
 const IDX_MOVE_TACKLE: usize = 4;
 const IDX_MOVE_INFLAME: usize = 5;
 const IDX_MOVE_INFERNO: usize = 6;

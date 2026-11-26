@@ -1,4 +1,4 @@
-use crate::entity::Intent;
+use crate::entity::IntentKind;
 use crate::entity::Move;
 use crate::modifier::ModifierKind;
 use crate::monsters::MonsterTemplate;
@@ -13,7 +13,7 @@ static MOVE_BITE_5: Move = move_attack("Bite", 5, 1);
 static MOVE_BITE_6: Move = move_attack("Bite", 6, 1);
 static MOVE_BITE_7: Move = move_attack("Bite", 7, 1);
 static MOVE_BITE_8: Move = move_attack("Bite", 8, 1);
-static MOVE_WEB: Move = move_debuff("Spit Web", ModifierKind::Weak, 2, Intent::Debuff);
+static MOVE_WEB: Move = move_debuff("Spit Web", ModifierKind::Weak, 2, IntentKind::Debuff);
 
 static MOVES_BITE5: [Move; 2] = [MOVE_BITE_5, MOVE_WEB];
 static MOVES_BITE6: [Move; 2] = [MOVE_BITE_6, MOVE_WEB];

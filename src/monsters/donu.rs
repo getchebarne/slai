@@ -1,7 +1,7 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::TARGET_MONSTERS_ALL;
-use crate::entity::Intent;
+use crate::entity::IntentKind;
 use crate::entity::Move;
 use crate::modifier::ModifierKind;
 use crate::monsters::MonsterTemplate;
@@ -22,7 +22,7 @@ static MOVE_CIRCLE_OF_POWER: Move = make_move(
         id_source: None,
         target: TARGET_MONSTERS_ALL,
     }],
-    Intent::Buff,
+    IntentKind::Buff,
 );
 static MOVE_BEAM_10: Move = move_attack("Beam", 10, 2);
 static MOVE_BEAM_12: Move = move_attack("Beam", 12, 2);
